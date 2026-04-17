@@ -64,8 +64,13 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     setErrors({});
     setLoading(true);
     const { error } = await supabase.from('orders').insert({
-      ...parsed.data,
-      notes: parsed.data.notes || null,
+      customer_name: parsed.data.customer_name,
+      customer_email: parsed.data.customer_email,
+      customer_phone: parsed.data.customer_phone,
+      shipping_address: parsed.data.shipping_address,
+      shipping_city: parsed.data.shipping_city,
+      shipping_zip: parsed.data.shipping_zip,
+      notes: parsed.data.notes || undefined,
       items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, type: i.type })),
       subtotal: sub,
       shipping_cost: shipping,

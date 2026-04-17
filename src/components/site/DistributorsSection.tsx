@@ -45,8 +45,12 @@ export function DistributorsSection() {
     setErrors({});
     setLoading(true);
     const { error } = await supabase.from('distributor_leads').insert({
-      ...parsed.data,
-      message: parsed.data.message || null,
+      full_name: parsed.data.full_name,
+      company: parsed.data.company,
+      city: parsed.data.city,
+      phone: parsed.data.phone,
+      email: parsed.data.email,
+      message: parsed.data.message || undefined,
     });
     setLoading(false);
     if (error) {
