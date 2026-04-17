@@ -14,7 +14,221 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      distributor_leads: {
+        Row: {
+          city: string
+          company: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          message: string | null
+          phone: string
+          status: string
+          synced_to_crm: boolean
+        }
+        Insert: {
+          city: string
+          company: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          message?: string | null
+          phone: string
+          status?: string
+          synced_to_crm?: boolean
+        }
+        Update: {
+          city?: string
+          company?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string | null
+          phone?: string
+          status?: string
+          synced_to_crm?: boolean
+        }
+        Relationships: []
+      }
+      kits: {
+        Row: {
+          created_at: string
+          description: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          name: string
+          original_price: number | null
+          pool_size: string | null
+          price: number
+          product_ids: string[] | null
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          original_price?: number | null
+          pool_size?: string | null
+          price: number
+          product_ids?: string[] | null
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          original_price?: number | null
+          pool_size?: string | null
+          price?: number
+          product_ids?: string[] | null
+          slug?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id: string
+          items: Json
+          notes: string | null
+          payment_method: string
+          shipping_address: string
+          shipping_city: string
+          shipping_cost: number
+          shipping_zip: string
+          status: string
+          subtotal: number
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id?: string
+          items: Json
+          notes?: string | null
+          payment_method: string
+          shipping_address: string
+          shipping_city: string
+          shipping_cost?: number
+          shipping_zip: string
+          status?: string
+          subtotal: number
+          total: number
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          items?: Json
+          notes?: string | null
+          payment_method?: string
+          shipping_address?: string
+          shipping_city?: string
+          shipping_cost?: number
+          shipping_zip?: string
+          status?: string
+          subtotal?: number
+          total?: number
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: Database["public"]["Enums"]["product_category"]
+          created_at: string
+          description: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          short_description: string | null
+          slug: string
+          stock: number
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+          short_description?: string | null
+          slug: string
+          stock?: number
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          short_description?: string | null
+          slug?: string
+          stock?: number
+        }
+        Relationships: []
+      }
+      wizard_recommendations: {
+        Row: {
+          control_type: string | null
+          created_at: string
+          id: string
+          pool_size: string | null
+          pool_type: string | null
+          recommended_kit_id: string | null
+          usage_type: string | null
+        }
+        Insert: {
+          control_type?: string | null
+          created_at?: string
+          id?: string
+          pool_size?: string | null
+          pool_type?: string | null
+          recommended_kit_id?: string | null
+          usage_type?: string | null
+        }
+        Update: {
+          control_type?: string | null
+          created_at?: string
+          id?: string
+          pool_size?: string | null
+          pool_type?: string | null
+          recommended_kit_id?: string | null
+          usage_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wizard_recommendations_recommended_kit_id_fkey"
+            columns: ["recommended_kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +237,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      product_category:
+        | "luminarias"
+        | "controladores"
+        | "kits"
+        | "osire"
+        | "accesorios"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +369,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      product_category: [
+        "luminarias",
+        "controladores",
+        "kits",
+        "osire",
+        "accesorios",
+      ],
+    },
   },
 } as const
