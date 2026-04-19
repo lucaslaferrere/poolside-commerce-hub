@@ -10,6 +10,7 @@ import { Footer } from '@/components/site/Footer';
 import { CartDrawer } from '@/components/site/CartDrawer';
 import { WhatsAppFAB } from '@/components/site/WhatsAppFAB';
 import { WaveDivider } from '@/components/site/WaveDivider';
+import { WaterSplash } from '@/components/site/WaterSplash';
 
 const Index = () => {
   return (
@@ -26,6 +27,7 @@ const Index = () => {
       <Footer />
       <CartDrawer />
       <WhatsAppFAB />
+      <WaterSplash />
     </main>
   );
 };
