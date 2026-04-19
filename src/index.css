@@ -123,6 +123,20 @@
   animation: wave-flow 12s linear infinite;
 }
 
+/* Cart wobble (water-shake) when item added */
+@keyframes cart-wobble {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  15% { transform: rotate(-12deg) scale(1.15); }
+  30% { transform: rotate(10deg) scale(1.15); }
+  45% { transform: rotate(-8deg) scale(1.1); }
+  60% { transform: rotate(6deg) scale(1.05); }
+  75% { transform: rotate(-3deg) scale(1.02); }
+}
+.animate-cart-wobble {
+  animation: cart-wobble 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform-origin: center;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: hsl(var(--muted)); }
