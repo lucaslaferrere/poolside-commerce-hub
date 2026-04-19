@@ -16,6 +16,7 @@ interface Props {
 export function ProductCard({ product, index = 0 }: Props) {
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
+  const triggerSplash = useCart((s) => s.triggerSplash);
 
   const handleAdd = () => {
     add({
@@ -25,8 +26,9 @@ export function ProductCard({ product, index = 0 }: Props) {
       image_url: product.image_url,
       type: 'product',
     });
+    triggerSplash();
     toast.success('Agregado al carrito', { description: product.name });
-    open();
+    setTimeout(() => open(), 650);
   };
 
   return (

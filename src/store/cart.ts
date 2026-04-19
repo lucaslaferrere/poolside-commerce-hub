@@ -5,6 +5,9 @@ import type { CartItem } from '@/types/shop';
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
+  splashTick: number;
+  splashOrigin: { x: number; y: number } | null;
+  triggerSplash: (origin?: { x: number; y: number }) => void;
   add: (item: Omit<CartItem, 'quantity'>, qty?: number) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
@@ -21,6 +24,10 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       items: [],
       isOpen: false,
+      splashTick: 0,
+      splashOrigin: null,
+      triggerSplash: (origin) =>
+        set((s) => ({ splashTick: s.splashTick + 1, splashOrigin: origin ?? null })),
       add: (item, qty = 1) =>
         set((s) => {
           const existing = s.items.find((i) => i.id === item.id);

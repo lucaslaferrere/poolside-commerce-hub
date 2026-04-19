@@ -17,8 +17,10 @@ const NAV_LINKS = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [wobble, setWobble] = useState(false);
   const cartCount = useCart((s) => s.count());
   const openCart = useCart((s) => s.open);
+  const splashTick = useCart((s) => s.splashTick);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -26,6 +28,13 @@ export function Header() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (splashTick === 0) return;
+    setWobble(true);
+    const t = setTimeout(() => setWobble(false), 750);
+    return () => clearTimeout(t);
+  }, [splashTick]);
 
   return (
     <header
@@ -70,7 +79,7 @@ export function Header() {
               scrolled ? '' : 'text-white hover:bg-white/10 hover:text-white'
             )}
           >
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart className={cn('h-5 w-5', wobble && 'animate-cart-wobble')} />
             {cartCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 grid place-items-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-secondary text-secondary-foreground">
                 {cartCount}

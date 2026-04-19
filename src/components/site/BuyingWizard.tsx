@@ -63,6 +63,7 @@ export function BuyingWizard() {
   const [kits, setKits] = useState<Kit[]>([]);
   const add = useCart((s) => s.add);
   const openCart = useCart((s) => s.open);
+  const triggerSplash = useCart((s) => s.triggerSplash);
 
   useEffect(() => {
     supabase.from('kits').select('*').then(({ data }) => {
@@ -111,8 +112,9 @@ export function BuyingWizard() {
       image_url: recommended.image_url,
       type: 'kit',
     });
+    triggerSplash();
     toast.success('Kit agregado al carrito', { description: recommended.name });
-    openCart();
+    setTimeout(() => openCart(), 650);
   };
 
   return (

@@ -14,6 +14,7 @@ export function KitsSection() {
   const [kits, setKits] = useState<Kit[]>([]);
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
+  const triggerSplash = useCart((s) => s.triggerSplash);
 
   useEffect(() => {
     supabase.from('kits').select('*').eq('featured', true).then(({ data }) => {
@@ -23,8 +24,9 @@ export function KitsSection() {
 
   const handleAdd = (k: Kit) => {
     add({ id: k.id, name: k.name, price: Number(k.price), image_url: k.image_url, type: 'kit' });
+    triggerSplash();
     toast.success('Kit agregado', { description: k.name });
-    open();
+    setTimeout(() => open(), 650);
   };
 
   return (
