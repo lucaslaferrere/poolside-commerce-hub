@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle2, ArrowLeft, ArrowRight, MessageCircle, Sparkles } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Kit } from '@/types/shop';
 import { formatPrice } from '@/types/shop';
 import { useCart } from '@/store/cart';
 import { toast } from 'sonner';
 import { buildWhatsAppLink, BUSINESS_NAME } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
+import { useKits } from '@/hooks/useKits';
+import { apiPost } from '@/lib/api';
 
 type Answers = {
   pool_size?: 'chica' | 'mediana' | 'grande';
@@ -60,16 +60,11 @@ export function BuyingWizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [done, setDone] = useState(false);
-  const [kits, setKits] = useState<Kit[]>([]);
+  const { data } = useKits();
+  const kits = Array.isArray(data) ? data : [];
   const add = useCart((s) => s.add);
   const openCart = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
-
-  useEffect(() => {
-    supabase.from('kits').select('*').then(({ data }) => {
-      if (data) setKits(data as unknown as Kit[]);
-    });
-  }, []);
 
   const current = STEPS[step];
   const progress = ((step + (done ? 1 : 0)) / STEPS.length) * 100;
@@ -86,14 +81,14 @@ export function BuyingWizard() {
       setStep(step + 1);
     } else {
       setDone(true);
-      // Log recommendation
-      supabase.from('wizard_recommendations').insert({
+      // Fire-and-forget analytics — errors are intentionally ignored
+      apiPost('/wizard-recommendations', {
         pool_size: next.pool_size,
         pool_type: next.pool_type,
         usage_type: next.usage_type,
         control_type: next.control_type,
         recommended_kit_id: recommended?.id,
-      });
+      }).catch(() => {});
     }
   };
 

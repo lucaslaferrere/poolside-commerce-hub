@@ -6,11 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CheckCircle2, CreditCard, Wallet, Truck } from 'lucide-react';
+import { CheckCircle2, CreditCard, Wallet, Truck, ExternalLink } from 'lucide-react';
 import { useCart } from '@/store/cart';
 import { formatPrice } from '@/types/shop';
-import { supabase } from '@/integrations/supabase/client';
+import { apiPost } from '@/lib/api';
 import { toast } from 'sonner';
+
+interface CheckoutResult {
+  order_id?: string;
+  mercadopago_url?: string;
+}
 
 const schema = z.object({
   customer_name: z.string().trim().min(2).max(200),
@@ -44,6 +49,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
   const [payment, setPayment] = useState<'mercadopago' | 'transferencia' | 'efectivo'>('mercadopago');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null);
 
   const sub = subtotal();
   const shipping = calcShipping(form.shipping_zip, sub);
@@ -63,33 +69,37 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     }
     setErrors({});
     setLoading(true);
-    const { error } = await supabase.from('orders').insert({
-      customer_name: parsed.data.customer_name,
-      customer_email: parsed.data.customer_email,
-      customer_phone: parsed.data.customer_phone,
-      shipping_address: parsed.data.shipping_address,
-      shipping_city: parsed.data.shipping_city,
-      shipping_zip: parsed.data.shipping_zip,
-      notes: parsed.data.notes || undefined,
-      items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, type: i.type })),
-      subtotal: sub,
-      shipping_cost: shipping,
-      total,
-      payment_method: payment,
-    });
-    setLoading(false);
-    if (error) {
-      toast.error('Error al crear el pedido', { description: error.message });
-      return;
+    try {
+      const result = await apiPost<CheckoutResult>('/checkout', {
+        customer_name: parsed.data.customer_name,
+        customer_email: parsed.data.customer_email,
+        customer_phone: parsed.data.customer_phone,
+        shipping_address: parsed.data.shipping_address,
+        shipping_city: parsed.data.shipping_city,
+        shipping_zip: parsed.data.shipping_zip,
+        notes: parsed.data.notes || undefined,
+        items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, type: i.type })),
+        subtotal: sub,
+        shipping_cost: shipping,
+        total,
+        payment_method: payment,
+      });
+      setCheckoutResult(result);
+      setDone(true);
+      clear();
+      toast.success('¡Pedido confirmado!');
+    } catch (err) {
+      toast.error('Error al crear el pedido', {
+        description: err instanceof Error ? err.message : 'Error desconocido',
+      });
+    } finally {
+      setLoading(false);
     }
-    setDone(true);
-    clear();
-    toast.success('¡Pedido confirmado!');
   };
 
   const close = () => {
     onOpenChange(false);
-    setTimeout(() => setDone(false), 300);
+    setTimeout(() => { setDone(false); setCheckoutResult(null); }, 300);
   };
 
   return (
@@ -102,7 +112,16 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <DialogDescription className="mt-3">
               Te enviamos un email con los detalles. Si elegiste transferencia o efectivo, te contactamos a la brevedad.
             </DialogDescription>
-            <Button onClick={close} className="mt-6 gradient-aqua text-primary-foreground">Cerrar</Button>
+            {checkoutResult?.mercadopago_url && (
+              <Button asChild size="lg" className="mt-6 gradient-aqua text-primary-foreground">
+                <a href={checkoutResult.mercadopago_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" /> Pagar con MercadoPago
+                </a>
+              </Button>
+            )}
+            <Button onClick={close} variant={checkoutResult?.mercadopago_url ? 'outline' : 'default'} className={checkoutResult?.mercadopago_url ? 'mt-3' : 'mt-6 gradient-aqua text-primary-foreground'}>
+              Cerrar
+            </Button>
           </div>
         ) : (
           <>
@@ -152,9 +171,6 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
               <Button type="submit" disabled={loading || items.length === 0} size="lg" className="w-full gradient-aqua text-primary-foreground">
                 {loading ? 'Procesando...' : 'Confirmar pedido'}
               </Button>
-              <p className="text-[11px] text-muted-foreground text-center">
-                Demo: integración real con MercadoPago se activa con las credenciales del comercio.
-              </p>
             </form>
           </>
         )}

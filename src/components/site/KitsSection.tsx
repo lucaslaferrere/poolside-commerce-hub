@@ -1,26 +1,20 @@
-import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Package } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import type { Kit } from '@/types/shop';
 import { formatPrice } from '@/types/shop';
 import { useCart } from '@/store/cart';
 import { toast } from 'sonner';
+import { useKits } from '@/hooks/useKits';
 
 export function KitsSection() {
-  const [kits, setKits] = useState<Kit[]>([]);
+  const { data } = useKits(true);
+  const kits = Array.isArray(data) ? data : [];
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
-
-  useEffect(() => {
-    supabase.from('kits').select('*').eq('featured', true).then(({ data }) => {
-      if (data) setKits(data as unknown as Kit[]);
-    });
-  }, []);
 
   const handleAdd = (k: Kit) => {
     add({ id: k.id, name: k.name, price: Number(k.price), image_url: k.image_url, type: 'kit' });
@@ -42,7 +36,9 @@ export function KitsSection() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {kits.map((k, i) => {
-            const discount = k.original_price ? Math.round(((Number(k.original_price) - Number(k.price)) / Number(k.original_price)) * 100) : 0;
+            const discount = k.original_price
+              ? Math.round(((Number(k.original_price) - Number(k.price)) / Number(k.original_price)) * 100)
+              : 0;
             return (
               <motion.div
                 key={k.id}

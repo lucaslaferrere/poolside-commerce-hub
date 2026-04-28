@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Handshake, Send, CheckCircle2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiPost } from '@/lib/api';
 import { toast } from 'sonner';
 
 const schema = z.object({
@@ -44,22 +44,25 @@ export function DistributorsSection() {
     }
     setErrors({});
     setLoading(true);
-    const { error } = await supabase.from('distributor_leads').insert({
-      full_name: parsed.data.full_name,
-      company: parsed.data.company,
-      city: parsed.data.city,
-      phone: parsed.data.phone,
-      email: parsed.data.email,
-      message: parsed.data.message || undefined,
-    });
-    setLoading(false);
-    if (error) {
-      toast.error('No pudimos enviar el formulario', { description: error.message });
-      return;
+    try {
+      await apiPost('/distributor-leads', {
+        full_name: parsed.data.full_name,
+        company: parsed.data.company,
+        city: parsed.data.city,
+        phone: parsed.data.phone,
+        email: parsed.data.email,
+        message: parsed.data.message || undefined,
+      });
+      setSuccess(true);
+      toast.success('¡Recibido!', { description: 'Te contactamos en menos de 24hs.' });
+      setForm({ full_name: '', company: '', city: '', phone: '', email: '', message: '' });
+    } catch (err) {
+      toast.error('No pudimos enviar el formulario', {
+        description: err instanceof Error ? err.message : 'Error desconocido',
+      });
+    } finally {
+      setLoading(false);
     }
-    setSuccess(true);
-    toast.success('¡Recibido!', { description: 'Te contactamos en menos de 24hs.' });
-    setForm({ full_name: '', company: '', city: '', phone: '', email: '', message: '' });
   };
 
   return (

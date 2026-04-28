@@ -53,7 +53,7 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="container py-4 text-xs text-primary-foreground/60 flex flex-col sm:flex-row justify-between gap-2">
           <span>© {new Date().getFullYear()} AquaLed. Todos los derechos reservados.</span>
-          <span>Hecho con ♥ para piletas que brillan.</span>
+          <span>Hecho por L&R Solutions.</span>
         </div>
       </div>
     </footer>
