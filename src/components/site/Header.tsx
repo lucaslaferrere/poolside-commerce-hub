@@ -71,7 +71,7 @@ export function Header() {
             <Droplet className="h-4 w-4" fill="currentColor" />
           </span>
           <span className={cn(scrolled ? 'text-foreground' : 'text-white drop-shadow')}>
-            AquaLed
+            Pooled
           </span>
         </a>
 
@@ -137,7 +137,7 @@ export function Header() {
                   <span className="grid place-items-center h-8 w-8 rounded-full gradient-aqua text-primary-foreground">
                     <Droplet className="h-4 w-4" fill="currentColor" />
                   </span>
-                  AquaLed
+                  Pooled
                 </SheetTitle>
               </SheetHeader>
 

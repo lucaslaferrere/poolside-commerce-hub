@@ -25,7 +25,7 @@ export function InstagramFeed() {
           <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Comunidad</span>
           <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 flex items-center justify-center gap-3 flex-wrap">
             <Instagram className="h-8 w-8 text-secondary" />
-            @aqualed
+            @pooled
           </h2>
           <p className="text-muted-foreground mt-3">Seguinos para inspirarte con instalaciones reales.</p>
         </div>

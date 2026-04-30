@@ -248,7 +248,7 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
                     id="pf-brand"
                     value={fields.brand}
                     onChange={upd('brand')}
-                    placeholder="AquaLed..."
+                    placeholder="Pooled..."
                   />
                 </div>
               </div>

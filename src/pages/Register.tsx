@@ -59,7 +59,7 @@ export default function Register() {
         password: parsed.data.password,
       });
       setSession(res.token, res.user);
-      toast.success('¡Cuenta creada!', { description: 'Bienvenido/a a AquaLed.' });
+      toast.success('¡Cuenta creada!', { description: 'Bienvenido/a a Pooled.' });
       navigate('/');
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'No se pudo crear la cuenta');
@@ -76,7 +76,7 @@ export default function Register() {
             <span className="grid place-items-center h-10 w-10 rounded-full gradient-aqua text-primary-foreground shadow-aqua">
               <Droplet className="h-5 w-5" fill="currentColor" />
             </span>
-            AquaLed
+            Pooled
           </Link>
           <h1 className="font-display text-2xl font-bold mt-4">Crear cuenta</h1>
           <p className="text-muted-foreground text-sm mt-1">

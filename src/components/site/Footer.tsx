@@ -9,7 +9,7 @@ export function Footer() {
             <span className="grid place-items-center h-9 w-9 rounded-full bg-secondary">
               <Droplet className="h-4 w-4" fill="currentColor" />
             </span>
-            AquaLed
+            Pooled
           </div>
           <p className="text-sm text-primary-foreground/70 mt-3">
             Iluminación LED y accesorios para piletas. Calidad pro y asesoría experta.
@@ -30,7 +30,7 @@ export function Footer() {
           <h4 className="font-display font-semibold mb-3">Contacto</h4>
           <ul className="space-y-2 text-sm text-primary-foreground/70">
             <li className="flex items-center gap-2"><Phone className="h-4 w-4" /> +54 11 0000-0000</li>
-            <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> hola@aqualed.com.ar</li>
+            <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> hola@pooled.com.ar</li>
             <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Buenos Aires, Argentina</li>
           </ul>
         </div>
@@ -52,7 +52,7 @@ export function Footer() {
       </div>
       <div className="border-t border-white/10">
         <div className="container py-4 text-xs text-primary-foreground/60 flex flex-col sm:flex-row justify-between gap-2">
-          <span>© {new Date().getFullYear()} AquaLed. Todos los derechos reservados.</span>
+          <span>© {new Date().getFullYear()} Pooled. Todos los derechos reservados.</span>
           <span>Hecho por L&R Solutions.</span>
         </div>
       </div>
