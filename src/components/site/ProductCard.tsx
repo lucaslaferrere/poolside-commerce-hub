@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,7 @@ import { useCart } from '@/store/cart';
 import { CATEGORY_LABELS, formatPrice, type Product } from '@/types/shop';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ProductDetailModal } from './ProductDetailModal';
 
 interface Props {
   product: Product;
@@ -14,11 +16,13 @@ interface Props {
 }
 
 export function ProductCard({ product, index = 0 }: Props) {
+  const [modalOpen, setModalOpen] = useState(false);
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
     add({
       id: product.id,
       name: product.name,
@@ -26,12 +30,14 @@ export function ProductCard({ product, index = 0 }: Props) {
       image_url: product.image_url,
       type: 'product',
     });
-    triggerSplash();
+    triggerSplash({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
     toast.success('Agregado al carrito', { description: product.name });
     setTimeout(() => open(), 650);
   };
 
   return (
+    <>
+    <ProductDetailModal product={product} open={modalOpen} onClose={() => setModalOpen(false)} />
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -58,6 +64,18 @@ export function ProductCard({ product, index = 0 }: Props) {
           >
             {CATEGORY_LABELS[product.category]}
           </Badge>
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-background/60 grid place-items-center">
+              <span className="bg-destructive text-destructive-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                Sin stock
+              </span>
+            </div>
+          )}
+          {product.stock > 0 && product.stock <= 3 && (
+            <Badge className="absolute top-3 right-3 bg-orange-500 text-white border-0 text-[10px]">
+              Últimas {product.stock}
+            </Badge>
+          )}
         </div>
         <CardContent className="p-4">
           <h3 className="font-display font-semibold text-base leading-tight line-clamp-2 min-h-[2.5rem]">
@@ -69,14 +87,28 @@ export function ProductCard({ product, index = 0 }: Props) {
             </p>
           )}
           <div className="mt-3 flex items-center justify-between gap-2">
-            <span className="font-display font-bold text-lg text-primary">{formatPrice(Number(product.price))}</span>
-            <Button size="sm" onClick={handleAdd} className="gradient-aqua text-primary-foreground hover:opacity-90">
+            <div>
+              <span className="font-display font-bold text-lg text-primary">{formatPrice(Number(product.price))}</span>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="block text-[11px] text-muted-foreground hover:text-secondary underline-offset-2 hover:underline transition-colors"
+              >
+                Ver detalles
+              </button>
+            </div>
+            <Button
+              size="sm"
+              onClick={(e) => handleAdd(e)}
+              disabled={product.stock === 0}
+              className="gradient-aqua text-primary-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <Plus className="h-4 w-4" />
-              Agregar
+              {product.stock === 0 ? 'Sin stock' : 'Agregar'}
             </Button>
           </div>
         </CardContent>
       </Card>
     </motion.div>
+    </>
   );
 }

@@ -7,19 +7,20 @@ import { buildWhatsAppLink, BUSINESS_NAME } from '@/lib/whatsapp';
 export function Hero() {
   return (
     <section id="inicio" className="relative h-[100svh] min-h-[640px] w-full overflow-hidden">
-      {/* Video container — placeholder image until client provides video */}
+      {/* Video / imagen de fondo */}
       <div className="absolute inset-0">
-        {/*
-          Cuando tengas el video, reemplazá este img por:
-          <video autoPlay loop muted playsInline poster={heroImg} className="h-full w-full object-cover">
-            <source src="/hero.mp4" type="video/mp4" />
-          </video>
-        */}
-        <img
-          src={heroImg}
-          alt="Pileta iluminada con LED de noche"
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={heroImg}
           className="h-full w-full object-cover"
-        />
+        >
+          <source src="/hero.mp4" type="video/mp4" />
+          {/* Fallback si el navegador no soporta video */}
+          <img src={heroImg} alt="Pileta iluminada con LED de noche" className="h-full w-full object-cover" />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/40 to-primary/80" />
       </div>
 
