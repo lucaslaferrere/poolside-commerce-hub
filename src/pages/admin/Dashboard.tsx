@@ -58,7 +58,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl py-8">
+      <div className="container max-w-6xl pt-24 pb-8">
 
         {/* ── Breadcrumb ── */}
         <Link

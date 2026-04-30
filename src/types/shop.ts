@@ -45,3 +45,27 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 
 export const formatPrice = (n: number) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+
+// ── Public-API product (GET /products and GET /products/:id) ─────────────────
+
+export interface ShopVariant {
+  sku?: string;
+  color: string;
+  size: string;
+  stock: number;
+  price_adjustment: number;
+}
+
+export interface ShopProduct {
+  id: string;
+  name: string;
+  description: string;
+  base_price: number;
+  category: string;
+  brand: string;
+  images: string[];
+  variants: ShopVariant[];
+  stock: number;
+  created_at: string;
+  updated_at: string;
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, ShoppingCart, Droplet, LayoutDashboard } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,9 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/auth/UserMenu';
 
-const NAV_LINKS = [
+const NAV_LINKS: { label: string; href?: string; to?: string }[] = [
   { label: 'Inicio', href: '#inicio' },
-  { label: 'Tienda', href: '#tienda' },
+  { label: 'Tienda', to: '/tienda' },
   { label: 'Kits', href: '#kits' },
   { label: 'Guía', href: '#guia' },
   { label: 'Distribuidores', href: '#distribuidores' },
@@ -21,6 +21,7 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [wobble, setWobble] = useState(false);
+  const location = useLocation();
 
   const cartCount = useCart((s) => s.count());
   const openCart = useCart((s) => s.open);
@@ -28,6 +29,7 @@ export function Header() {
   const { user } = useAuth();
 
   const isAdmin = user?.role === 'admin';
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -43,25 +45,51 @@ export function Header() {
     return () => clearTimeout(t);
   }, [splashTick]);
 
+  // Determina el fondo de la navbar
+  // En home: transparente sin scroll, oscuro con scroll
+  // En otras páginas: siempre oscuro
+  const headerBgClass = isHomePage
+    ? scrolled
+      ? 'bg-background/85 backdrop-blur-md shadow-card'
+      : 'bg-transparent'
+    : 'bg-slate-950/95 backdrop-blur-sm shadow-card';
+
+  // Colores de texto según contexto
   const navLinkClass = cn(
     'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-    scrolled
-      ? 'text-foreground/80 hover:text-secondary hover:bg-muted'
+    isHomePage
+      ? scrolled
+        ? 'text-foreground/80 hover:text-secondary hover:bg-muted'
+        : 'text-white/90 hover:text-white hover:bg-white/10'
       : 'text-white/90 hover:text-white hover:bg-white/10',
   );
 
   const adminLinkClass = cn(
     'inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-    scrolled
-      ? 'text-secondary hover:text-secondary hover:bg-muted'
+    isHomePage
+      ? scrolled
+        ? 'text-secondary hover:text-secondary hover:bg-muted'
+        : 'text-secondary hover:text-white hover:bg-white/10'
       : 'text-secondary hover:text-white hover:bg-white/10',
   );
+
+  const logoTextClass = isHomePage
+    ? scrolled
+      ? 'text-foreground'
+      : 'text-white drop-shadow'
+    : 'text-white drop-shadow';
+
+  const cartButtonClass = isHomePage
+    ? scrolled
+      ? ''
+      : 'text-white hover:bg-white/10 hover:text-white'
+    : 'text-white hover:bg-white/10 hover:text-white';
 
   return (
     <header
       className={cn(
         'fixed inset-x-0 top-0 z-50 transition-all duration-300',
-        scrolled ? 'bg-background/85 backdrop-blur-md shadow-card' : 'bg-transparent',
+        headerBgClass,
       )}
     >
       <div className="container flex h-16 items-center justify-between gap-3">
@@ -70,18 +98,24 @@ export function Header() {
           <span className="grid place-items-center h-9 w-9 rounded-full gradient-aqua text-primary-foreground shadow-aqua">
             <Droplet className="h-4 w-4" fill="currentColor" />
           </span>
-          <span className={cn(scrolled ? 'text-foreground' : 'text-white drop-shadow')}>
+          <span className={logoTextClass}>
             AquaLed
           </span>
         </a>
 
         {/* ── Desktop nav ── */}
         <nav className="hidden lg:flex items-center gap-1">
-          {NAV_LINKS.map((l) => (
-            <a key={l.href} href={l.href} className={navLinkClass}>
-              {l.label}
-            </a>
-          ))}
+          {NAV_LINKS.map((l) =>
+            l.to ? (
+              <Link key={l.to} to={l.to} className={navLinkClass}>
+                {l.label}
+              </Link>
+            ) : (
+              <a key={l.href} href={l.href} className={navLinkClass}>
+                {l.label}
+              </a>
+            ),
+          )}
 
           {isAdmin && (
             <Link to="/admin" className={adminLinkClass}>
@@ -99,10 +133,7 @@ export function Header() {
             size="icon"
             onClick={openCart}
             aria-label="Abrir carrito"
-            className={cn(
-              'relative',
-              scrolled ? '' : 'text-white hover:bg-white/10 hover:text-white',
-            )}
+            className={cn('relative', cartButtonClass)}
           >
             <ShoppingCart className={cn('h-5 w-5', wobble && 'animate-cart-wobble')} />
             {cartCount > 0 && (
@@ -124,7 +155,11 @@ export function Header() {
                 aria-label="Abrir menú"
                 className={cn(
                   'lg:hidden',
-                  scrolled ? '' : 'text-white hover:bg-white/10 hover:text-white',
+                  isHomePage
+                    ? scrolled
+                      ? ''
+                      : 'text-white hover:bg-white/10 hover:text-white'
+                    : 'text-white hover:bg-white/10 hover:text-white',
                 )}
               >
                 <Menu className="h-5 w-5" />
@@ -142,16 +177,27 @@ export function Header() {
               </SheetHeader>
 
               <nav className="mt-8 flex flex-col gap-1">
-                {NAV_LINKS.map((l) => (
-                  <a
-                    key={l.href}
-                    href={l.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="px-3 py-3 rounded-md font-medium hover:bg-muted hover:text-secondary transition-colors"
-                  >
-                    {l.label}
-                  </a>
-                ))}
+                {NAV_LINKS.map((l) =>
+                  l.to ? (
+                    <Link
+                      key={l.to}
+                      to={l.to}
+                      onClick={() => setMobileOpen(false)}
+                      className="px-3 py-3 rounded-md font-medium hover:bg-muted hover:text-secondary transition-colors"
+                    >
+                      {l.label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={l.href}
+                      href={l.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="px-3 py-3 rounded-md font-medium hover:bg-muted hover:text-secondary transition-colors"
+                    >
+                      {l.label}
+                    </a>
+                  ),
+                )}
 
                 {isAdmin && (
                   <Link
