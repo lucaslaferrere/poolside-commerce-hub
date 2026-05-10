@@ -2,128 +2,213 @@
 @tailwind components;
 @tailwind utilities;
 
-/* AquaLed Design System — paleta acuática */
+/* =========================================================================
+   POOLED · Design System v2 — Jandy-grade premium
+   Strict grayscale + a single deep aquatic blue (#005C8A).
+   No gradients on UI surfaces. Flat color, hairline borders, soft shadows.
+
+   Hex anchors (locked by brand brief):
+     #FFFFFF · page bg
+     #F8F9FA · surface / card bg
+     #121212 · text primary / dark sections
+     #5A5A5A · text secondary
+     #E0E0E0 · borders / dividers
+     #005C8A · brand accent
+     #004366 · brand hover
+   ========================================================================= */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 210 65% 12%;
+    /* ---------------------------------------------------------------------
+       NEUTRAL SCALE — pure grayscale (zero hue) except neutral-50 which
+       follows the brief literally (#F8F9FA carries a hint of cool tint).
+       --------------------------------------------------------------------- */
+    --neutral-0:   0 0% 100%;     /* #FFFFFF — page bg                     */
+    --neutral-50:  210 17% 98%;   /* #F8F9FA — surface / card bg (brief)  */
+    --neutral-100: 0 0% 96%;      /* #F5F5F5 — subtle hover / section bg  */
+    --neutral-200: 0 0% 88%;      /* #E0E0E0 — borders, dividers (brief)  */
+    --neutral-300: 0 0% 78%;      /* #C7C7C7 — strong borders, disabled   */
+    --neutral-400: 0 0% 60%;      /* #999999 — placeholders, mute icons   */
+    --neutral-500: 0 0% 35%;      /* #5A5A5A — text secondary (brief)     */
+    --neutral-700: 0 0% 18%;      /* #2E2E2E — body emphasis              */
+    --neutral-900: 0 0% 7%;       /* #121212 — text primary, dark sections*/
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 65% 12%;
+    /* ---------------------------------------------------------------------
+       BRAND — Deep aquatic blue. ONLY for primary CTAs, focus, links,
+       price highlight, active states. Never as a background slab.
+       --------------------------------------------------------------------- */
+    --brand-soft:    200 100% 96%;   /* tinted info wash (chips, callouts)*/
+    --brand-subtle:  200 60%  80%;   /* subtle borders / hover halos      */
+    --brand:         200 100% 27%;   /* #005C8A — DEFAULT                 */
+    --brand-hover:   204 100% 20%;   /* #004366                           */
+    --brand-active:  204 100% 13%;   /* #002D44 — pressed                 */
+    --brand-fg:      0 0% 100%;      /* #FFFFFF                           */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 65% 12%;
+    /* ---------------------------------------------------------------------
+       SEMANTIC — restrained, premium tone
+       --------------------------------------------------------------------- */
+    --success:    152 55% 38%;
+    --success-fg: 0   0%  100%;
+    --warning:    35  90% 48%;
+    --warning-fg: 35  60% 12%;
+    --danger:     0   68% 48%;
+    --danger-fg:  0   0%  100%;
 
-    /* Azul profundo */
-    --primary: 210 74% 15%;
-    --primary-foreground: 192 70% 96%;
-    --primary-glow: 210 70% 25%;
+    /* ---------------------------------------------------------------------
+       SHADCN CONTRACT — preserved. Brand cerulean lives on --primary;
+       --accent stays as the neutral hover surface shadcn expects.
+       --------------------------------------------------------------------- */
+    --background:             var(--neutral-0);
+    --foreground:             var(--neutral-900);
 
-    /* Turquesa */
-    --secondary: 187 73% 46%;
-    --secondary-foreground: 0 0% 100%;
+    --card:                   var(--neutral-50);
+    --card-foreground:        var(--neutral-900);
 
-    /* Celeste claro */
-    --muted: 192 70% 96%;
-    --muted-foreground: 210 25% 35%;
+    --popover:                var(--neutral-0);
+    --popover-foreground:     var(--neutral-900);
 
-    --accent: 187 73% 46%;
-    --accent-foreground: 0 0% 100%;
+    --primary:                var(--brand);
+    --primary-foreground:     var(--brand-fg);
 
-    /* Dorado suave para CTAs premium */
-    --gold: 38 75% 55%;
-    --gold-foreground: 210 74% 15%;
+    --secondary:              var(--neutral-100);
+    --secondary-foreground:   var(--neutral-900);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --muted:                  var(--neutral-100);
+    --muted-foreground:       var(--neutral-500);
 
-    --border: 200 30% 88%;
-    --input: 200 30% 88%;
-    --ring: 187 73% 46%;
+    --accent:                 var(--neutral-100);
+    --accent-foreground:      var(--neutral-900);
 
-    --radius: 0.75rem;
+    --destructive:            var(--danger);
+    --destructive-foreground: var(--danger-fg);
 
-    /* Gradients */
-    --gradient-aqua: linear-gradient(135deg, hsl(210 74% 15%), hsl(187 73% 46%));
-    --gradient-deep: linear-gradient(180deg, hsl(210 74% 15%), hsl(210 65% 8%));
-    --gradient-light: linear-gradient(180deg, hsl(192 70% 96%), hsl(0 0% 100%));
-    --gradient-gold: linear-gradient(135deg, hsl(38 80% 60%), hsl(38 75% 50%));
+    --border:                 var(--neutral-200);
+    --input:                  var(--neutral-200);
+    --ring:                   var(--brand);
 
-    /* Shadows */
-    --shadow-aqua: 0 10px 40px -10px hsl(187 73% 46% / 0.4);
-    --shadow-deep: 0 20px 60px -20px hsl(210 74% 15% / 0.3);
-    --shadow-card: 0 4px 20px -4px hsl(210 40% 20% / 0.08);
+    --radius:                 0.5rem;
 
-    --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    /* Sidebar (shadcn sidebar component) */
+    --sidebar-background:         var(--neutral-50);
+    --sidebar-foreground:         var(--neutral-700);
+    --sidebar-primary:            var(--neutral-900);
+    --sidebar-primary-foreground: var(--neutral-0);
+    --sidebar-accent:             var(--neutral-100);
+    --sidebar-accent-foreground:  var(--neutral-900);
+    --sidebar-border:             var(--neutral-200);
+    --sidebar-ring:               var(--brand);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+    /* ---------------------------------------------------------------------
+       TYPOGRAPHY
+       --------------------------------------------------------------------- */
+    --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Poppins', system-ui, sans-serif;
 
-  .dark {
-    --background: 210 65% 6%;
-    --foreground: 192 70% 96%;
-    --card: 210 60% 10%;
-    --card-foreground: 192 70% 96%;
-    --popover: 210 60% 10%;
-    --popover-foreground: 192 70% 96%;
-    --primary: 187 73% 50%;
-    --primary-foreground: 210 74% 10%;
-    --secondary: 210 60% 18%;
-    --secondary-foreground: 192 70% 96%;
-    --muted: 210 50% 15%;
-    --muted-foreground: 200 20% 70%;
-    --accent: 187 73% 50%;
-    --accent-foreground: 210 74% 10%;
-    --destructive: 0 62.8% 40%;
-    --destructive-foreground: 192 70% 96%;
-    --border: 210 50% 18%;
-    --input: 210 50% 18%;
-    --ring: 187 73% 50%;
+    --text-xs:   0.75rem;
+    --text-sm:   0.875rem;
+    --text-base: 1rem;
+    --text-lg:   1.125rem;
+    --text-xl:   1.25rem;
+    --text-2xl:  1.5rem;
+    --text-3xl:  1.875rem;
+    --text-4xl:  2.25rem;
+    --text-5xl:  3rem;
+
+    --leading-tight:   1.15;
+    --leading-snug:    1.35;
+    --leading-normal:  1.5;
+    --leading-relaxed: 1.7;
+
+    --weight-regular:  400;
+    --weight-medium:   500;
+    --weight-semibold: 600;
+    --weight-bold:     700;
+
+    --tracking-tight:  -0.02em;
+    --tracking-normal: 0;
+    --tracking-wide:   0.04em;
+
+    /* ---------------------------------------------------------------------
+       SPACING — 4px base
+       --------------------------------------------------------------------- */
+    --space-1:  0.25rem;
+    --space-2:  0.5rem;
+    --space-3:  0.75rem;
+    --space-4:  1rem;
+    --space-5:  1.25rem;
+    --space-6:  1.5rem;
+    --space-8:  2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-24: 6rem;
+
+    /* ---------------------------------------------------------------------
+       RADII
+       --------------------------------------------------------------------- */
+    --radius-xs:   2px;
+    --radius-sm:   4px;
+    --radius-md:   8px;
+    --radius-lg:   12px;
+    --radius-xl:   16px;
+    --radius-2xl:  24px;
+    --radius-full: 9999px;
+
+    /* ---------------------------------------------------------------------
+       ELEVATION — flat, neutral. The card shadow is the brief literal:
+         0 4px 12px rgba(0,0,0,0.05)
+       --------------------------------------------------------------------- */
+    --shadow-xs:    0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    --shadow-sm:    0 2px 6px -1px rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    --shadow-md:    0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-lg:    0 12px 28px -8px rgba(0, 0, 0, 0.08), 0 4px 10px -4px rgba(0, 0, 0, 0.04);
+    --shadow-xl:    0 24px 48px -12px rgba(0, 0, 0, 0.12);
+    --shadow-focus: 0 0 0 3px hsl(var(--brand) / 0.25);
+
+    /* ---------------------------------------------------------------------
+       MOTION
+       --------------------------------------------------------------------- */
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-emphasis: cubic-bezier(0.3, 0, 0, 1);
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 320ms;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', system-ui, sans-serif;
-    @apply tracking-tight;
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-tight);
+    color: hsl(var(--neutral-900));
   }
+  ::selection { background: hsl(var(--brand) / 0.18); color: hsl(var(--neutral-900)); }
 }
 
+/* -------------------------------------------------------------------------
+   LEGACY COMPAT SHIMS — flatten old "gradient" utilities to single colors.
+   ------------------------------------------------------------------------- */
 @layer utilities {
-  .gradient-aqua { background: var(--gradient-aqua); }
-  .gradient-deep { background: var(--gradient-deep); }
-  .gradient-light { background: var(--gradient-light); }
-  .gradient-gold { background: var(--gradient-gold); }
-  .shadow-aqua { box-shadow: var(--shadow-aqua); }
-  .shadow-deep { box-shadow: var(--shadow-deep); }
-  .shadow-card { box-shadow: var(--shadow-card); }
-  .text-balance { text-wrap: balance; }
+  .gradient-aqua  { background: hsl(var(--brand)); color: hsl(var(--brand-fg)); }
+  .gradient-deep  { background: hsl(var(--neutral-900)); color: hsl(var(--neutral-0)); }
+  .gradient-light { background: hsl(var(--neutral-50)); }
+  .gradient-gold  { background: hsl(var(--neutral-900)); color: hsl(var(--neutral-0)); }
+  .shadow-aqua    { box-shadow: var(--shadow-md); }
+  .shadow-deep    { box-shadow: var(--shadow-lg); }
+  .shadow-card    { box-shadow: var(--shadow-md); }
+  .text-balance   { text-wrap: balance; }
 }
 
-/* Wave animation */
-@keyframes wave-flow {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.wave-animate {
-  animation: wave-flow 12s linear infinite;
-}
-
-/* Cart wobble (water-shake) when item added */
+/* Cart wobble (preserved — used by the cart icon in Header) */
 @keyframes cart-wobble {
   0%, 100% { transform: rotate(0deg) scale(1); }
   15% { transform: rotate(-12deg) scale(1.15); }
@@ -137,8 +222,7 @@
   transform-origin: center;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: hsl(var(--muted)); }
-::-webkit-scrollbar-thumb { background: hsl(var(--secondary) / 0.5); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--secondary)); }
+::-webkit-scrollbar-track { background: hsl(var(--neutral-50)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--neutral-300)); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--neutral-400)); }

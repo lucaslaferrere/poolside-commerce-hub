@@ -11,9 +11,12 @@ import NotFound from './pages/NotFound.tsx';
 import Register from './pages/Register.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
 import OrdersPage from './pages/OrdersPage.tsx';
-import AdminDashboard from './pages/admin/Dashboard.tsx';
 import TiendaPage from './pages/TiendaPage.tsx';
 import ProductDetailPage from './pages/ProductDetailPage.tsx';
+import CheckoutPage from './pages/CheckoutPage.tsx';
+import AdminLayout from './pages/admin/AdminLayout.tsx';
+import AdminDashboard from './pages/admin/Dashboard.tsx';
+import AdminProducts from './pages/admin/Products.tsx';
 
 const queryClient = new QueryClient();
 
@@ -48,16 +51,20 @@ const App = () => (
               />
 
               <Route
-                path="/admin/*"
+                path="/admin"
                 element={
                   <ProtectedRoute adminOnly>
-                    <AdminDashboard />
+                    <AdminLayout />
                   </ProtectedRoute>
                 }
-              />
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProducts />} />
+              </Route>
 
               <Route path="/tienda" element={<TiendaPage />} />
               <Route path="/tienda/:id" element={<ProductDetailPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

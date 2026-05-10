@@ -1,28 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft,
   Droplet,
-  Minus,
-  Plus,
   ShoppingCart,
   AlertCircle,
   Truck,
   Shield,
   Zap,
 } from 'lucide-react';
-import { apiGet } from '@/lib/api';
 import { Footer } from '@/components/site/Footer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -31,10 +21,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { QuantitySelector } from '@/components/shop/QuantitySelector';
+import {
+  TechnicalAccordion,
+  type AccordionSection,
+} from '@/components/shop/TechnicalAccordion';
+import { useProductById } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { useCart } from '@/store/cart';
 import { formatPrice, CATEGORY_LABELS } from '@/types/shop';
-import type { ShopProduct, ShopVariant } from '@/types/shop';
+import type { ShopVariant } from '@/types/shop';
 import { cn } from '@/lib/utils';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,11 +48,7 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
 
-  const { data: product, isLoading, isError } = useQuery({
-    queryKey: ['shop', 'product', id],
-    queryFn: () => apiGet<ShopProduct>(`/products/${id}`),
-    enabled: !!id,
-  });
+  const { data: product, isLoading, isError } = useProductById(id);
 
   const colors = useMemo(
     () => [...new Set((product?.variants ?? []).map((v) => v.color).filter(Boolean))],
@@ -212,12 +204,45 @@ export default function ProductDetailPage() {
     (CATEGORY_LABELS as Record<string, string>)[product.category] ?? product.category;
 
   const specRows = [
-    { label: 'Marca', value: product.brand },
+    product.brand ? { label: 'Marca', value: product.brand } : null,
     { label: 'Categoría', value: categoryLabel },
     product.variants?.length
       ? { label: 'Variantes', value: `${product.variants.length} opciones` }
       : null,
   ].filter(Boolean) as { label: string; value: string }[];
+
+  const accordionSections: AccordionSection[] = [
+    ...(product.description
+      ? [
+          {
+            id: 'description',
+            title: 'Descripción',
+            content: <p>{product.description}</p>,
+          } satisfies AccordionSection,
+        ]
+      : []),
+    {
+      id: 'specs',
+      title: 'Ficha técnica',
+      rows: specRows,
+    },
+    {
+      id: 'shipping',
+      title: 'Envío y devoluciones',
+      content: (
+        <>
+          <p>
+            Realizamos envíos a todo el país. El costo y tiempo de entrega se
+            calcula en el checkout según tu ubicación.
+          </p>
+          <p>
+            Si el producto presenta defectos de fabricación, podés realizar el
+            cambio dentro de los 30 días corridos de recibido.
+          </p>
+        </>
+      ),
+    },
+  ];
 
   // ── Product page ───────────────────────────────────────────────────────────
   return (
@@ -276,7 +301,7 @@ export default function ProductDetailPage() {
             <div className="lg:col-span-3 space-y-4">
               {/* Main image */}
               <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-50 border border-slate-100">
-                {product.images.length > 0 ? (
+                {(product.images?.length ?? 0) > 0 ? (
                   <img
                     key={activeImage}
                     src={product.images[activeImage]}
@@ -300,9 +325,9 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Thumbnails */}
-              {product.images.length > 1 && (
+              {(product.images?.length ?? 0) > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-1">
-                  {product.images.map((src, i) => (
+                  {product.images!.map((src, i) => (
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
@@ -475,33 +500,15 @@ export default function ProductDetailPage() {
 
               {/* ── Quantity + CTA ─────────────────────────────────────── */}
               <div className="space-y-3">
-                {/* Quantity stepper */}
                 {inStock && (
-                  <div className="flex items-center gap-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                      Cantidad
-                    </p>
-                    <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 overflow-hidden">
-                      <button
-                        onClick={() => setQty((q) => Math.max(1, q - 1))}
-                        disabled={qty <= 1}
-                        className="h-10 w-10 grid place-items-center text-slate-500 hover:bg-slate-100 hover:text-primary disabled:opacity-30 transition-colors focus:outline-none"
-                        aria-label="Disminuir cantidad"
-                      >
-                        <Minus className="h-3.5 w-3.5" />
-                      </button>
-                      <span className="w-10 text-center font-display font-bold text-[15px] text-primary select-none">
-                        {qty}
-                      </span>
-                      <button
-                        onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
-                        disabled={qty >= maxQty}
-                        className="h-10 w-10 grid place-items-center text-slate-500 hover:bg-slate-100 hover:text-primary disabled:opacity-30 transition-colors focus:outline-none"
-                        aria-label="Aumentar cantidad"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <QuantitySelector
+                      value={qty}
+                      onChange={setQty}
+                      min={1}
+                      max={maxQty}
+                      label="Cantidad"
+                    />
                     <span className="text-[11px] text-slate-400">(máx. {maxQty})</span>
                   </div>
                 )}
@@ -545,59 +552,11 @@ export default function ProductDetailPage() {
                 ))}
               </div>
 
-              {/* ── Accordions ─────────────────────────────────────────── */}
-              <Accordion
-                type="single"
-                collapsible
-                defaultValue={product.description ? 'description' : 'specs'}
-                className="border-t border-slate-100"
-              >
-                {product.description && (
-                  <AccordionItem value="description" className="border-slate-100">
-                    <AccordionTrigger className="text-sm font-semibold text-primary hover:text-secondary hover:no-underline py-4">
-                      Descripción
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
-                      {product.description}
-                    </AccordionContent>
-                  </AccordionItem>
-                )}
-
-                <AccordionItem value="specs" className="border-slate-100">
-                  <AccordionTrigger className="text-sm font-semibold text-primary hover:text-secondary hover:no-underline py-4">
-                    Especificaciones
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4">
-                    <dl className="text-sm">
-                      {specRows.map(({ label, value }) => (
-                        <div
-                          key={label}
-                          className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0"
-                        >
-                          <dt className="text-muted-foreground">{label}</dt>
-                          <dd className="font-medium text-primary capitalize">{value}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="shipping" className="border-0">
-                  <AccordionTrigger className="text-sm font-semibold text-primary hover:text-secondary hover:no-underline py-4">
-                    Envío y devoluciones
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4 space-y-2">
-                    <p>
-                      Realizamos envíos a todo el país. El costo y tiempo de entrega se
-                      calcula en el checkout según tu ubicación.
-                    </p>
-                    <p>
-                      Si el producto presenta defectos de fabricación, podés realizar el
-                      cambio dentro de los 30 días corridos de recibido.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              {/* ── Ficha técnica + envíos ───────────────────────────── */}
+              <TechnicalAccordion
+                defaultOpen={product.description ? 'description' : 'specs'}
+                sections={accordionSections}
+              />
             </div>
             {/* end right col */}
           </div>

@@ -38,28 +38,37 @@ export function ProductCard({ product }: Props) {
 
   return (
     <Link to={`/tienda/${product.id}`} className="group block h-full">
-      <div className="h-full flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden transition-all duration-300 hover:shadow-aqua hover:-translate-y-1">
+      <div
+        className={cn(
+          'h-full flex flex-col overflow-hidden rounded-lg',
+          'bg-neutral-50 border border-neutral-200',
+          'shadow-xs hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5',
+          'transition-all duration-base ease-standard',
+        )}
+      >
         {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-muted">
+        <div className="relative aspect-square overflow-hidden bg-neutral-0">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.name}
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-slow ease-standard group-hover:scale-105"
             />
           ) : (
-            <div className="h-full w-full grid place-items-center text-muted-foreground/30">
+            <div className="h-full w-full grid place-items-center text-neutral-300">
               <Droplet className="h-14 w-14" />
             </div>
           )}
-          <Badge className="absolute top-3 left-3 capitalize bg-secondary/90 text-secondary-foreground border-0 backdrop-blur-sm text-xs">
+          <Badge className="absolute top-3 left-3 capitalize border-0 bg-neutral-0/90 text-neutral-700 backdrop-blur-sm text-[11px] font-medium tracking-wide shadow-xs">
             {categoryLabel}
           </Badge>
           <Badge
             className={cn(
-              'absolute top-3 right-3 border-0 text-xs',
-              inStock ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white',
+              'absolute top-3 right-3 border-0 text-[11px] font-medium tracking-wide',
+              inStock
+                ? 'bg-success text-success-foreground'
+                : 'bg-neutral-900 text-neutral-0',
             )}
           >
             {inStock ? 'En stock' : 'Sin stock'}
@@ -67,24 +76,28 @@ export function ProductCard({ product }: Props) {
         </div>
 
         {/* Body */}
-        <div className="flex flex-col flex-1 p-4 gap-2">
-          <h3 className="font-display font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+        <div className="flex flex-col flex-1 p-5 gap-2">
+          <h3 className="font-display font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-neutral-900">
             {product.name}
           </h3>
           {product.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2rem] leading-relaxed">
+            <p className="text-xs text-neutral-500 line-clamp-2 min-h-[2rem] leading-relaxed">
               {product.description}
             </p>
           )}
-          <div className="mt-auto pt-2 space-y-2">
-            <span className="font-display font-bold text-lg text-secondary block">
+          <div className="mt-auto pt-3 space-y-3">
+            <span className="font-display font-semibold text-lg text-brand block">
               {formatPrice(product.base_price)}
             </span>
             <Button
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="w-full gradient-aqua text-primary-foreground hover:opacity-90 disabled:opacity-50 h-8 text-xs"
               size="sm"
+              className={cn(
+                'w-full h-9 text-xs font-medium tracking-wide shadow-none',
+                'bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active',
+                'disabled:bg-neutral-100 disabled:text-neutral-400 disabled:cursor-not-allowed',
+              )}
             >
               <ShoppingCart className="h-3.5 w-3.5 mr-1.5 shrink-0" />
               {inStock ? 'Agregar al carrito' : 'Sin stock'}

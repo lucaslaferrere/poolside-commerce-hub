@@ -1,59 +1,110 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiGet, apiDelete, apiPostForm, apiPutForm } from '@/lib/api';
 import type { AdminProduct } from '@/types/admin';
 
-const QK = ['admin', 'products'] as const;
+const QK_ROOT = ['admin', 'products'] as const;
 
-export function useAdminProducts() {
-  const qc = useQueryClient();
+export interface PaginatedAdminProducts {
+  items: AdminProduct[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
-  const productsQuery = useQuery({
-    queryKey: QK,
-    queryFn: () => apiGet<AdminProduct[]>('/admin/products'),
-    select: (data) => {
-      const arr = Array.isArray(data) ? data : [];
-      return arr.map((p) => ({
-        ...p,
-        stock: p.stock ?? (p.variants?.reduce((sum, v) => sum + v.stock, 0) ?? 0),
-      }));
-    },
+const enrich = (p: AdminProduct): AdminProduct => ({
+  ...p,
+  stock: p.stock ?? (p.variants?.reduce((s, v) => s + v.stock, 0) ?? 0),
+});
+
+/**
+ * Fetch a single page of admin products.
+ *
+ * Sends `page` and `limit` query params so the backend can paginate at the
+ * source. If the response is a `{ items, total, page, limit }` envelope we
+ * consume it directly; if the server still returns a raw array (no pagination
+ * support yet) we slice client-side as a graceful fallback. This lets the UI
+ * adopt server-side pagination ahead of the backend.
+ */
+async function fetchAdminProductsPage(page: number, limit: number): Promise<PaginatedAdminProducts> {
+  const raw = await apiGet<unknown>('/admin/products', {
+    page: String(page),
+    limit: String(limit),
   });
 
+  // Envelope shape (preferred — server-side pagination)
+  if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'items' in (raw as object)) {
+    const env = raw as { items: AdminProduct[]; total?: number; page?: number; limit?: number };
+    const items = (env.items ?? []).map(enrich);
+    return {
+      items,
+      total: env.total ?? items.length,
+      page: env.page ?? page,
+      limit: env.limit ?? limit,
+    };
+  }
+
+  // Raw array — fallback to client slicing
+  const all = Array.isArray(raw) ? (raw as AdminProduct[]) : [];
+  const start = (page - 1) * limit;
+  return {
+    items: all.slice(start, start + limit).map(enrich),
+    total: all.length,
+    page,
+    limit,
+  };
+}
+
+export function useAdminProductsPage(params: { page: number; limit: number }) {
+  return useQuery({
+    queryKey: [...QK_ROOT, 'page', params.page, params.limit] as const,
+    queryFn: () => fetchAdminProductsPage(params.page, params.limit),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/**
+ * Pulls the full product set for dashboard aggregates. A single call with a
+ * generous limit, decoupled from the paginated table query so KPIs stay
+ * accurate regardless of which page the user is on.
+ */
+export function useAdminInsights() {
+  return useQuery({
+    queryKey: [...QK_ROOT, 'insights'] as const,
+    queryFn: async () => {
+      const raw = await apiGet<unknown>('/admin/products', { limit: '1000' });
+      const list: AdminProduct[] = Array.isArray(raw)
+        ? (raw as AdminProduct[])
+        : ((raw as { items?: AdminProduct[] })?.items ?? []);
+      return list.map(enrich);
+    },
+  });
+}
+
+export function useAdminProductMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: QK_ROOT });
+
+  // create / update intentionally omit `onError` toasts here — the modal owns
+  // submission feedback (inline alert with the backend's specific message).
+  // We still toast on success so the user sees confirmation after the modal
+  // closes.
   const create = useMutation({
     mutationFn: (form: FormData) => apiPostForm<AdminProduct>('/admin/products', form),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK });
-      toast.success('Producto creado');
-    },
-    onError: (e: Error) => toast.error('Error al crear el producto', { description: e.message }),
+    onSuccess: () => { invalidate(); toast.success('Producto creado'); },
   });
 
   const update = useMutation({
     mutationFn: ({ id, form }: { id: string; form: FormData }) =>
       apiPutForm<AdminProduct>(`/admin/products/${id}`, form),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK });
-      toast.success('Producto actualizado');
-    },
-    onError: (e: Error) => toast.error('Error al actualizar el producto', { description: e.message }),
+    onSuccess: () => { invalidate(); toast.success('Producto actualizado'); },
   });
 
   const remove = useMutation({
     mutationFn: (id: string) => apiDelete(`/admin/products/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK });
-      toast.success('Producto eliminado');
-    },
+    onSuccess: () => { invalidate(); toast.success('Producto eliminado'); },
     onError: (e: Error) => toast.error('Error al eliminar el producto', { description: e.message }),
   });
 
-  return {
-    products: productsQuery.data ?? [],
-    isLoading: productsQuery.isLoading,
-    error: productsQuery.error,
-    create,
-    update,
-    remove,
-  };
+  return { create, update, remove };
 }

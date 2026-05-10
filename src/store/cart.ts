@@ -54,6 +54,6 @@ export const useCart = create<CartState>()(
       count: () => get().items.reduce((acc, i) => acc + i.quantity, 0),
       subtotal: () => get().items.reduce((acc, i) => acc + i.price * i.quantity, 0),
     }),
-    { name: 'aqualed-cart' }
+    { name: 'pooled-cart' }
   )
 );

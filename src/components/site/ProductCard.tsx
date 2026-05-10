@@ -1,99 +1,116 @@
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Truck } from 'lucide-react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import { useCart } from '@/store/cart';
-import { formatPrice, CATEGORY_LABELS } from '@/types/shop';
-import type { ShopProduct } from '@/types/shop';
+import { CATEGORY_LABELS, formatPrice, type Product } from '@/types/shop';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ProductDetailModal } from './ProductDetailModal';
 
 interface Props {
-  product: ShopProduct;
+  product: Product;
+  index?: number;
 }
 
-export function ProductCard({ product }: Props) {
+export function ProductCard({ product, index = 0 }: Props) {
+  const [modalOpen, setModalOpen] = useState(false);
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
 
-  const imageUrl = product.images?.[0] ?? null;
-  const inStock = product.stock > 0;
-  const categoryLabel =
-    (CATEGORY_LABELS as Record<string, string>)[product.category] ?? product.category;
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
     add({
       id: product.id,
       name: product.name,
-      price: product.base_price,
-      image_url: imageUrl,
+      price: Number(product.price),
+      image_url: product.image_url,
       type: 'product',
     });
-    triggerSplash();
+    triggerSplash({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
     toast.success('Agregado al carrito', { description: product.name });
     setTimeout(() => open(), 650);
   };
 
   return (
-    <Link to={`/tienda/${product.id}`} className="group block h-full">
-      <div className="h-full flex flex-col rounded-xl border border-slate-200/80 bg-white overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-        {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-slate-50">
-          {imageUrl ? (
+    <>
+    <ProductDetailModal product={product} open={modalOpen} onClose={() => setModalOpen(false)} />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+    >
+      <Card className="group h-full overflow-hidden bg-card border border-neutral-200 rounded-lg shadow-xs hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5 transition-all duration-base ease-standard">
+        <div className="relative aspect-square overflow-hidden bg-neutral-50">
+          {product.image_url ? (
             <img
-              src={imageUrl}
+              src={product.image_url}
               alt={product.name}
               loading="lazy"
-              className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-slow ease-standard"
             />
           ) : (
-            <div className="h-full w-full grid place-items-center text-slate-300 text-xs select-none">
-              Sin imagen
+            <div className="h-full w-full grid place-items-center text-neutral-400 text-xs">Sin imagen</div>
+          )}
+          <Badge
+            className={cn(
+              'absolute top-3 left-3 capitalize border-0 font-medium tracking-wide',
+              product.category === 'osire'
+                ? 'bg-neutral-900 text-neutral-0'
+                : 'bg-neutral-0/90 text-neutral-700 backdrop-blur-sm'
+            )}
+          >
+            {CATEGORY_LABELS[product.category]}
+          </Badge>
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-neutral-0/70 backdrop-blur-sm grid place-items-center">
+              <span className="bg-neutral-900 text-neutral-0 text-xs font-medium px-3 py-1 rounded-full">
+                Sin stock
+              </span>
             </div>
           )}
-
-          {/* Category pill */}
-          <span className="absolute top-2.5 left-2.5 bg-secondary/10 text-secondary text-[10px] font-semibold px-2 py-0.5 rounded-full border border-secondary/25 capitalize">
-            {categoryLabel}
-          </span>
-
-          {/* Hover add button overlay */}
-          <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out p-3">
-            <Button
-              onClick={handleAdd}
-              disabled={!inStock}
-              className={cn(
-                'w-full h-9 text-xs gradient-aqua text-primary-foreground hover:opacity-90 shadow-lg disabled:opacity-50',
-              )}
-              size="sm"
-            >
-              <ShoppingCart className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-              {inStock ? 'Agregar al carrito' : 'Sin stock'}
-            </Button>
-          </div>
+          {product.stock > 0 && product.stock <= 3 && (
+            <Badge className="absolute top-3 right-3 bg-warning text-warning-foreground border-0 text-[10px] font-medium">
+              Últimas {product.stock}
+            </Badge>
+          )}
         </div>
-
-        {/* Body */}
-        <div className="flex flex-col flex-1 p-3.5 gap-1.5">
-          <h3 className="font-display font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem] text-slate-800">
+        <CardContent className="p-5">
+          <h3 className="font-display font-semibold text-base leading-snug line-clamp-2 min-h-[2.5rem] text-neutral-900">
             {product.name}
           </h3>
-
-          {/* Envío gratis badge */}
-          <div className="flex items-center gap-1 text-emerald-600">
-            <Truck className="h-3 w-3 shrink-0" />
-            <span className="text-[11px] font-medium">Envío gratis</span>
+          {product.short_description && (
+            <p className="text-xs text-neutral-500 mt-1 line-clamp-2 min-h-[2rem]">
+              {product.short_description}
+            </p>
+          )}
+          <div className="mt-4 flex items-end justify-between gap-2">
+            <div className="flex flex-col">
+              <span className="font-display font-semibold text-xl text-brand">{formatPrice(Number(product.price))}</span>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="text-[11px] text-neutral-500 hover:text-brand underline-offset-2 hover:underline transition-colors duration-fast"
+              >
+                Ver detalles
+              </button>
+            </div>
+            <Button
+              size="sm"
+              onClick={(e) => handleAdd(e)}
+              disabled={product.stock === 0}
+              className="bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed shadow-none"
+            >
+              <Plus className="h-4 w-4" />
+              {product.stock === 0 ? 'Sin stock' : 'Agregar'}
+            </Button>
           </div>
-
-          <div className="mt-auto pt-1">
-            <span className="font-display font-bold text-xl text-slate-900 tabular-nums block">
-              {formatPrice(product.base_price)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
+        </CardContent>
+      </Card>
+    </motion.div>
+    </>
   );
 }

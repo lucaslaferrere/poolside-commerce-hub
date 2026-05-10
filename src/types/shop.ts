@@ -43,8 +43,15 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   accesorios: 'Accesorios',
 };
 
-export const formatPrice = (n: number) =>
-  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+// NaN-safe: coerces null/undefined/non-finite values to 0 to avoid "$ NaN" in the UI.
+export const formatPrice = (n: number | null | undefined): string => {
+  const value = typeof n === 'number' && Number.isFinite(n) ? n : 0;
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    maximumFractionDigits: 0,
+  }).format(value);
+};
 
 // ── Public-API product (GET /products and GET /products/:id) ─────────────────
 
