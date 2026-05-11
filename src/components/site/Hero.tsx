@@ -83,7 +83,7 @@ export function Hero() {
                 <ArrowRight className="h-4 w-4" />
               </a>
 
-              <a href="#asesoria" className="pooled-hero__cta-ghost">
+              <a href="#guia" className="pooled-hero__cta-ghost">
                 Asesoría técnica
               </a>
             </motion.div>
