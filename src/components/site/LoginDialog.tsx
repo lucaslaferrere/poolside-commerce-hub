@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 interface Props {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 type Tab = 'login' | 'register';
@@ -24,7 +25,7 @@ const BUBBLES = Array.from({ length: 8 }, (_, i) => ({
   delay: Math.random() * 3,
 }));
 
-export function LoginDialog({ open, onClose }: Props) {
+export function LoginDialog({ open, onClose, onSuccess }: Props) {
   const [tab, setTab] = useState<Tab>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,6 +57,7 @@ export function LoginDialog({ open, onClose }: Props) {
         toast.success('¡Cuenta creada! Ya estás dentro.');
       }
       handleClose();
+      onSuccess?.();
     } catch (err) {
       toast.error((err as Error).message);
     } finally {

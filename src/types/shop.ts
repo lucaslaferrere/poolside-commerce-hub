@@ -11,6 +11,7 @@ export interface Product {
   description: string | null;
   featured: boolean;
   stock: number;
+  variant_sku?: string;
 }
 
 export interface Kit {
@@ -33,6 +34,7 @@ export interface CartItem {
   image_url: string | null;
   quantity: number;
   type: 'product' | 'kit';
+  variant_sku?: string;
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {

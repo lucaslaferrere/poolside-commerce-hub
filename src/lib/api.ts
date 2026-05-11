@@ -85,3 +85,11 @@ export async function apiDelete(path: string): Promise<void> {
   }
   // 204 No Content — nothing to parse
 }
+
+export async function login(email: string, password: string): Promise<{ access_token: string }> {
+  return apiPost<{ access_token: string }>('/auth/login', { email, password });
+}
+
+export async function register(email: string, password: string): Promise<void> {
+  await apiPost<unknown>('/auth/register', { email, password });
+}

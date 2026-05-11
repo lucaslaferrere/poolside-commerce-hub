@@ -6,12 +6,30 @@ import { formatPrice } from '@/types/shop';
 import { buildWhatsAppLink, cartWhatsAppMessage } from '@/lib/whatsapp';
 import { useState } from 'react';
 import { CheckoutDialog } from './CheckoutDialog';
+import { LoginDialog } from './LoginDialog';
+import { useAuth } from '@/store/auth';
 
 export function CartDrawer() {
   const { items, isOpen, close, setQty, remove, subtotal } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const { token } = useAuth();
 
   const total = subtotal();
+
+  const handleCheckout = () => {
+    close();
+    if (!token) {
+      setLoginOpen(true);
+    } else {
+      setCheckoutOpen(true);
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setLoginOpen(false);
+    setCheckoutOpen(true);
+  };
 
   const handleWhatsApp = () => {
     const link = buildWhatsAppLink(cartWhatsAppMessage(items, total));
@@ -81,7 +99,7 @@ export function CartDrawer() {
                 <span className="text-xl font-bold text-primary">{formatPrice(total)}</span>
               </div>
               <p className="text-xs text-muted-foreground">El envío se calcula al finalizar.</p>
-              <Button className="w-full gradient-aqua text-primary-foreground hover:opacity-95" size="lg" onClick={() => { close(); setCheckoutOpen(true); }}>
+              <Button className="w-full gradient-aqua text-primary-foreground hover:opacity-95" size="lg" onClick={handleCheckout}>
                 Finalizar compra
               </Button>
               <Button variant="outline" className="w-full" size="lg" onClick={handleWhatsApp}>
@@ -92,6 +110,7 @@ export function CartDrawer() {
         </SheetContent>
       </Sheet>
       <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onSuccess={handleLoginSuccess} />
     </>
   );
 }

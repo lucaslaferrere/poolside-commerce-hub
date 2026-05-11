@@ -29,6 +29,7 @@ export function ProductCard({ product, index = 0 }: Props) {
       price: Number(product.price),
       image_url: product.image_url,
       type: 'product',
+      variant_sku: product.variant_sku,
     });
     triggerSplash({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
     toast.success('Agregado al carrito', { description: product.name });
