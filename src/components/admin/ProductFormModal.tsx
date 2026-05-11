@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Plus, Trash2, Upload, X, ImageIcon, AlertCircle } from 'lucide-react';
+import { useState, useEffect, type ChangeEvent } from 'react';
+import { Plus, Trash2, X, ImageIcon, AlertCircle, Link2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -102,19 +102,18 @@ export function ProductFormModal({
   const [fields, setFields] = useState<FormFields>(BLANK);
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [specs, setSpecs] = useState<SpecRow[]>([]);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [urlInput, setUrlInput] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) {
       setFields(BLANK);
       setVariants([]);
       setSpecs([]);
-      setImageFile(null);
-      setImagePreview(null);
+      setImageUrls([]);
+      setUrlInput('');
       setErrors({});
       setSubmitError(null);
       return;
@@ -144,34 +143,24 @@ export function ProductFormModal({
           value: s.value,
         })),
       );
-      setImagePreview(product.images?.[0] ?? null);
+      setImageUrls(product.images ?? []);
     }
   }, [open, product]);
-
-  useEffect(() => {
-    if (!imageFile) return;
-    return () => URL.revokeObjectURL(imagePreview ?? '');
-  }, [imageFile]);
 
   const upd =
     (k: keyof FormFields) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setFields((f) => ({ ...f, [k]: e.target.value }));
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (imageFile) URL.revokeObjectURL(imagePreview ?? '');
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+  const addImageUrl = () => {
+    const url = urlInput.trim();
+    if (!url || imageUrls.includes(url)) return;
+    setImageUrls((prev) => [...prev, url]);
+    setUrlInput('');
   };
 
-  const clearImage = () => {
-    if (imageFile) URL.revokeObjectURL(imagePreview ?? '');
-    setImageFile(null);
-    setImagePreview(null);
-    if (fileRef.current) fileRef.current.value = '';
-  };
+  const removeImageUrl = (url: string) =>
+    setImageUrls((prev) => prev.filter((u) => u !== url));
 
   // Variants
   const addVariant = () => setVariants((v) => [...v, emptyVariant()]);
@@ -245,7 +234,7 @@ export function ProductFormModal({
     fd.append('stock', String(stockNum));
     fd.append('variants', JSON.stringify(parsedVariants));
     fd.append('specs', JSON.stringify(parsedSpecs));
-    if (imageFile) fd.append('image', imageFile);
+    fd.append('images', JSON.stringify(imageUrls));
 
     try {
       await onSubmit(fd, product?.id);
@@ -413,56 +402,54 @@ export function ProductFormModal({
                   />
                 </div>
 
-                {/* Image upload */}
+                {/* Image URLs */}
                 <div className="space-y-2 pt-1">
                   <Label className="text-xs font-medium text-neutral-700">
-                    Imagen del producto
+                    Imágenes ({imageUrls.length})
                   </Label>
 
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-
-                  {imagePreview ? (
-                    <div className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-video">
-                      <img
-                        src={imagePreview}
-                        alt="Vista previa"
-                        className="w-full h-full object-cover"
+                  {/* URL input */}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                      <Input
+                        placeholder="https://pub-....r2.dev/imagen.jpg"
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
+                        className="pl-8 text-xs h-9"
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
-                      <button
-                        type="button"
-                        onClick={clearImage}
-                        className="absolute top-2 right-2 p-1.5 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
-                        aria-label="Quitar imagen"
-                      >
-                        <X className="h-3.5 w-3.5 text-neutral-700" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/95 text-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
-                      >
-                        <Upload className="h-3 w-3" /> Cambiar
-                      </button>
+                    </div>
+                    <Button type="button" size="sm" variant="outline" onClick={addImageUrl} className="h-9 px-3 shrink-0">
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+
+                  {/* Thumbnails grid */}
+                  {imageUrls.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {imageUrls.map((url, i) => (
+                        <div key={url} className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-square">
+                          <img src={url} alt={`Imagen ${i + 1}`} className="w-full h-full object-cover" />
+                          {i === 0 && (
+                            <span className="absolute top-1 left-1 text-[9px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded">Principal</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeImageUrl(url)}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                            aria-label="Quitar imagen"
+                          >
+                            <X className="h-3 w-3 text-neutral-700" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      className="w-full aspect-video border-2 border-dashed border-neutral-300 rounded-lg flex flex-col items-center justify-center gap-1.5 text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all"
-                    >
-                      <ImageIcon className="h-7 w-7 opacity-50" />
-                      <span className="text-sm font-medium">Subir imagen</span>
-                      <span className="text-xs opacity-70">
-                        JPG, PNG o WebP · máx. 5 MB
-                      </span>
-                    </button>
+                    <div className="w-full h-24 border-2 border-dashed border-neutral-200 rounded-lg flex flex-col items-center justify-center gap-1 text-neutral-400">
+                      <ImageIcon className="h-5 w-5 opacity-50" />
+                      <span className="text-xs">Pegá URLs de Cloudflare R2</span>
+                    </div>
                   )}
                 </div>
               </section>
