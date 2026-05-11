@@ -35,6 +35,7 @@ const PUBLIC_NAV: NavLink[] = [
   { kind: 'hash',  label: 'Guía',           hash: 'guia' },
   { kind: 'hash',  label: 'Distribuidores', hash: 'distribuidores' },
   { kind: 'hash',  label: 'FAQ',            hash: 'faq' },
+  { kind: 'route', label: 'Garantía',       to: '/garantia' },
 ];
 
 const ADMIN_NAV: { label: string; to: string; icon: typeof LayoutDashboard }[] = [
