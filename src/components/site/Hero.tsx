@@ -32,57 +32,21 @@ export function Hero() {
           id="inicio"
           className="pooled-hero relative h-[100svh] min-h-[680px] w-full overflow-hidden bg-[#010810] text-white"
       >
-        {/* Deep aquatic background base */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#001226] via-[#011830] to-[#01060B]" />
-
-        {/* Ambient water volume (Simulates deep water movement) */}
-        <div className="pooled-hero__water-ambient absolute inset-0" aria-hidden="true" />
-
-        {/* Engineering grid — subtle aquatic tint */}
-        <div className="pooled-hero__grid absolute inset-0" aria-hidden="true" />
-
-        {/* Edge vignette to push the eye toward center */}
-        <div className="pooled-hero__vignette absolute inset-0" aria-hidden="true" />
-
-        {/* --- MULTIPLE LIGHT SOURCES (Luminarias) --- */}
-        {/* Left Luminaire */}
-        <div className="pooled-hero__halo absolute left-[20%] top-0 -translate-x-1/2 -translate-y-1/2" />
-        <div className="pooled-hero__beam pooled-hero__beam--left absolute inset-0" />
-        <div className="pooled-hero__color-light pooled-hero__color-light--left absolute inset-0" style={{ animationDelay: '0s' }} />
-
-        {/* Center Luminaire */}
-        <div className="pooled-hero__halo absolute left-[50%] top-0 -translate-x-1/2 -translate-y-1/2" />
-        <div className="pooled-hero__beam pooled-hero__beam--center absolute inset-0" />
-        <div className="pooled-hero__color-light pooled-hero__color-light--center absolute inset-0" style={{ animationDelay: '-6s' }} />
-
-        {/* Right Luminaire */}
-        <div className="pooled-hero__halo absolute left-[80%] top-0 -translate-x-1/2 -translate-y-1/2" />
-        <div className="pooled-hero__beam pooled-hero__beam--right absolute inset-0" />
-        <div className="pooled-hero__color-light pooled-hero__color-light--right absolute inset-0" style={{ animationDelay: '-12s' }} />
-
-        {/* Particles (Micro-bubbles) rising inside the water */}
-        <div className="pooled-hero__particles absolute inset-0" aria-hidden="true">
-          {PARTICLES.map((p, i) => (
-              <span
-                  key={i}
-                  className="pooled-hero__particle"
-                  style={{
-                    left: `${p.x}%`,
-                    width: `${p.size}px`,
-                    height: `${p.size}px`,
-                    animationDelay: `${p.delay}s`,
-                    animationDuration: `${p.duration}s`,
-                    ['--drift' as never]: `${p.drift}px`,
-                  }}
-              />
-          ))}
-        </div>
-
-        {/* Hairline horizon at bottom for technical/precise feel */}
-        <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#00A3D6]/25 to-transparent"
-            aria-hidden="true"
+        {/* Video background */}
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src="/hero.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
         />
+
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/50" />
+
+        {/* Bottom vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
         {/* --- CONTENT --- */}
         <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center">
