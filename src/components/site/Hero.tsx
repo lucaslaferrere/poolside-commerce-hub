@@ -64,7 +64,7 @@ export function Hero() {
             <h1 className="pooled-hero__headline mt-7 font-display text-5xl font-semibold leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.25rem]">
               La luz precisa
               <br />
-              <span className="text-[#B5D8F0]">para tu pileta.</span>
+              <span className="text-[#B5D8F0]">para tu piscina.</span>
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#94B8D1] sm:text-lg">
