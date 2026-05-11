@@ -46,14 +46,11 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     shipping_address: '', shipping_city: '', shipping_zip: '', notes: '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  const [payment, setPayment] = useState<'mercadopago' | 'transferencia' | 'efectivo'>('mercadopago');
+  const [payment, setPayment] = useState<'mercadopago' | 'transferencia'>('mercadopago');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null);
-
   const sub = subtotal();
-  const shipping = calcShipping(form.shipping_zip, sub);
-  const total = sub + shipping;
 
   const upd = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -110,7 +107,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <CheckCircle2 className="h-16 w-16 text-secondary mx-auto mb-4" />
             <DialogTitle className="font-display text-2xl">¡Pedido confirmado!</DialogTitle>
             <DialogDescription className="mt-3">
-              Te enviamos un email con los detalles. Si elegiste transferencia o efectivo, te contactamos a la brevedad.
+              Te enviamos un email con los detalles. Si elegiste transferencia, te contactamos a la brevedad.
             </DialogDescription>
             {checkoutResult?.mercadopago_url && (
               <Button asChild size="lg" className="mt-6 gradient-aqua text-primary-foreground">
@@ -142,10 +139,9 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
 
               <div className="space-y-2">
                 <Label>Método de pago</Label>
-                <RadioGroup value={payment} onValueChange={(v) => setPayment(v as typeof payment)} className="grid sm:grid-cols-3 gap-2">
+                <RadioGroup value={payment} onValueChange={(v) => setPayment(v as typeof payment)} className="grid sm:grid-cols-2 gap-2">
                   <PayOption value="mercadopago" icon={<CreditCard className="h-4 w-4" />} label="MercadoPago" current={payment} />
                   <PayOption value="transferencia" icon={<Wallet className="h-4 w-4" />} label="Transferencia" current={payment} />
-                  <PayOption value="efectivo" icon={<Wallet className="h-4 w-4" />} label="Efectivo" current={payment} />
                 </RadioGroup>
                 {payment === 'transferencia' && (
                   <p className="text-xs text-secondary">5% de descuento extra al confirmar.</p>
@@ -161,10 +157,17 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                 <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(sub)}</span></div>
                 <div className="flex justify-between">
                   <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" /> Envío</span>
-                  <span>{shipping === 0 ? <span className="text-secondary font-semibold">Gratis</span> : formatPrice(shipping)}</span>
+                  <a
+                    href={`https://www.andreani.com/personas/enviar-un-paquete${form.shipping_zip ? `?cpDestino=${form.shipping_zip}` : ''}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-secondary hover:underline"
+                  >
+                    Calcular con Andreani <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
                 <div className="border-t pt-2 mt-2 flex justify-between font-display font-bold text-lg">
-                  <span>Total</span><span className="text-primary">{formatPrice(total)}</span>
+                  <span>Total</span><span className="text-primary">{formatPrice(sub)}<span className="text-sm font-normal text-muted-foreground ml-1">+ envío</span></span>
                 </div>
               </div>
 

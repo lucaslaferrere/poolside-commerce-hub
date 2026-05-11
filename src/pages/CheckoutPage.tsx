@@ -30,7 +30,7 @@ interface CheckoutResult {
   mercadopago_url?: string;
 }
 
-type Payment = 'mercadopago' | 'transferencia' | 'efectivo';
+type Payment = 'mercadopago' | 'transferencia';
 
 // All fields are required — including notes — per the brief.
 const schema = z.object({
@@ -237,11 +237,10 @@ export default function CheckoutPage() {
                   <RadioGroup
                     value={payment}
                     onValueChange={(v) => setPayment(v as Payment)}
-                    className="grid sm:grid-cols-3 gap-2"
+                    className="grid sm:grid-cols-2 gap-2"
                   >
                     <PayOption value="mercadopago"   icon={<CreditCard className="h-4 w-4" />} label="MercadoPago"   current={payment} />
                     <PayOption value="transferencia" icon={<Wallet     className="h-4 w-4" />} label="Transferencia" current={payment} />
-                    <PayOption value="efectivo"      icon={<Wallet     className="h-4 w-4" />} label="Efectivo"      current={payment} />
                   </RadioGroup>
                   {payment === 'transferencia' && (
                     <p className="text-xs text-success font-medium mt-1">
@@ -346,8 +345,7 @@ function SuccessPanel({ result }: { result: CheckoutResult | null }) {
         ¡Pedido confirmado!
       </h1>
       <p className="text-sm text-neutral-500 mt-3 max-w-md mx-auto leading-relaxed">
-        Te enviamos un email con los detalles. Si elegiste transferencia o efectivo te
-        contactamos a la brevedad.
+        Te enviamos un email con los detalles. Si elegiste transferencia te contactamos a la brevedad.
         {result?.order_id && (
           <>
             <br />

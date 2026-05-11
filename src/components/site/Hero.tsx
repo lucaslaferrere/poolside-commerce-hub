@@ -48,14 +48,17 @@ export function Hero() {
         {/* Left Luminaire */}
         <div className="pooled-hero__halo absolute left-[20%] top-0 -translate-x-1/2 -translate-y-1/2" />
         <div className="pooled-hero__beam pooled-hero__beam--left absolute inset-0" />
+        <div className="pooled-hero__color-light pooled-hero__color-light--left absolute inset-0" style={{ animationDelay: '0s' }} />
 
         {/* Center Luminaire */}
         <div className="pooled-hero__halo absolute left-[50%] top-0 -translate-x-1/2 -translate-y-1/2" />
         <div className="pooled-hero__beam pooled-hero__beam--center absolute inset-0" />
+        <div className="pooled-hero__color-light pooled-hero__color-light--center absolute inset-0" style={{ animationDelay: '-6s' }} />
 
         {/* Right Luminaire */}
         <div className="pooled-hero__halo absolute left-[80%] top-0 -translate-x-1/2 -translate-y-1/2" />
         <div className="pooled-hero__beam pooled-hero__beam--right absolute inset-0" />
+        <div className="pooled-hero__color-light pooled-hero__color-light--right absolute inset-0" style={{ animationDelay: '-12s' }} />
 
         {/* Particles (Micro-bubbles) rising inside the water */}
         <div className="pooled-hero__particles absolute inset-0" aria-hidden="true">
@@ -89,10 +92,10 @@ export function Hero() {
               transition={{ duration: 0.9, ease: [0.2, 0, 0, 1] }}
               className="w-full flex flex-col items-center"
           >
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#00A3D6]/20 bg-[#005C8A]/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#E0F2FE] backdrop-blur-sm">
+          {/*<span className="inline-flex items-center gap-2 rounded-full border border-[#00A3D6]/20 bg-[#005C8A]/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#E0F2FE] backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-[#00A3D6] shadow-[0_0_10px_rgba(0,163,214,0.85)]" />
             Iluminación LED de precisión
-          </span>
+          </span> */}
 
             <h1 className="pooled-hero__headline mt-7 font-display text-5xl font-semibold leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.25rem]">
               La luz precisa
@@ -185,10 +188,9 @@ const styles = `
   height: 450px;
   background:
     radial-gradient(circle at center, rgba(180, 240, 255, 0.40) 0%, rgba(0, 163, 214, 0.20) 20%, transparent 60%);
-  filter: blur(25px);
   mix-blend-mode: screen;
   pointer-events: none;
-  will-change: opacity;
+  will-change: opacity, transform;
   animation: pooled-halo-shimmer 6s ease-in-out infinite alternate;
 }
 
@@ -203,9 +205,9 @@ const styles = `
     rgba(0, 92, 138, 0.04) 65%,
     transparent 100%
   );
-  filter: blur(32px); /* Slightly increased blur for better water blending */
   mix-blend-mode: screen;
   pointer-events: none;
+  will-change: transform;
   animation: pooled-caustic-sway 8s ease-in-out infinite alternate;
 }
 
@@ -236,6 +238,35 @@ const styles = `
 @keyframes pooled-halo-shimmer {
   0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* Color light — capa de color que cubre todo el haz con clip-path */
+.pooled-hero__color-light {
+  filter: blur(40px);
+  mix-blend-mode: screen;
+  opacity: 0.08;
+  pointer-events: none;
+  animation: pooled-light-color 18s ease-in-out infinite;
+}
+
+.pooled-hero__color-light--left {
+  clip-path: polygon(15% 0%, 25% 0%, 55% 100%, -10% 100%);
+}
+
+.pooled-hero__color-light--center {
+  clip-path: polygon(45% 0%, 55% 0%, 80% 100%, 20% 100%);
+}
+
+.pooled-hero__color-light--right {
+  clip-path: polygon(75% 0%, 85% 0%, 110% 100%, 45% 100%);
+}
+
+@keyframes pooled-light-color {
+  0%,  12% { background: rgba(0,   163, 214, 0.9); }  /* Cyan aqua    */
+  25%, 37% { background: rgba(138,  43, 226, 0.9); }  /* Violeta      */
+  50%, 62% { background: rgba(0,   200, 120, 0.9); }  /* Verde esmeralda */
+  75%, 87% { background: rgba(200, 225, 255, 0.9); }  /* Blanco frío  */
+  100%     { background: rgba(0,   163, 214, 0.9); }  /* Cyan aqua    */
 }
 
 @keyframes pooled-caustic-sway {

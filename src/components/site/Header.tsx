@@ -8,6 +8,9 @@ import {
   LayoutDashboard,
   ClipboardList,
 } from 'lucide-react';
+
+const LOGO_DARK  = '/Pooled negro.svg';
+const LOGO_LIGHT = '/Pooled blanco.svg';
 import {
   Sheet,
   SheetContent,
@@ -132,13 +135,12 @@ export function Header() {
     >
       <div className="container flex h-16 items-center justify-between gap-3">
         {/* Logo — always a Link so it returns home from any page */}
-        <Link to="/" className="flex items-center gap-2 font-display font-semibold text-lg shrink-0">
-          <span className="grid place-items-center h-9 w-9 rounded-full bg-brand text-brand-foreground">
-            <Droplet className="h-4 w-4" fill="currentColor" />
-          </span>
-          <span className={cn(solid ? 'text-neutral-900' : 'text-white drop-shadow')}>
-            Pooled
-          </span>
+        <Link to="/" className="shrink-0">
+          <img
+            src={solid ? LOGO_DARK : LOGO_LIGHT}
+            alt="Pooled"
+            className="h-12 md:h-[12.5rem] w-auto"
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -242,11 +244,8 @@ export function Header() {
 
             <SheetContent side="left" className="w-[280px]">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-2 font-display">
-                  <span className="grid place-items-center h-8 w-8 rounded-full bg-brand text-brand-foreground">
-                    <Droplet className="h-4 w-4" fill="currentColor" />
-                  </span>
-                  Pooled
+                <SheetTitle>
+                  <img src={LOGO_DARK} alt="Pooled" className="h-12 w-auto" />
                 </SheetTitle>
               </SheetHeader>
 

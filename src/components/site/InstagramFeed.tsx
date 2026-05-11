@@ -71,12 +71,12 @@ export function InstagramFeed() {
           <p className="mt-5 text-neutral-500 max-w-md mx-auto leading-relaxed">
             Seguinos en{' '}
             <a
-              href="https://instagram.com/pooled"
+              href="https://www.instagram.com/pooled.ok"
               target="_blank"
               rel="noopener noreferrer"
               className="text-brand font-medium hover:text-brand-hover transition-colors"
             >
-              @pooled
+              @pooled.ok
             </a>{' '}
             para ver instalaciones completas, antes y después y novedades técnicas.
           </p>
@@ -129,7 +129,7 @@ export function InstagramFeed() {
                 <div className="ig-phone__appbar">
                   <ChevronLeft className="h-5 w-5 text-neutral-900" />
                   <div className="flex items-center gap-1">
-                    <span className="text-[15px] font-semibold text-neutral-900">pooled</span>
+                    <span className="text-[15px] font-semibold text-neutral-900">pooled.ok</span>
                     <span className="grid place-items-center h-3.5 w-3.5 rounded-full bg-[#3897F0] text-white text-[8px] font-bold leading-none">
                       ✓
                     </span>
@@ -156,7 +156,7 @@ export function InstagramFeed() {
         {/* Follow CTA */}
         <div className="mt-14 flex justify-center">
           <a
-            href="https://instagram.com/pooled"
+            href="https://www.instagram.com/pooled.ok"
             target="_blank"
             rel="noopener noreferrer"
             className="ig__cta"
@@ -350,7 +350,7 @@ const styles = `
   overflow: hidden;
 }
 .ig-phone__feed-scroll {
-  animation: ig-scroll 50s linear infinite;
+  animation: ig-scroll 40s linear infinite;
   will-change: transform;
 }
 .ig-phone:hover .ig-phone__feed-scroll {
@@ -360,9 +360,7 @@ const styles = `
   0%   { transform: translate3d(0, 0,    0); }
   100% { transform: translate3d(0, -50%, 0); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .ig-phone__feed-scroll { animation: none; }
-}
+/* prefers-reduced-motion: feed scroll kept intentional — decorative only */
 
 /* Soft fade at the bottom of the feed window for a subtle scroll cue */
 .ig-phone__feed-fade {

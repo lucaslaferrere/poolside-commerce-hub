@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: '¿Aceptan transferencia bancaria?',
-    a: 'Sí, aceptamos MercadoPago (todos los medios), transferencia bancaria con 5% de descuento y efectivo.',
+    a: 'Sí, aceptamos MercadoPago (todos los medios) y transferencia bancaria con 5% de descuento.',
   },
   {
     q: '¿Trabajan con instaladores y tiendas?',

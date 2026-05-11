@@ -3,46 +3,44 @@
 @tailwind utilities;
 
 /* =========================================================================
-   POOLED · Design System v2 — Jandy-grade premium
-   Strict grayscale + a single deep aquatic blue (#005C8A).
-   No gradients on UI surfaces. Flat color, hairline borders, soft shadows.
+   POOLED · Design System v2 — Paleta cromática oficial
+   Inspirada en la materialidad del producto: acero, aluminio, superficies técnicas.
 
-   Hex anchors (locked by brand brief):
-     #FFFFFF · page bg
-     #F8F9FA · surface / card bg
-     #121212 · text primary / dark sections
-     #5A5A5A · text secondary
-     #E0E0E0 · borders / dividers
-     #005C8A · brand accent
-     #004366 · brand hover
+   Hex anchors (brief de marketing):
+     #000000 · Negro           — texto principal
+     #FFFFFF · Blanco          — page bg
+     #BFC0C2 · Gris Acero Blanco — bordes / dividers
+     #2F2F32 · Gris Acero Oscuro — texto secundario / body
+     #0B1F3A · Azul Profundo   — secciones oscuras (footer, login)
+     #2E6BFF · Azul Luz        — brand accent / CTAs
    ========================================================================= */
 
 @layer base {
   :root {
     /* ---------------------------------------------------------------------
-       NEUTRAL SCALE — pure grayscale (zero hue) except neutral-50 which
-       follows the brief literally (#F8F9FA carries a hint of cool tint).
+       NEUTRAL SCALE
        --------------------------------------------------------------------- */
     --neutral-0:   0 0% 100%;     /* #FFFFFF — page bg                     */
-    --neutral-50:  210 17% 98%;   /* #F8F9FA — surface / card bg (brief)  */
-    --neutral-100: 0 0% 96%;      /* #F5F5F5 — subtle hover / section bg  */
-    --neutral-200: 0 0% 88%;      /* #E0E0E0 — borders, dividers (brief)  */
-    --neutral-300: 0 0% 78%;      /* #C7C7C7 — strong borders, disabled   */
-    --neutral-400: 0 0% 60%;      /* #999999 — placeholders, mute icons   */
-    --neutral-500: 0 0% 35%;      /* #5A5A5A — text secondary (brief)     */
-    --neutral-700: 0 0% 18%;      /* #2E2E2E — body emphasis              */
-    --neutral-900: 0 0% 7%;       /* #121212 — text primary, dark sections*/
+    --neutral-50:  0 0% 98%;      /* near-white surface / card bg          */
+    --neutral-100: 0 0% 95%;      /* subtle hover / section bg             */
+    --neutral-200: 220 2% 75%;    /* #BFC0C2 — borders, dividers           */
+    --neutral-300: 240 3% 55%;    /* mid gray — strong borders, disabled   */
+    --neutral-400: 240 3% 40%;    /* placeholders, muted icons             */
+    --neutral-500: 240 3% 19%;    /* #2F2F32 — texto secundario            */
+    --neutral-700: 240 3% 12%;    /* body emphasis                         */
+    --neutral-900: 0 0% 0%;       /* #000000 — texto principal             */
 
     /* ---------------------------------------------------------------------
-       BRAND — Deep aquatic blue. ONLY for primary CTAs, focus, links,
-       price highlight, active states. Never as a background slab.
+       BRAND — Azul Luz #2E6BFF para CTAs, links, precios, estados activos.
+       Azul Profundo #0B1F3A para secciones oscuras.
        --------------------------------------------------------------------- */
-    --brand-soft:    200 100% 96%;   /* tinted info wash (chips, callouts)*/
-    --brand-subtle:  200 60%  80%;   /* subtle borders / hover halos      */
-    --brand:         200 100% 27%;   /* #005C8A — DEFAULT                 */
-    --brand-hover:   204 100% 20%;   /* #004366                           */
-    --brand-active:  204 100% 13%;   /* #002D44 — pressed                 */
-    --brand-fg:      0 0% 100%;      /* #FFFFFF                           */
+    --brand-soft:    220 100% 96%;  /* tinted info wash (chips, callouts)  */
+    --brand-subtle:  220 80%  80%;  /* subtle borders / hover halos        */
+    --brand:         220 100% 59%;  /* #2E6BFF — DEFAULT                   */
+    --brand-hover:   220 100% 49%;  /* darker — hover                      */
+    --brand-active:  220 100% 40%;  /* pressed                             */
+    --brand-fg:      0 0% 100%;     /* #FFFFFF                             */
+    --surface-dark:  215 68%  14%;  /* #0B1F3A — Azul Profundo             */
 
     /* ---------------------------------------------------------------------
        SEMANTIC — restrained, premium tone
@@ -101,8 +99,8 @@
     /* ---------------------------------------------------------------------
        TYPOGRAPHY
        --------------------------------------------------------------------- */
-    --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
-    --font-display: 'Poppins', system-ui, sans-serif;
+    --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-display: 'Satoshi', system-ui, sans-serif;
 
     --text-xs:   0.75rem;
     --text-sm:   0.875rem;
@@ -199,9 +197,9 @@
    ------------------------------------------------------------------------- */
 @layer utilities {
   .gradient-aqua  { background: hsl(var(--brand)); color: hsl(var(--brand-fg)); }
-  .gradient-deep  { background: hsl(var(--neutral-900)); color: hsl(var(--neutral-0)); }
+  .gradient-deep  { background: hsl(var(--surface-dark)); color: hsl(var(--neutral-0)); }
   .gradient-light { background: hsl(var(--neutral-50)); }
-  .gradient-gold  { background: hsl(var(--neutral-900)); color: hsl(var(--neutral-0)); }
+  .gradient-gold  { background: hsl(var(--surface-dark)); color: hsl(var(--neutral-0)); }
   .shadow-aqua    { box-shadow: var(--shadow-md); }
   .shadow-deep    { box-shadow: var(--shadow-lg); }
   .shadow-card    { box-shadow: var(--shadow-md); }

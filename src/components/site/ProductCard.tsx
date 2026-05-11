@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,6 @@ import { useCart } from '@/store/cart';
 import { CATEGORY_LABELS, formatPrice, type Product } from '@/types/shop';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { ProductDetailModal } from './ProductDetailModal';
 
 interface Props {
   product: Product;
@@ -16,7 +15,7 @@ interface Props {
 }
 
 export function ProductCard({ product, index = 0 }: Props) {
-  const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
@@ -37,7 +36,6 @@ export function ProductCard({ product, index = 0 }: Props) {
 
   return (
     <>
-    <ProductDetailModal product={product} open={modalOpen} onClose={() => setModalOpen(false)} />
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -92,7 +90,7 @@ export function ProductCard({ product, index = 0 }: Props) {
             <div className="flex flex-col">
               <span className="font-display font-semibold text-xl text-brand">{formatPrice(Number(product.price))}</span>
               <button
-                onClick={() => setModalOpen(true)}
+                onClick={() => navigate(`/tienda/${product.id}`)}
                 className="text-[11px] text-neutral-500 hover:text-brand underline-offset-2 hover:underline transition-colors duration-fast"
               >
                 Ver detalles
@@ -113,4 +111,5 @@ export function ProductCard({ product, index = 0 }: Props) {
     </motion.div>
     </>
   );
+
 }
