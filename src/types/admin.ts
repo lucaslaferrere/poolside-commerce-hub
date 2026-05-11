@@ -10,6 +10,11 @@ export interface Variant {
   price_adjustment: number;
 }
 
+export interface Spec {
+  key: string;
+  value: string;
+}
+
 export interface AdminProduct {
   id: string;
   name: string;
@@ -19,6 +24,7 @@ export interface AdminProduct {
   brand: string;
   images: string[];
   variants: Variant[];
+  specs?: Spec[];
   stock: number;
 }
 
@@ -29,6 +35,12 @@ export interface VariantRow {
   size: string;
   stock: string;
   price_adjustment: string;
+}
+
+export interface SpecRow {
+  _key: string;
+  key: string;
+  value: string;
 }
 
 export const CATEGORY_OPTIONS: { value: Category; label: string }[] = [

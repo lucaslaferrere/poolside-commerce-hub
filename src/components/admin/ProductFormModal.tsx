@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Plus, Trash2, Upload, X, ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Upload, X, ImageIcon, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,13 +18,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { CATEGORY_OPTIONS, type AdminProduct, type VariantRow } from '@/types/admin';
+import {
+  CATEGORY_OPTIONS,
+  type AdminProduct,
+  type VariantRow,
+  type SpecRow,
+} from '@/types/admin';
 import type { Category } from '@/types/shop';
+import { cn } from '@/lib/utils';
 
-// Lightweight unique key for variant rows
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+/**
+ * Locale-tolerant number coercion.
+ * - Swaps the decimal comma for a dot (es-AR users frequently type "12,5").
+ * - Empty / null / NaN inputs default to 0 — never sent as null or "" to a
+ *   numeric property of the backend payload.
+ */
+function toFloat(raw: unknown): number {
+  if (raw === null || raw === undefined) return 0;
+  const cleaned = String(raw).replace(',', '.').trim();
+  if (!cleaned) return 0;
+  const n = parseFloat(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function toInt(raw: unknown): number {
+  if (raw === null || raw === undefined) return 0;
+  const cleaned = String(raw).replace(',', '.').trim();
+  if (!cleaned) return 0;
+  const n = parseInt(cleaned, 10);
+  return Number.isFinite(n) ? n : 0;
+}
 
 const emptyVariant = (): VariantRow => ({
   _key: uid(),
@@ -32,6 +58,12 @@ const emptyVariant = (): VariantRow => ({
   size: '',
   stock: '',
   price_adjustment: '',
+});
+
+const emptySpec = (): SpecRow => ({
+  _key: uid(),
+  key: '',
+  value: '',
 });
 
 interface FormFields {
@@ -60,22 +92,31 @@ interface Props {
   onSubmit: (form: FormData, id?: string) => Promise<void>;
 }
 
-export function ProductFormModal({ open, onOpenChange, product, isSubmitting, onSubmit }: Props) {
+export function ProductFormModal({
+  open,
+  onOpenChange,
+  product,
+  isSubmitting,
+  onSubmit,
+}: Props) {
   const [fields, setFields] = useState<FormFields>(BLANK);
   const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [specs, setSpecs] = useState<SpecRow[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Populate / reset when modal opens or product changes
   useEffect(() => {
     if (!open) {
       setFields(BLANK);
       setVariants([]);
+      setSpecs([]);
       setImageFile(null);
       setImagePreview(null);
       setErrors({});
+      setSubmitError(null);
       return;
     }
     if (product) {
@@ -96,11 +137,17 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
           price_adjustment: String(v.price_adjustment),
         })),
       );
+      setSpecs(
+        (product.specs ?? []).map((s) => ({
+          _key: uid(),
+          key: s.key,
+          value: s.value,
+        })),
+      );
       setImagePreview(product.images?.[0] ?? null);
     }
   }, [open, product]);
 
-  // Revoke object URL when the file selection changes to avoid memory leaks
   useEffect(() => {
     if (!imageFile) return;
     return () => URL.revokeObjectURL(imagePreview ?? '');
@@ -126,16 +173,26 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
     if (fileRef.current) fileRef.current.value = '';
   };
 
+  // Variants
   const addVariant = () => setVariants((v) => [...v, emptyVariant()]);
-
   const removeVariant = (key: string) =>
     setVariants((v) => v.filter((r) => r._key !== key));
-
   const updVariant =
     (key: string, field: keyof Omit<VariantRow, '_key'>) =>
     (e: ChangeEvent<HTMLInputElement>) =>
       setVariants((v) =>
         v.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
+      );
+
+  // Specs (Ficha técnica)
+  const addSpec = () => setSpecs((s) => [...s, emptySpec()]);
+  const removeSpec = (key: string) =>
+    setSpecs((s) => s.filter((r) => r._key !== key));
+  const updSpec =
+    (key: string, field: keyof Omit<SpecRow, '_key'>) =>
+    (e: ChangeEvent<HTMLInputElement>) =>
+      setSpecs((s) =>
+        s.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
       );
 
   const validate = (): boolean => {
@@ -151,128 +208,202 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    setSubmitError(null);
+
+    // ─── Numeric sanitization ────────────────────────────────────────────
+    // Every numeric field passes through toFloat/toInt:
+    //   1. comma → dot (so "12,5" parses cleanly)
+    //   2. empty / NaN → 0 (never null, NaN, or "")
+    //   3. result is a real JS Number, so JSON.stringify emits a numeric
+    //      literal (e.g. 12.5) — not a quoted string.
+    const basePrice = Math.max(0, toFloat(fields.price));
+    const stockNum = Math.max(0, toInt(fields.stock));
+
+    // Variants — drop rows w/o identity (no color AND no size). Numeric
+    // fields are real numbers inside the JSON payload, not strings.
+    const parsedVariants = variants
+      .map((v) => ({
+        color: v.color.trim(),
+        size: v.size.trim(),
+        stock: Math.max(0, toInt(v.stock)),
+        price_adjustment: toFloat(v.price_adjustment),
+      }))
+      .filter((v) => v.color.length > 0 || v.size.length > 0);
+
+    // Specs — backend contract: [{ key, value }]. Require BOTH non-empty.
+    const parsedSpecs = specs
+      .map((s) => ({ key: s.key.trim(), value: s.value.trim() }))
+      .filter((s) => s.key.length > 0 && s.value.length > 0);
 
     const fd = new FormData();
     fd.append('name', fields.name.trim());
     fd.append('description', fields.description.trim());
     fd.append('category', fields.category);
     fd.append('brand', fields.brand.trim());
-    fd.append('base_price', fields.price);
-    fd.append('stock', fields.stock || '0');
-
-    const parsedVariants = variants.map((v) => ({
-      color: v.color.trim(),
-      size: v.size.trim(),
-      stock: parseInt(v.stock, 10) || 0,
-      price_adjustment: parseFloat(v.price_adjustment) || 0,
-    }));
+    // String() on a JS Number gives "12.5" — canonical, dot-decimal, parser-safe.
+    fd.append('base_price', String(basePrice));
+    fd.append('stock', String(stockNum));
     fd.append('variants', JSON.stringify(parsedVariants));
+    fd.append('specs', JSON.stringify(parsedSpecs));
+    if (imageFile) fd.append('image', imageFile);
 
-    if (imageFile) {
-      fd.append('image', imageFile);
+    try {
+      await onSubmit(fd, product?.id);
+      // Parent closes the modal on success; nothing else to do here.
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : 'Error desconocido';
+      setSubmitError(detail);
+      // Bring the alert into view if the user has scrolled.
+      requestAnimationFrame(() => {
+        document
+          .getElementById('product-form-alert')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
     }
-
-    await onSubmit(fd, product?.id);
   };
 
   const isEdit = !!product;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
-          <DialogTitle className="font-display text-xl">
+      <DialogContent
+        className={cn(
+          // Sizing — fully responsive with safe edge margins
+          'w-[95vw] max-w-6xl max-h-[88vh]',
+          // Reset shadcn defaults so we control the inner layout
+          'p-0 gap-0 overflow-hidden flex flex-col',
+        )}
+      >
+        <DialogHeader className="px-6 py-5 border-b border-neutral-200 shrink-0">
+          <DialogTitle className="font-display text-xl font-semibold text-neutral-900">
             {isEdit ? 'Editar producto' : 'Nuevo producto'}
           </DialogTitle>
+          <p className="text-xs text-neutral-500 mt-1">
+            Información básica, variantes y ficha técnica del producto.
+          </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
-            {/* ── LEFT COLUMN: Core info + image ── */}
-            <div className="px-6 py-5 space-y-4">
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
-                Información básica
-              </p>
+        {/* Scrolling body — header & footer stay pinned */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col flex-1 min-h-0"
+          noValidate
+        >
+          <div className="flex-1 overflow-y-auto">
+            {submitError && (
+              <div
+                id="product-form-alert"
+                role="alert"
+                className="mx-6 mt-5 px-4 py-3 rounded-lg border border-danger/30 bg-danger/5 flex items-start gap-3"
+              >
+                <AlertCircle className="h-4 w-4 text-danger mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0 text-sm">
+                  <p className="font-medium text-neutral-900">
+                    No se pudo guardar el producto
+                  </p>
+                  <p className="text-xs text-neutral-700 mt-0.5 leading-relaxed">
+                    Revisá los campos.{' '}
+                    <span className="text-neutral-900">Detalle:</span>{' '}
+                    <span className="text-danger break-words">{submitError}</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSubmitError(null)}
+                  className="text-neutral-400 hover:text-neutral-700 transition-colors shrink-0 -mt-0.5"
+                  aria-label="Cerrar alerta"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
 
-              <div className="space-y-1.5">
-                <Label htmlFor="pf-name">Nombre *</Label>
-                <Input
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {/* ──────────────────────────────────────────────────── */}
+              {/*  Column 1 · Información básica                      */}
+              {/* ──────────────────────────────────────────────────── */}
+              <section className="px-6 py-6 space-y-4">
+                <SectionLabel>Información básica</SectionLabel>
+
+                <Field
                   id="pf-name"
+                  label="Nombre"
+                  required
+                  error={errors.name}
                   value={fields.name}
                   onChange={upd('name')}
                   placeholder="Ej: Luminaria LED 12W RGB"
-                  aria-invalid={!!errors.name}
                 />
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-              </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="pf-desc">Descripción</Label>
-                <Textarea
-                  id="pf-desc"
-                  rows={3}
-                  value={fields.description}
-                  onChange={upd('description')}
-                  placeholder="Descripción breve del producto..."
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Categoría *</Label>
-                  <Select
-                    value={fields.category}
-                    onValueChange={(v) =>
-                      setFields((f) => ({ ...f, category: v as Category }))
-                    }
-                  >
-                    <SelectTrigger aria-invalid={!!errors.category}>
-                      <SelectValue placeholder="Seleccionar..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.category && (
-                    <p className="text-xs text-destructive">{errors.category}</p>
-                  )}
+                  <Label htmlFor="pf-desc" className="text-xs font-medium text-neutral-700">
+                    Descripción
+                  </Label>
+                  <Textarea
+                    id="pf-desc"
+                    rows={3}
+                    value={fields.description}
+                    onChange={upd('description')}
+                    placeholder="Descripción breve del producto..."
+                    className="resize-none text-sm"
+                  />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="pf-brand">Marca</Label>
-                  <Input
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-neutral-700">
+                      Categoría <span className="text-danger">*</span>
+                    </Label>
+                    <Select
+                      value={fields.category}
+                      onValueChange={(v) =>
+                        setFields((f) => ({ ...f, category: v as Category }))
+                      }
+                    >
+                      <SelectTrigger
+                        aria-invalid={!!errors.category}
+                        className={cn(errors.category && 'border-danger')}
+                      >
+                        <SelectValue placeholder="Seleccionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.category && (
+                      <p className="text-xs text-danger">{errors.category}</p>
+                    )}
+                  </div>
+
+                  <Field
                     id="pf-brand"
+                    label="Marca"
                     value={fields.brand}
                     onChange={upd('brand')}
                     placeholder="Pooled..."
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="pf-price">Precio base (ARS) *</Label>
-                  <Input
+                <div className="grid grid-cols-2 gap-3">
+                  <Field
                     id="pf-price"
+                    label="Precio base (ARS)"
+                    required
                     type="number"
                     min="0"
                     step="0.01"
+                    error={errors.price}
                     value={fields.price}
                     onChange={upd('price')}
                     placeholder="0.00"
-                    aria-invalid={!!errors.price}
                   />
-                  {errors.price && <p className="text-xs text-destructive">{errors.price}</p>}
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="pf-stock">Stock</Label>
-                  <Input
+                  <Field
                     id="pf-stock"
+                    label="Stock"
                     type="number"
                     min="0"
                     step="1"
@@ -281,133 +412,126 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
                     placeholder="0"
                   />
                 </div>
-              </div>
 
-              {/* Image upload */}
-              <div className="space-y-2">
-                <Label>Imagen del producto</Label>
+                {/* Image upload */}
+                <div className="space-y-2 pt-1">
+                  <Label className="text-xs font-medium text-neutral-700">
+                    Imagen del producto
+                  </Label>
 
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
 
-                {imagePreview ? (
-                  <div className="relative group rounded-lg overflow-hidden border bg-muted aspect-video">
-                    <img
-                      src={imagePreview}
-                      alt="Vista previa"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                    <button
-                      type="button"
-                      onClick={clearImage}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background shadow-sm"
-                      aria-label="Quitar imagen"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
+                  {imagePreview ? (
+                    <div className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-video">
+                      <img
+                        src={imagePreview}
+                        alt="Vista previa"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                        aria-label="Quitar imagen"
+                      >
+                        <X className="h-3.5 w-3.5 text-neutral-700" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/95 text-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                      >
+                        <Upload className="h-3 w-3" /> Cambiar
+                      </button>
+                    </div>
+                  ) : (
                     <button
                       type="button"
                       onClick={() => fileRef.current?.click()}
-                      className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background shadow-sm"
+                      className="w-full aspect-video border-2 border-dashed border-neutral-300 rounded-lg flex flex-col items-center justify-center gap-1.5 text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all"
                     >
-                      <Upload className="h-3 w-3" /> Cambiar
+                      <ImageIcon className="h-7 w-7 opacity-50" />
+                      <span className="text-sm font-medium">Subir imagen</span>
+                      <span className="text-xs opacity-70">
+                        JPG, PNG o WebP · máx. 5 MB
+                      </span>
                     </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="w-full aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-secondary/60 hover:bg-muted/30 transition-all"
-                  >
-                    <ImageIcon className="h-8 w-8 opacity-40" />
-                    <span className="text-sm font-medium">Subir imagen</span>
-                    <span className="text-xs opacity-60">JPG, PNG o WebP · máx. 5 MB</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* ── RIGHT COLUMN: Variants ── */}
-            <div className="px-6 py-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
-                  Variantes / Características
-                </p>
-                <Badge variant="outline" className="text-xs font-normal">
-                  {variants.length} {variants.length === 1 ? 'variante' : 'variantes'}
-                </Badge>
-              </div>
-
-              {variants.length === 0 ? (
-                <div className="border-2 border-dashed rounded-lg py-10 px-4 text-center text-muted-foreground">
-                  <p className="text-sm font-medium">Sin variantes configuradas</p>
-                  <p className="text-xs mt-1 opacity-70">
-                    El stock y precio base se usan directamente.
-                  </p>
+                  )}
                 </div>
-              ) : (
-                <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 -mr-1">
-                  {variants.map((v, idx) => (
-                    <div
-                      key={v._key}
-                      className="border rounded-lg p-3 space-y-2.5 bg-muted/20 hover:bg-muted/40 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-muted-foreground">
-                          Variante {idx + 1}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => removeVariant(v._key)}
-                          aria-label="Eliminar variante"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+              </section>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Color</Label>
-                          <Input
-                            className="h-8 text-sm"
+              {/* ──────────────────────────────────────────────────── */}
+              {/*  Column 2 · Variantes                                */}
+              {/* ──────────────────────────────────────────────────── */}
+              <section className="px-6 py-6 space-y-4 border-t md:border-t-0 md:border-l border-neutral-200">
+                <div className="flex items-center justify-between">
+                  <SectionLabel>Variantes</SectionLabel>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-medium tracking-wide border-neutral-200 text-neutral-500"
+                  >
+                    {variants.length} {variants.length === 1 ? 'item' : 'items'}
+                  </Badge>
+                </div>
+
+                {variants.length === 0 ? (
+                  <EmptyState
+                    title="Sin variantes configuradas"
+                    description="El stock y precio base se usan directamente."
+                  />
+                ) : (
+                  <ul className="space-y-2 max-h-[420px] overflow-y-auto pr-1 -mr-1">
+                    {variants.map((v, idx) => (
+                      <li
+                        key={v._key}
+                        className="border border-neutral-200 rounded-lg p-3 space-y-2.5 bg-neutral-50/60 hover:bg-neutral-50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wide">
+                            Variante {idx + 1}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-neutral-400 hover:text-danger hover:bg-danger/10"
+                            onClick={() => removeVariant(v._key)}
+                            aria-label={`Eliminar variante ${idx + 1}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <CompactField
+                            label="Color"
                             placeholder="Azul marino"
                             value={v.color}
                             onChange={updVariant(v._key, 'color')}
                           />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Talle / Tamaño</Label>
-                          <Input
-                            className="h-8 text-sm"
-                            placeholder="Grande / XL"
+                          <CompactField
+                            label="Talle / Tamaño"
+                            placeholder="XL"
                             value={v.size}
                             onChange={updVariant(v._key, 'size')}
                           />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Stock</Label>
-                          <Input
-                            className="h-8 text-sm"
+                          <CompactField
+                            label="Stock"
                             type="number"
                             min="0"
                             placeholder="0"
                             value={v.stock}
                             onChange={updVariant(v._key, 'stock')}
                           />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Ajuste de precio</Label>
-                          <Input
-                            className="h-8 text-sm"
+                          <CompactField
+                            label="Ajuste de precio"
                             type="number"
                             step="0.01"
                             placeholder="+500"
@@ -415,28 +539,104 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
                             onChange={updVariant(v._key, 'price_adjustment')}
                           />
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addVariant}
-                className="w-full"
+                <BrandAddButton onClick={addVariant} label="Agregar variante" />
+              </section>
+
+              {/* ──────────────────────────────────────────────────── */}
+              {/*  Column 3 · Ficha técnica                            */}
+              {/* ──────────────────────────────────────────────────── */}
+              <section
+                className={cn(
+                  'px-6 py-6 space-y-4',
+                  'border-t md:col-span-2 lg:col-span-1 lg:border-t-0 lg:border-l border-neutral-200',
+                )}
               >
-                <Plus className="h-4 w-4" />
-                Agregar variante
-              </Button>
+                <div className="flex items-center justify-between">
+                  <SectionLabel>Ficha técnica</SectionLabel>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-medium tracking-wide border-neutral-200 text-neutral-500"
+                  >
+                    {specs.length} {specs.length === 1 ? 'fila' : 'filas'}
+                  </Badge>
+                </div>
+
+                {specs.length === 0 ? (
+                  <EmptyState
+                    title="Sin especificaciones cargadas"
+                    description="Agregá pares como Potencia / 12 W o Material / Acero inoxidable."
+                  />
+                ) : (
+                  <ul className="space-y-2 max-h-[420px] overflow-y-auto pr-1 -mr-1">
+                    {/* Header — only on lg where the column has room */}
+                    <li className="hidden lg:grid grid-cols-[1fr_1fr_2.25rem] gap-2 px-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
+                        Propiedad
+                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
+                        Valor
+                      </span>
+                      <span />
+                    </li>
+
+                    {specs.map((s, idx) => (
+                      <li
+                        key={s._key}
+                        className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_2.25rem] gap-2 items-start"
+                      >
+                        <Input
+                          aria-label={`Propiedad ${idx + 1}`}
+                          className="h-9 text-sm"
+                          placeholder="Ej: Potencia"
+                          value={s.key}
+                          onChange={updSpec(s._key, 'key')}
+                        />
+                        <div className="flex gap-2">
+                          <Input
+                            aria-label={`Valor ${idx + 1}`}
+                            className="h-9 text-sm flex-1"
+                            placeholder="Ej: 12 W"
+                            value={s.value}
+                            onChange={updSpec(s._key, 'value')}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 shrink-0 text-neutral-400 hover:text-danger hover:bg-danger/10 sm:hidden"
+                            onClick={() => removeSpec(s._key)}
+                            aria-label={`Eliminar fila ${idx + 1}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 shrink-0 text-neutral-400 hover:text-danger hover:bg-danger/10 hidden sm:inline-flex"
+                          onClick={() => removeSpec(s._key)}
+                          aria-label={`Eliminar fila ${idx + 1}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <BrandAddButton onClick={addSpec} label="Agregar fila" />
+              </section>
             </div>
           </div>
 
-          <Separator />
-
-          <DialogFooter className="px-6 py-4 gap-2">
+          {/* Sticky footer */}
+          <DialogFooter className="px-6 py-4 gap-2 border-t border-neutral-200 shrink-0 bg-white sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -448,7 +648,7 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="gradient-aqua text-primary-foreground min-w-[160px]"
+              className="bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active min-w-[160px] shadow-none"
             >
               {isSubmitting
                 ? 'Guardando...'
@@ -460,5 +660,97 @@ export function ProductFormModal({ open, onOpenChange, product, isSubmitting, on
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Small reusable bits
+   ────────────────────────────────────────────────────────────────────── */
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-[0.14em]">
+      {children}
+    </p>
+  );
+}
+
+interface FieldProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'children'> {
+  id: string;
+  label: string;
+  required?: boolean;
+  error?: string;
+}
+
+function Field({ id, label, required, error, className, ...rest }: FieldProps) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-xs font-medium text-neutral-700">
+        {label}
+        {required && <span className="text-danger ml-0.5">*</span>}
+      </Label>
+      <Input
+        id={id}
+        aria-invalid={!!error}
+        className={cn(error && 'border-danger focus-visible:ring-danger/30', className)}
+        {...rest}
+      />
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
+interface CompactFieldProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'children'> {
+  label: string;
+}
+
+function CompactField({ label, className, ...rest }: CompactFieldProps) {
+  return (
+    <div className="space-y-1">
+      <Label className="text-[11px] text-neutral-500">{label}</Label>
+      <Input className={cn('h-8 text-sm', className)} {...rest} />
+    </div>
+  );
+}
+
+function EmptyState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="border border-dashed border-neutral-300 rounded-lg py-8 px-4 text-center bg-neutral-50/40">
+      <p className="text-sm font-medium text-neutral-700">{title}</p>
+      <p className="text-xs text-neutral-500 mt-1">{description}</p>
+    </div>
+  );
+}
+
+/**
+ * Brand-tinted "+" button used for "Agregar variante" / "Agregar fila".
+ * Soft brand surface to read as a primary action without competing visually
+ * with the main "Crear producto" CTA in the footer.
+ */
+function BrandAddButton({
+  onClick,
+  label,
+}: {
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <Button
+      type="button"
+      onClick={onClick}
+      size="sm"
+      variant="ghost"
+      className={cn(
+        'w-full h-9 text-sm font-medium',
+        'bg-brand/8 text-brand border border-brand/15',
+        'hover:bg-brand/12 hover:text-brand-hover hover:border-brand/25',
+        'active:bg-brand/15',
+      )}
+    >
+      <Plus className="h-4 w-4" />
+      {label}
+    </Button>
   );
 }

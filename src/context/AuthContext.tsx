@@ -53,12 +53,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
 
   // Mount-time consistency check: if token XOR user is missing, the pair is invalid.
-  // This covers: corrupted JSON, role field missing, manual localStorage edits, etc.
+  // Also clears sessions with expired JWTs so the user is prompted to log in again
+  // instead of receiving silent 401s from the backend.
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_KEY);
     const storedUser = readStoredUser();
 
     if (storedToken && storedUser) {
+      // Check if token is expired before trusting it
+      try {
+        const payload = JSON.parse(atob(storedToken.split('.')[1]));
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
+          clearStorage();
+          setToken(null);
+          setUser(null);
+          return;
+        }
+      } catch {
+        clearStorage();
+        setToken(null);
+        setUser(null);
+        return;
+      }
       // Sync state in case a previous tab updated localStorage without triggering React state
       setToken(storedToken);
       setUser(storedUser);

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-2xl py-12">
+      <div className="container max-w-2xl pt-24 pb-12">
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
