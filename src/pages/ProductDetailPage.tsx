@@ -116,6 +116,7 @@ export default function ProductDetailPage() {
         price: effectivePrice,
         image_url: product.images[0] ?? null,
         type: 'product',
+        variant_sku: selectedVariant?.sku ?? product.variants?.[0]?.sku ?? '',
       },
       qty,
     );

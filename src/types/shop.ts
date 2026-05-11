@@ -33,6 +33,7 @@ export interface CartItem {
   image_url: string | null;
   quantity: number;
   type: 'product' | 'kit';
+  variant_sku?: string;
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {

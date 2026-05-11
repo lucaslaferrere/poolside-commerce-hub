@@ -30,6 +30,7 @@ export function ProductCard({ product }: Props) {
       price: product.base_price,
       image_url: imageUrl,
       type: 'product',
+      variant_sku: product.variants?.[0]?.sku ?? '',
     });
     triggerSplash();
     toast.success('Producto agregado al carrito', { description: product.name });
