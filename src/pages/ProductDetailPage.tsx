@@ -438,7 +438,7 @@ export default function ProductDetailPage() {
                                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1',
                                 isSelected
                                   ? 'border-secondary bg-secondary text-white shadow-[0_4px_12px_hsl(187_73%_46%/0.35)]'
-                                  : 'border-slate-200 text-slate-700 bg-white hover:border-secondary/50 hover:text-secondary',
+                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-secondary',
                                 colorStock === 0 && 'opacity-35 cursor-not-allowed line-through',
                               )}
                             >
@@ -479,7 +479,7 @@ export default function ProductDetailPage() {
                                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1',
                                 isSelected
                                   ? 'border-secondary bg-secondary text-white shadow-[0_4px_12px_hsl(187_73%_46%/0.35)]'
-                                  : 'border-slate-200 text-slate-700 bg-white hover:border-secondary/50 hover:text-secondary',
+                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-secondary',
                                 !hasStock && 'opacity-35 cursor-not-allowed line-through',
                               )}
                             >
