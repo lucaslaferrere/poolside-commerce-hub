@@ -27,7 +27,7 @@ export function KitsSection() {
     <section id="kits" className="py-16 md:py-24 bg-white">
       <div className="container">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Combos</span>
+          <span className="text-sm font-semibold text-primary uppercase tracking-wider">Combos</span>
           <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance">Kits prearmados</h2>
           <p className="text-muted-foreground mt-3 text-balance">
             Todo lo que necesitás en un solo paquete, con descuento por combo.

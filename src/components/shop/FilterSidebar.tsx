@@ -43,7 +43,7 @@ function FilterPanel({
               className={cn(
                 'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors',
                 selected === 'all'
-                  ? 'bg-secondary/10 text-secondary font-semibold'
+                  ? 'bg-primary/10 text-primary font-semibold'
                   : 'text-muted-foreground hover:bg-slate-50 hover:text-primary',
               )}
             >
@@ -71,7 +71,7 @@ function FilterPanel({
                       className={cn(
                         'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors',
                         isActive
-                          ? 'bg-secondary/10 text-secondary font-semibold'
+                          ? 'bg-primary/10 text-primary font-semibold'
                           : 'text-muted-foreground hover:bg-slate-50 hover:text-primary',
                         disabled && 'opacity-40 cursor-not-allowed hover:bg-transparent',
                       )}
@@ -107,7 +107,7 @@ export function FilterSidebar(props: FilterSidebarProps) {
     <aside className="hidden lg:block lg:w-64 shrink-0">
       <div className="sticky top-24 rounded-xl border border-border/60 bg-card p-5 shadow-card">
         <h2 className="font-display font-bold text-base text-primary mb-4 flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-secondary" />
+          <SlidersHorizontal className="h-4 w-4 text-primary" />
           Filtros
         </h2>
         <FilterPanel {...props} />

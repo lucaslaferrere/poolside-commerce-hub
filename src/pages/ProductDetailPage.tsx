@@ -270,7 +270,7 @@ export default function ProductDetailPage() {
                   <BreadcrumbLink asChild>
                     <Link
                       to="/"
-                      className="text-muted-foreground hover:text-secondary transition-colors text-xs"
+                      className="text-muted-foreground hover:text-primary transition-colors text-xs"
                     >
                       Inicio
                     </Link>
@@ -281,7 +281,7 @@ export default function ProductDetailPage() {
                   <BreadcrumbLink asChild>
                     <Link
                       to="/tienda"
-                      className="text-muted-foreground hover:text-secondary transition-colors text-xs"
+                      className="text-muted-foreground hover:text-primary transition-colors text-xs"
                     >
                       Tienda
                     </Link>
@@ -298,7 +298,7 @@ export default function ProductDetailPage() {
 
             <Link
               to="/tienda"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-secondary transition-colors shrink-0"
+              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors shrink-0"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
               Seguir comprando
@@ -346,9 +346,9 @@ export default function ProductDetailPage() {
                       onClick={() => setActiveImage(i)}
                       aria-label={`Ver imagen ${i + 1}`}
                       className={cn(
-                        'shrink-0 h-[72px] w-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                        'shrink-0 h-[72px] w-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                         activeImage === i
-                          ? 'border-secondary shadow-aqua scale-[1.04]'
+                          ? 'border-primary shadow-md scale-[1.04]'
                           : 'border-slate-200 opacity-55 hover:opacity-100 hover:border-slate-300',
                       )}
                     >
@@ -368,7 +368,7 @@ export default function ProductDetailPage() {
 
               {/* Category + brand */}
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge className="rounded-full px-4 py-1 text-xs font-semibold capitalize bg-secondary text-white border-0 hover:bg-secondary transition-none">
+                <Badge className="rounded-full px-4 py-1 text-xs font-semibold capitalize bg-primary text-white border-0 hover:bg-primary transition-none">
                   {categoryLabel}
                 </Badge>
                 {product.brand && (
@@ -399,7 +399,7 @@ export default function ProductDetailPage() {
                       className="rounded-xl border border-slate-100 bg-slate-50/70 px-2 py-3 text-center"
                       title={spec.meaning}
                     >
-                      <div className="font-display font-bold text-secondary text-base leading-none">
+                      <div className="font-display font-bold text-primary text-base leading-none">
                         {spec.value}
                       </div>
                       <div className="text-[9.5px] text-muted-foreground uppercase tracking-wide mt-1.5">
@@ -480,10 +480,10 @@ export default function ProductDetailPage() {
                               disabled={colorStock === 0}
                               className={cn(
                                 'px-4 py-2 text-sm rounded-full border-2 font-medium capitalize transition-all duration-150',
-                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                                 isSelected
-                                  ? 'border-secondary bg-secondary text-white shadow-[0_4px_12px_hsl(187_73%_46%/0.35)]'
-                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-secondary',
+                                  ? 'border-primary bg-primary text-white shadow-[0_4px_12px_hsl(220_100%_59%/0.35)]'
+                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-primary',
                                 colorStock === 0 && 'opacity-35 cursor-not-allowed line-through',
                               )}
                             >
@@ -521,10 +521,10 @@ export default function ProductDetailPage() {
                               disabled={!hasStock}
                               className={cn(
                                 'px-4 py-2 text-sm rounded-lg border-2 font-medium transition-all duration-150',
-                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                                 isSelected
-                                  ? 'border-secondary bg-secondary text-white shadow-[0_4px_12px_hsl(187_73%_46%/0.35)]'
-                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-secondary',
+                                  ? 'border-primary bg-primary text-white shadow-[0_4px_12px_hsl(220_100%_59%/0.35)]'
+                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-primary',
                                 !hasStock && 'opacity-35 cursor-not-allowed line-through',
                               )}
                             >

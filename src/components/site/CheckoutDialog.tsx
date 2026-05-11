@@ -104,7 +104,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         {done ? (
           <div className="text-center py-8">
-            <CheckCircle2 className="h-16 w-16 text-secondary mx-auto mb-4" />
+            <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-4" />
             <DialogTitle className="font-display text-2xl">¡Pedido confirmado!</DialogTitle>
             <DialogDescription className="mt-3">
               Te enviamos un email con los detalles. Si elegiste transferencia, te contactamos a la brevedad.
@@ -144,7 +144,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                   <PayOption value="transferencia" icon={<Wallet className="h-4 w-4" />} label="Transferencia" current={payment} />
                 </RadioGroup>
                 {payment === 'transferencia' && (
-                  <p className="text-xs text-secondary">5% de descuento extra al confirmar.</p>
+                  <p className="text-xs text-primary">5% de descuento extra al confirmar.</p>
                 )}
               </div>
 
@@ -161,7 +161,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                     href={`https://www.andreani.com/personas/enviar-un-paquete${form.shipping_zip ? `?cpDestino=${form.shipping_zip}` : ''}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-secondary hover:underline"
+                    className="flex items-center gap-1 text-primary hover:underline"
                   >
                     Calcular con Andreani <ExternalLink className="h-3 w-3" />
                   </a>
@@ -203,7 +203,7 @@ function PayOption({ value, icon, label, current }: { value: string; icon: React
     <Label
       htmlFor={`pay-${value}`}
       className={`flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
-        selected ? 'border-secondary bg-secondary/5' : 'border-border hover:border-secondary/40'
+        selected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'
       }`}
     >
       <RadioGroupItem id={`pay-${value}`} value={value} />

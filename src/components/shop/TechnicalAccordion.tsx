@@ -48,7 +48,7 @@ export function TechnicalAccordion({
             idx === sections.length - 1 ? 'border-0' : 'border-slate-100',
           )}
         >
-          <AccordionTrigger className="text-sm font-semibold text-primary hover:text-secondary hover:no-underline py-4">
+          <AccordionTrigger className="text-sm font-semibold text-primary hover:text-primary/70 hover:no-underline py-4">
             {section.title}
           </AccordionTrigger>
           <AccordionContent className="pb-4">
@@ -65,7 +65,7 @@ export function TechnicalAccordion({
                     <dt className="text-muted-foreground shrink-0">{label}</dt>
                     <dd className="font-medium text-right">
                       {value.length <= 32 ? (
-                        <span className="inline-block bg-secondary/20 text-secondary text-xs font-bold px-2.5 py-0.5 rounded-full border border-secondary/30">
+                        <span className="inline-block bg-primary/10 text-primary text-xs font-bold px-2.5 py-0.5 rounded-full border border-primary/20">
                           {value}
                         </span>
                       ) : (

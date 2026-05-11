@@ -182,12 +182,12 @@ export function LoginDialog({ open, onClose, onSuccess }: Props) {
               <p className="text-center text-xs text-muted-foreground">
                 {tab === 'login'
                   ? <>¿No tenés cuenta?{' '}
-                      <button type="button" onClick={() => setTab('register')} className="text-secondary underline-offset-2 hover:underline">
+                      <button type="button" onClick={() => setTab('register')} className="text-primary underline-offset-2 hover:underline">
                         Registrate
                       </button>
                     </>
                   : <>¿Ya tenés cuenta?{' '}
-                      <button type="button" onClick={() => setTab('login')} className="text-secondary underline-offset-2 hover:underline">
+                      <button type="button" onClick={() => setTab('login')} className="text-primary underline-offset-2 hover:underline">
                         Ingresá
                       </button>
                     </>

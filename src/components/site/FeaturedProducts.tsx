@@ -35,7 +35,7 @@ export function FeaturedProducts() {
         {/* Section header */}
         <div className="flex items-end justify-between mb-8 gap-4">
           <div>
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest">
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">
               Catálogo
             </span>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mt-1 text-slate-900">
@@ -47,7 +47,7 @@ export function FeaturedProducts() {
           </div>
           <Link
             to="/tienda"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-secondary hover:text-secondary/80 transition-colors whitespace-nowrap"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
           >
             Ver todos
             <ArrowRight className="h-4 w-4" />

@@ -116,7 +116,7 @@ export function BuyingWizard() {
     <section id="guia" className="py-16 md:py-24 bg-slate-50">
       <div className="container">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Asistente</span>
+          <span className="text-sm font-semibold text-primary uppercase tracking-wider">Asistente</span>
           <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance">
             ¿Qué necesitás para tu piscina?
           </h2>
@@ -159,8 +159,8 @@ export function BuyingWizard() {
                         className={cn(
                           'p-5 rounded-xl border-2 text-left transition-all',
                           selected
-                            ? 'border-secondary bg-secondary/10 shadow-aqua'
-                            : 'border-border hover:border-secondary/50 hover:bg-muted/50'
+                            ? 'border-primary bg-primary/10 shadow-sm'
+                            : 'border-border hover:border-primary/50 hover:bg-muted/50'
                         )}
                       >
                         <div className="font-display font-bold text-lg">{opt.label}</div>
@@ -183,7 +183,7 @@ export function BuyingWizard() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center"
               >
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-xs font-semibold mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
                   <Sparkles className="h-3 w-3" /> Recomendación lista
                 </div>
                 <h3 className="font-display text-2xl md:text-3xl font-bold mb-2">
@@ -208,9 +208,9 @@ export function BuyingWizard() {
                         </span>
                       </div>
                       <ul className="space-y-1.5 text-sm">
-                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-secondary" /> Envío a todo el país</li>
-                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-secondary" /> Garantía oficial</li>
-                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-secondary" /> Asesoría incluida</li>
+                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> Envío a todo el país</li>
+                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> Garantía oficial</li>
+                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> Asesoría incluida</li>
                       </ul>
                     </div>
                   </div>

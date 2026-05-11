@@ -142,7 +142,7 @@ export default function Register() {
 
           <p className="text-center text-sm text-muted-foreground mt-4">
             ¿Ya tenés cuenta?{' '}
-            <Link to="/" className="text-secondary font-medium hover:underline">
+            <Link to="/" className="text-primary font-medium hover:underline">
               Iniciá sesión
             </Link>
           </p>

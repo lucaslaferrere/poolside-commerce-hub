@@ -36,7 +36,7 @@ export function FAQ() {
     <section id="faq" className="py-16 md:py-24 gradient-light">
       <div className="container max-w-3xl">
         <div className="text-center mb-10">
-          <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Preguntas frecuentes</span>
+          <span className="text-sm font-semibold text-primary uppercase tracking-wider">Preguntas frecuentes</span>
           <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance">
             Resolvé tus dudas
           </h2>
