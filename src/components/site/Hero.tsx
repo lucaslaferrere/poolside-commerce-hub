@@ -35,7 +35,7 @@ export function Hero() {
         {/* Video background */}
         <video
           className="absolute inset-0 h-full w-full object-cover"
-          src="/hero.mp4"
+          src="https://pub-6232b7116b2042bbb2308cbdd5eec1b1.r2.dev/hero.mp4"
           autoPlay
           muted
           loop
