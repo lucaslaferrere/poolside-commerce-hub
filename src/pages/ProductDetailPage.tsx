@@ -368,7 +368,7 @@ export default function ProductDetailPage() {
               {/* Price block */}
               <div className="py-5 border-y border-slate-100/80 space-y-1.5">
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="font-display text-4xl lg:text-5xl font-bold text-secondary tabular-nums leading-none">
+                  <span className="font-display text-4xl lg:text-5xl font-bold text-[#1a1a2e] tabular-nums leading-none">
                     {formatPrice(effectivePrice)}
                   </span>
                   {selectedVariant && selectedVariant.price_adjustment !== 0 && (
