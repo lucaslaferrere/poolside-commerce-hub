@@ -12,7 +12,7 @@ export function ProtectedRoute({ children, adminOnly = false }: Props) {
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/register" replace state={{ from: location }} />;
+    return <Navigate to="/" replace state={{ from: location, openAuth: true }} />;
   }
 
   if (adminOnly && user?.role !== 'admin') {

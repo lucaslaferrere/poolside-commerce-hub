@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useCart } from '@/store/cart';
-import { CATEGORY_LABELS, formatPrice, type Product } from '@/types/shop';
+import { formatPrice } from '@/types/shop';
+import type { ShopProduct } from '@/types/shop';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  product: Product;
+  product: ShopProduct;
   index?: number;
 }
 
@@ -25,9 +26,10 @@ export function ProductCard({ product, index = 0 }: Props) {
     add({
       id: product.id,
       name: product.name,
-      price: Number(product.price),
-      image_url: product.image_url,
+      price: product.base_price,
+      image_url: product.images?.[0] ?? null,
       type: 'product',
+      variant_sku: product.variants?.[0]?.sku ?? '',
     });
     triggerSplash({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
     toast.success('Agregado al carrito', { description: product.name });
@@ -44,9 +46,9 @@ export function ProductCard({ product, index = 0 }: Props) {
     >
       <Card className="group h-full overflow-hidden bg-card border border-neutral-200 rounded-lg shadow-xs hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5 transition-all duration-base ease-standard">
         <div className="relative aspect-square overflow-hidden bg-neutral-50">
-          {product.image_url ? (
+          {product.images?.[0] ? (
             <img
-              src={product.image_url}
+              src={product.images[0]}
               alt={product.name}
               loading="lazy"
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-slow ease-standard"
@@ -55,14 +57,9 @@ export function ProductCard({ product, index = 0 }: Props) {
             <div className="h-full w-full grid place-items-center text-neutral-400 text-xs">Sin imagen</div>
           )}
           <Badge
-            className={cn(
-              'absolute top-3 left-3 capitalize border-0 font-medium tracking-wide',
-              product.category === 'osire'
-                ? 'bg-neutral-900 text-neutral-0'
-                : 'bg-neutral-0/90 text-neutral-700 backdrop-blur-sm'
-            )}
+            className="absolute top-3 left-3 capitalize border-0 font-medium tracking-wide bg-neutral-0/90 text-neutral-700 backdrop-blur-sm"
           >
-            {CATEGORY_LABELS[product.category]}
+            {product.category}
           </Badge>
           {product.stock === 0 && (
             <div className="absolute inset-0 bg-neutral-0/70 backdrop-blur-sm grid place-items-center">
@@ -81,14 +78,14 @@ export function ProductCard({ product, index = 0 }: Props) {
           <h3 className="font-display font-semibold text-base leading-snug line-clamp-2 min-h-[2.5rem] text-neutral-900">
             {product.name}
           </h3>
-          {product.short_description && (
+          {product.description && (
             <p className="text-xs text-neutral-500 mt-1 line-clamp-2 min-h-[2rem]">
-              {product.short_description}
+              {product.description}
             </p>
           )}
           <div className="mt-4 flex items-end justify-between gap-2">
             <div className="flex flex-col">
-              <span className="font-display font-semibold text-xl text-brand">{formatPrice(Number(product.price))}</span>
+              <span className="font-display font-semibold text-xl text-brand">{formatPrice(product.base_price)}</span>
               <button
                 onClick={() => navigate(`/tienda/${product.id}`)}
                 className="text-[11px] text-neutral-500 hover:text-brand underline-offset-2 hover:underline transition-colors duration-fast"
@@ -99,7 +96,7 @@ export function ProductCard({ product, index = 0 }: Props) {
             <Button
               size="sm"
               onClick={(e) => handleAdd(e)}
-              disabled={product.stock === 0}
+              disabled={(product.stock ?? 0) === 0}
               className="bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed shadow-none"
             >
               <Plus className="h-4 w-4" />

@@ -73,6 +73,7 @@ export interface ShopProduct {
   brand: string;
   images: string[];
   variants: ShopVariant[];
+  specs?: { key: string; value: string }[];
   stock: number;
   created_at: string;
   updated_at: string;

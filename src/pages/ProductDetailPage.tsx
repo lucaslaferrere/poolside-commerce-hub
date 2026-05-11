@@ -204,13 +204,7 @@ export default function ProductDetailPage() {
   const categoryLabel =
     (CATEGORY_LABELS as Record<string, string>)[product.category] ?? product.category;
 
-  const specRows = [
-    product.brand ? { label: 'Marca', value: product.brand } : null,
-    { label: 'Categoría', value: categoryLabel },
-    product.variants?.length
-      ? { label: 'Variantes', value: `${product.variants.length} opciones` }
-      : null,
-  ].filter(Boolean) as { label: string; value: string }[];
+  const specRows = (product.specs ?? []).map((s) => ({ label: s.key, value: s.value }));
 
   const accordionSections: AccordionSection[] = [
     ...(product.description
