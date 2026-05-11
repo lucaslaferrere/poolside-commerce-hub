@@ -40,6 +40,7 @@ export function Hero() {
           muted
           loop
           playsInline
+          onEnded={(e) => { e.currentTarget.currentTime = 0; e.currentTarget.play(); }}
         />
 
         {/* Dark overlay */}
