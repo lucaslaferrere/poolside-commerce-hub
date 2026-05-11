@@ -216,6 +216,24 @@ export default function ProductDetailPage() {
           } satisfies AccordionSection,
         ]
       : []),
+    ...(product.benefits?.length
+      ? [
+          {
+            id: 'benefits',
+            title: 'Por qué elegirlo',
+            content: (
+              <ul className="space-y-3">
+                {product.benefits!.map((b) => (
+                  <li key={b.title} className="flex flex-col gap-0.5">
+                    <span className="font-semibold text-primary text-[13px]">{b.title}</span>
+                    <span>{b.description}</span>
+                  </li>
+                ))}
+              </ul>
+            ),
+          } satisfies AccordionSection,
+        ]
+      : []),
     {
       id: 'specs',
       title: 'Ficha técnica',
@@ -364,6 +382,33 @@ export default function ProductDetailPage() {
               <h1 className="font-display text-[1.85rem] lg:text-4xl font-bold text-primary leading-tight tracking-tight">
                 {product.name}
               </h1>
+
+              {/* Subtitle */}
+              {product.subtitle && (
+                <p className="text-sm text-muted-foreground leading-relaxed -mt-2">
+                  {product.subtitle}
+                </p>
+              )}
+
+              {/* Main specs — at-a-glance grid */}
+              {(product.main_specs?.length ?? 0) > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {product.main_specs!.slice(0, 6).map((spec) => (
+                    <div
+                      key={spec.key}
+                      className="rounded-xl border border-slate-100 bg-slate-50/70 px-2 py-3 text-center"
+                      title={spec.meaning}
+                    >
+                      <div className="font-display font-bold text-secondary text-base leading-none">
+                        {spec.value}
+                      </div>
+                      <div className="text-[9.5px] text-muted-foreground uppercase tracking-wide mt-1.5">
+                        {spec.key}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Price block */}
               <div className="py-5 border-y border-slate-100/80 space-y-1.5">
