@@ -65,7 +65,7 @@ export function TechnicalAccordion({
                     <dt className="text-muted-foreground shrink-0">{label}</dt>
                     <dd className="font-medium text-right">
                       {value.length <= 32 ? (
-                        <span className="inline-block bg-secondary/8 text-secondary text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                        <span className="inline-block bg-secondary/20 text-secondary text-xs font-bold px-2.5 py-0.5 rounded-full border border-secondary/30">
                           {value}
                         </span>
                       ) : (

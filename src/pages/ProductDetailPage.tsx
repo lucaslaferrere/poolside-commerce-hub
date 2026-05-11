@@ -539,10 +539,10 @@ export default function ProductDetailPage() {
                   ] as const
                 ).map(({ Icon, label }) => (
                   <div key={label} className="flex flex-col items-center gap-1.5 text-center">
-                    <div className="h-8 w-8 rounded-full bg-secondary/8 border border-secondary/15 grid place-items-center">
-                      <Icon className="h-4 w-4 text-secondary" strokeWidth={1.75} />
+                    <div className="h-9 w-9 rounded-full bg-secondary/25 border border-secondary/40 grid place-items-center">
+                      <Icon className="h-4 w-4 text-secondary" strokeWidth={2} />
                     </div>
-                    <p className="text-[10.5px] text-slate-500 leading-snug">{label}</p>
+                    <p className="text-[10.5px] text-slate-600 font-medium leading-snug">{label}</p>
                   </div>
                 ))}
               </div>
