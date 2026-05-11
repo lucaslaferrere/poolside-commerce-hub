@@ -57,7 +57,7 @@ export default function TiendaPage() {
               Tienda
             </h1>
             <p className="text-sm text-neutral-500 mt-2">
-              Iluminación premium para tu pileta
+              Iluminación premium para tu piscina
             </p>
           </div>
 

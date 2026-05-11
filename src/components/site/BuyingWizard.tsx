@@ -21,7 +21,7 @@ type Answers = {
 const STEPS = [
   {
     key: 'pool_size' as const,
-    title: '¿De qué tamaño es tu pileta?',
+    title: '¿De qué tamaño es tu piscina?',
     options: [
       { value: 'chica', label: 'Chica', desc: 'Hasta 30 m³' },
       { value: 'mediana', label: 'Mediana', desc: '30 - 60 m³' },
@@ -32,8 +32,8 @@ const STEPS = [
     key: 'pool_type' as const,
     title: '¿De qué material es?',
     options: [
-      { value: 'fibra', label: 'Fibra', desc: 'Pileta de fibra de vidrio' },
-      { value: 'hormigon', label: 'Hormigón', desc: 'Pileta de hormigón / cemento' },
+      { value: 'fibra', label: 'Fibra', desc: 'Piscina de fibra de vidrio' },
+      { value: 'hormigon', label: 'Hormigón', desc: 'Piscina de hormigón / cemento' },
       { value: 'revestida', label: 'Revestida', desc: 'Vinilo, liner o membrana' },
     ],
   },
@@ -113,12 +113,12 @@ export function BuyingWizard() {
   };
 
   return (
-    <section id="guia" className="py-16 md:py-24 gradient-light">
+    <section id="guia" className="py-16 md:py-24 bg-slate-50">
       <div className="container">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Asistente</span>
           <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance">
-            ¿Qué necesitás para tu pileta?
+            ¿Qué necesitás para tu piscina?
           </h2>
           <p className="text-muted-foreground mt-3 text-balance">
             Respondé 4 preguntas simples y te recomendamos el kit perfecto.

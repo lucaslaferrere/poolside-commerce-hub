@@ -30,7 +30,7 @@ export function FeaturedProducts() {
   const products = data ?? [];
 
   return (
-    <section id="tienda" className="py-16 md:py-24 bg-slate-50/60">
+    <section id="tienda" className="py-16 md:py-24 bg-white">
       <div className="container">
         {/* Section header */}
         <div className="flex items-end justify-between mb-8 gap-4">
@@ -42,7 +42,7 @@ export function FeaturedProducts() {
               Productos destacados
             </h2>
             <p className="text-muted-foreground mt-1.5 text-sm max-w-md">
-              Lo mejor en luminarias, controladores y accesorios para que tu pileta brille.
+              Lo mejor en luminarias, controladores y accesorios para que tu piscina brille.
             </p>
           </div>
           <Link

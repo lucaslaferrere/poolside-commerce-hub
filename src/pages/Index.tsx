@@ -13,9 +13,11 @@ const Index = () => {
   return (
     <>
       <Hero />
-      <WaveDivider fillClass="text-background" className="-mt-[60px] relative z-10" />
+      <WaveDivider fillClass="text-white" className="-mt-[60px] relative z-10" />
       <FeaturedProducts />
+      <WaveDivider bgClass="bg-white" fillClass="text-slate-50" />
       <BuyingWizard />
+      <WaveDivider bgClass="bg-slate-50" fillClass="text-white" />
       <KitsSection />
       <DistributorsSection />
       <InstagramFeed />

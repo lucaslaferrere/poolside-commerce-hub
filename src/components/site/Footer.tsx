@@ -7,7 +7,7 @@ export function Footer() {
         <div>
           <img src="/Pooled blanco.svg" alt="Pooled" className="h-12 md:h-[12.5rem] w-auto" />
           <p className="text-sm text-primary-foreground/70 mt-3">
-            Iluminación LED y accesorios para piletas. Calidad pro y asesoría experta.
+            Iluminación LED y accesorios para piscina. Calidad pro y asesoría experta.
           </p>
         </div>
 

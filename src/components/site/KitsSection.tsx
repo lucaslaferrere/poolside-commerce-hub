@@ -24,7 +24,7 @@ export function KitsSection() {
   };
 
   return (
-    <section id="kits" className="py-16 md:py-24 bg-background">
+    <section id="kits" className="py-16 md:py-24 bg-white">
       <div className="container">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-sm font-semibold text-secondary uppercase tracking-wider">Combos</span>
@@ -65,7 +65,7 @@ export function KitsSection() {
                     <div className="absolute top-3 left-3">
                       <Badge variant="secondary" className="bg-white/90 text-primary font-medium">
                         <Package className="h-3 w-3 mr-1" />
-                        Pileta {k.pool_size}
+                        Piscina {k.pool_size}
                       </Badge>
                     </div>
                   </div>

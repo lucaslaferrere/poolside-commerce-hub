@@ -6,7 +6,7 @@ const FAQS = [
     a: 'Despachamos en 24-48hs hábiles. La entrega varía entre 2 y 7 días según tu ubicación. Trabajamos con Andreani, OCA y Correo Argentino.',
   },
   {
-    q: '¿Las luminarias son aptas para piletas con cloro o sal?',
+    q: '¿Las luminarias son aptas para piscinas con cloro o sal?',
     a: 'Sí, todas nuestras luminarias tienen certificación IP68 y materiales resistentes al cloro y al agua salada.',
   },
   {

@@ -27,12 +27,12 @@ interface Post {
 }
 
 const POSTS: Post[] = [
-  { img: heroImg, location: 'Cariló · Buenos Aires', caption: 'Pileta de 9m con sistema RGB Pooled. Diseño y montaje propio.', likes: '2.412', time: 'Hace 1 día' },
+  { img: heroImg, location: 'Cariló · Buenos Aires', caption: 'Piscina de 9m con sistema RGB Pooled. Diseño y montaje propio.', likes: '2.412', time: 'Hace 1 día' },
   { img: rgbImg,  location: 'San Isidro',             caption: 'Sincronización con app: 16M de colores y escenas guardadas.',  likes: '1.876', time: 'Hace 2 días' },
   { img: kitImg,  location: 'Pinamar',                caption: 'Kit completo instalado en un fin de semana. Cliente feliz.',     likes: '3.104', time: 'Hace 3 días' },
   { img: ledImg,  location: 'Tigre',                  caption: 'LED 12 W blanco frío. Reemplazo de halógena tradicional.',       likes: '964',   time: 'Hace 4 días' },
   { img: ctrlImg, location: 'Nordelta',               caption: 'Controlador wifi compatible con Alexa & Google Home.',           likes: '1.328', time: 'Hace 5 días' },
-  { img: heroImg, location: 'Pilar',                  caption: 'Inauguración nocturna. La pileta queda como el escenario.',      likes: '4.221', time: 'Hace 6 días' },
+  { img: heroImg, location: 'Pilar',                  caption: 'Inauguración nocturna. La piscina queda como el escenario.',      likes: '4.221', time: 'Hace 6 días' },
   { img: rgbImg,  location: 'Mar del Plata',          caption: 'Modo fiesta activado para el cumpleaños del cliente.',           likes: '2.703', time: 'Hace 1 sem' },
   { img: kitImg,  location: 'Bariloche',              caption: 'Antes / después de una renovación completa.',                     likes: '1.547', time: 'Hace 1 sem' },
 ];
