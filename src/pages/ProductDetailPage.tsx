@@ -350,11 +350,11 @@ export default function ProductDetailPage() {
 
               {/* Category + brand */}
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge className="rounded-full px-4 py-1 text-xs font-semibold capitalize bg-secondary/10 text-secondary border border-secondary/25 hover:bg-secondary/10 transition-none">
+                <Badge className="rounded-full px-4 py-1 text-xs font-semibold capitalize bg-secondary text-white border-0 hover:bg-secondary transition-none">
                   {categoryLabel}
                 </Badge>
                 {product.brand && (
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground/70 font-medium">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
                     {product.brand}
                   </span>
                 )}
