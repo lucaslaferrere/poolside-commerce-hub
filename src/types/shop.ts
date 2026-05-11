@@ -44,6 +44,35 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   accesorios: 'Accesorios',
 };
 
+export type OrderStatus =
+  | 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered'
+  | 'cancelled' | 'rejected';
+
+export interface OrderItem {
+  product_id: string;
+  variant_sku: string;
+  quantity: number;
+  unit_price: number;
+}
+
+export interface Order {
+  id: string;
+  user_id: string;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  notes?: string;
+  payment_method?: string;
+  shipping_details: { address: string; city: string; postal_code: string };
+  preference_id?: string;
+  payment_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // NaN-safe: coerces null/undefined/non-finite values to 0 to avoid "$ NaN" in the UI.
 export const formatPrice = (n: number | null | undefined): string => {
   const value = typeof n === 'number' && Number.isFinite(n) ? n : 0;

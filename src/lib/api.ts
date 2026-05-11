@@ -124,6 +124,15 @@ export async function apiPutForm<T>(path: string, form: FormData): Promise<T> {
   return parseResponse<T>(res);
 }
 
+export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  return parseResponse<T>(res);
+}
+
 export async function apiDelete(path: string): Promise<void> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'DELETE',
