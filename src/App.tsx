@@ -17,6 +17,7 @@ import CheckoutPage from './pages/CheckoutPage.tsx';
 import AdminLayout from './pages/admin/AdminLayout.tsx';
 import AdminDashboard from './pages/admin/Dashboard.tsx';
 import AdminProducts from './pages/admin/Products.tsx';
+import WarrantyPage from './pages/WarrantyPage.tsx';
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,8 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+
+              <Route path="/garantia" element={<WarrantyPage />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -1,4 +1,5 @@
 import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
@@ -18,6 +19,7 @@ export function Footer() {
             <li><a href="#kits" className="hover:text-secondary">Kits</a></li>
             <li><a href="#guia" className="hover:text-secondary">Guía de compra</a></li>
             <li><a href="#faq" className="hover:text-secondary">FAQ</a></li>
+            <li><Link to="/garantia" className="hover:text-secondary">Garantía</Link></li>
           </ul>
         </div>
 
