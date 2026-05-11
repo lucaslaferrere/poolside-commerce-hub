@@ -530,7 +530,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Trust badges */}
-              <div className="grid grid-cols-3 gap-2 py-4 border-t border-slate-100">
+              <div className="grid grid-cols-3 gap-2 py-4 border-t border-slate-300">
                 {(
                   [
                     { Icon: Truck, label: 'Envío a todo el país' },
@@ -539,10 +539,10 @@ export default function ProductDetailPage() {
                   ] as const
                 ).map(({ Icon, label }) => (
                   <div key={label} className="flex flex-col items-center gap-1.5 text-center">
-                    <div className="h-9 w-9 rounded-full bg-secondary/25 border border-secondary/40 grid place-items-center">
-                      <Icon className="h-4 w-4 text-secondary" strokeWidth={2} />
+                    <div className="h-9 w-9 rounded-full bg-secondary grid place-items-center shadow-sm">
+                      <Icon className="h-4 w-4 text-white" strokeWidth={2} />
                     </div>
-                    <p className="text-[10.5px] text-slate-600 font-medium leading-snug">{label}</p>
+                    <p className="text-[10.5px] text-slate-700 font-semibold leading-snug">{label}</p>
                   </div>
                 ))}
               </div>
