@@ -64,9 +64,21 @@ export interface ShopVariant {
   price_adjustment: number;
 }
 
+export interface ShopBenefit {
+  title: string;
+  description: string;
+}
+
+export interface ShopMainSpec {
+  key: string;
+  value: string;
+  meaning: string;
+}
+
 export interface ShopProduct {
   id: string;
   name: string;
+  subtitle?: string;
   description: string;
   base_price: number;
   category: string;
@@ -74,6 +86,8 @@ export interface ShopProduct {
   images: string[];
   variants: ShopVariant[];
   specs?: { key: string; value: string }[];
+  main_specs?: ShopMainSpec[];
+  benefits?: ShopBenefit[];
   stock: number;
   created_at: string;
   updated_at: string;
