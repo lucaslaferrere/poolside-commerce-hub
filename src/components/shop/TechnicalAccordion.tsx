@@ -53,15 +53,24 @@ export function TechnicalAccordion({
           </AccordionTrigger>
           <AccordionContent className="pb-4">
             {section.rows ? (
-              <dl className="text-sm">
-                {section.rows.map(({ label, value }) => (
+              <dl className="text-sm rounded-lg overflow-hidden">
+                {section.rows.map(({ label, value }, i) => (
                   <div
                     key={label}
-                    className="flex items-start justify-between gap-4 py-2.5 border-b border-slate-50 last:border-0"
+                    className={cn(
+                      'flex items-start justify-between gap-4 px-3 py-2.5',
+                      i % 2 === 0 ? 'bg-slate-50/70' : 'bg-white',
+                    )}
                   >
                     <dt className="text-muted-foreground shrink-0">{label}</dt>
-                    <dd className="font-medium text-primary capitalize text-right">
-                      {value}
+                    <dd className="font-medium text-right">
+                      {value.length <= 32 ? (
+                        <span className="inline-block bg-secondary/8 text-secondary text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                          {value}
+                        </span>
+                      ) : (
+                        <span className="text-primary">{value}</span>
+                      )}
                     </dd>
                   </div>
                 ))}
