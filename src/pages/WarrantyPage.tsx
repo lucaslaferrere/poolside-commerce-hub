@@ -109,7 +109,7 @@ export default function WarrantyPage() {
           <div className="flex gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900">
             <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5 text-amber-500" />
             <div className="text-sm space-y-0.5">
-              <p className="font-semibold">Solo para compras directas en pooled.com.ar</p>
+              <p className="font-semibold">Solo para compras directas en www.pooled.com.ar</p>
               <p className="text-amber-700">Si compraste a través de un distribuidor, contactá primero con él para gestionar la garantía.</p>
             </div>
           </div>
