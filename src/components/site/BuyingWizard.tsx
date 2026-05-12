@@ -113,14 +113,52 @@ export function BuyingWizard() {
   };
 
   return (
-    <section id="guia" className="py-16 md:py-24 bg-slate-50">
-      <div className="container">
+    <section
+      id="guia"
+      className="wizard-section relative overflow-hidden py-20 md:py-24 bg-[hsl(var(--surface-dark))] text-white"
+    >
+      {/* Ambient brand glows (top-left + bottom-right) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,hsl(215_60%_30%/0.5),transparent_60%)] blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 -right-32 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,hsl(215_60%_30%/0.35),transparent_60%)] blur-3xl"
+      />
+      {/* Concentric water ripples — drop on the surface (light-toned for dark bg) */}
+      <div aria-hidden="true" className="wizard-ripples pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <span className="wizard-ripple" style={{ animationDelay: '0s' }} />
+        <span className="wizard-ripple" style={{ animationDelay: '2s' }} />
+        <span className="wizard-ripple" style={{ animationDelay: '4s' }} />
+        <span className="wizard-ripple" style={{ animationDelay: '6s' }} />
+      </div>
+      <style>{`
+        .wizard-ripple {
+          position: absolute;
+          left: 0; top: 0;
+          width: 0; height: 0;
+          border: 1.5px solid hsl(var(--brand-on-dark) / 0.35);
+          border-radius: 9999px;
+          transform: translate(-50%, -50%);
+          animation: wizard-ripple-expand 8s ease-out infinite;
+        }
+        @keyframes wizard-ripple-expand {
+          0%   { width: 0;    height: 0;    opacity: 0;    border-width: 2px; }
+          10%  { opacity: 0.55; }
+          100% { width: 1400px; height: 1400px; opacity: 0; border-width: 0.5px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .wizard-ripple { animation: none; }
+        }
+      `}</style>
+      <div className="relative container">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-sm font-semibold text-primary uppercase tracking-wider">Asistente</span>
-          <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance">
+          <span className="text-sm font-semibold uppercase tracking-wider text-[hsl(var(--brand-on-dark))]">Asistente</span>
+          <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance text-white">
             ¿Qué necesitás para tu piscina?
           </h2>
-          <p className="text-muted-foreground mt-3 text-balance">
+          <p className="text-white/70 mt-3 text-balance">
             Respondé 4 preguntas simples y te recomendamos el kit perfecto.
           </p>
         </div>

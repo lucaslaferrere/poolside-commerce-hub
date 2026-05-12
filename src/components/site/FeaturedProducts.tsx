@@ -30,8 +30,28 @@ export function FeaturedProducts() {
   const products = data ?? [];
 
   return (
-    <section id="tienda" className="py-16 md:py-24 bg-white">
-      <div className="container">
+    <section
+      id="tienda"
+      className="relative overflow-hidden py-20 md:py-24 bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFFFF_55%,#F4F8FB_100%)]"
+    >
+      {/* Aqua sun glow — top-right (morning light on the pool deck) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-32 -right-24 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(0,163,214,0.16),transparent_65%)] blur-3xl"
+      />
+      {/* Counter-glow — bottom-left (cool reflection) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 -left-32 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle,rgba(46,107,255,0.08),transparent_60%)] blur-3xl"
+      />
+      {/* Caustic shimmer band — thin horizontal water-light streaks */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-[18%] h-32 opacity-60 [background-image:repeating-linear-gradient(90deg,transparent_0px,transparent_38px,rgba(0,163,214,0.05)_38px,rgba(0,163,214,0.05)_40px)] [mask-image:radial-gradient(ellipse_70%_100%_at_50%_50%,#000,transparent_75%)]"
+      />
+      {/* Bottom horizon hairline */}
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+      <div className="relative container">
         {/* Section header */}
         <div className="flex items-end justify-between mb-8 gap-4">
           <div>

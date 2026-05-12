@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Flame } from 'lucide-react';
 import { useCart } from '@/store/cart';
-import { formatPrice } from '@/types/shop';
+import { applyDiscount, formatPrice, hasDiscount } from '@/types/shop';
 import type { ShopProduct } from '@/types/shop';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -21,12 +21,15 @@ export function ProductCard({ product, index = 0 }: Props) {
   const open = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
 
+  const onSale = hasDiscount(product.discount_percent);
+  const finalPrice = applyDiscount(product.base_price, product.discount_percent);
+
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     add({
       id: product.id,
       name: product.name,
-      price: product.base_price,
+      price: finalPrice,
       image_url: product.images?.[0] ?? null,
       type: 'product',
       variant_sku: product.variants?.[0]?.sku ?? '',
@@ -68,11 +71,17 @@ export function ProductCard({ product, index = 0 }: Props) {
               </span>
             </div>
           )}
-          {product.stock > 0 && product.stock <= 3 && (
+          {/* Discount badge wins over "Últimas N" */}
+          {onSale ? (
+            <Badge className="absolute top-3 right-3 border-0 bg-red-500 text-white text-[11px] font-bold tracking-wide shadow-md gap-1">
+              <Flame className="h-3 w-3" />
+              -{Math.round(product.discount_percent!)}% OFF
+            </Badge>
+          ) : product.stock > 0 && product.stock <= 3 ? (
             <Badge className="absolute top-3 right-3 bg-warning text-warning-foreground border-0 text-[10px] font-medium">
               Últimas {product.stock}
             </Badge>
-          )}
+          ) : null}
         </div>
         <CardContent className="p-5">
           <h3 className="font-display font-semibold text-base leading-snug line-clamp-2 min-h-[2.5rem] text-neutral-900">
@@ -85,10 +94,21 @@ export function ProductCard({ product, index = 0 }: Props) {
           )}
           <div className="mt-4 flex items-end justify-between gap-2">
             <div className="flex flex-col">
-              <span className="font-display font-semibold text-xl text-brand">{formatPrice(product.base_price)}</span>
+              {onSale ? (
+                <>
+                  <span className="text-[11px] text-gray-400 line-through tabular-nums leading-none">
+                    {formatPrice(product.base_price)}
+                  </span>
+                  <span className="font-display font-bold text-xl text-red-600 tabular-nums leading-tight">
+                    {formatPrice(finalPrice)}
+                  </span>
+                </>
+              ) : (
+                <span className="font-display font-semibold text-xl text-brand">{formatPrice(product.base_price)}</span>
+              )}
               <button
                 onClick={() => navigate(`/tienda/${product.id}`)}
-                className="text-[11px] text-neutral-500 hover:text-brand underline-offset-2 hover:underline transition-colors duration-fast"
+                className="text-[11px] text-neutral-500 hover:text-brand underline-offset-2 hover:underline transition-colors duration-fast mt-0.5"
               >
                 Ver detalles
               </button>

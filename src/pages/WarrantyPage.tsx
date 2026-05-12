@@ -83,14 +83,7 @@ export default function WarrantyPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="pt-16">
-        {/* Breadcrumb */}
-        <div className="border-b bg-slate-50/70">
-          <div className="container py-3 flex items-center justify-between">
-            <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-              <ChevronLeft className="h-3.5 w-3.5" /> Inicio
-            </Link>
-          </div>
-        </div>
+
 
         <div className="container max-w-3xl py-10 pb-20 space-y-10">
 

@@ -73,6 +73,7 @@ interface FormFields {
   brand: string;
   price: string;
   stock: string;
+  discount: string;
 }
 
 const BLANK: FormFields = {
@@ -82,6 +83,7 @@ const BLANK: FormFields = {
   brand: '',
   price: '',
   stock: '',
+  discount: '',
 };
 
 interface Props {
@@ -127,6 +129,7 @@ export function ProductFormModal({
         brand: product.brand ?? '',
         price: String(product.base_price),
         stock: String(product.stock),
+        discount: product.discount_percent ? String(product.discount_percent) : '',
       });
       setVariants(
         (product.variants ?? []).map((v) => ({
@@ -218,6 +221,8 @@ export function ProductFormModal({
     //      literal (e.g. 12.5) — not a quoted string.
     const basePrice = Math.max(0, toFloat(fields.price));
     const stockNum = Math.max(0, toInt(fields.stock));
+    // Discount is 0–100; empty / NaN / out-of-range all collapse to 0.
+    const discountPct = Math.min(100, Math.max(0, toFloat(fields.discount)));
 
     // Variants — drop rows w/o identity (no color AND no size). Numeric
     // fields are real numbers inside the JSON payload, not strings.
@@ -243,6 +248,7 @@ export function ProductFormModal({
     // String() on a JS Number gives "12.5" — canonical, dot-decimal, parser-safe.
     fd.append('base_price', String(basePrice));
     fd.append('stock', String(stockNum));
+    fd.append('discount_percent', String(discountPct));
     fd.append('variants', JSON.stringify(parsedVariants));
     fd.append('specs', JSON.stringify(parsedSpecs));
     if (imageFile) fd.append('image', imageFile);
@@ -411,6 +417,37 @@ export function ProductFormModal({
                     onChange={upd('stock')}
                     placeholder="0"
                   />
+                </div>
+
+                {/* Discount — optional */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor="pf-discount" className="text-xs font-medium text-neutral-700">
+                      Descuento (%)
+                    </Label>
+                    <span className="text-[10px] font-medium text-neutral-500 bg-neutral-100 rounded px-1.5 py-0.5 uppercase tracking-wide">
+                      Opcional
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="pf-discount"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={fields.discount}
+                      onChange={upd('discount')}
+                      placeholder="0"
+                      className="pr-9"
+                    />
+                    <span className="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-xs text-neutral-400 font-medium">
+                      %
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    Se aplica sobre el precio base. Dejá vacío o en 0 para ocultar la oferta.
+                  </p>
                 </div>
 
                 {/* Image upload */}

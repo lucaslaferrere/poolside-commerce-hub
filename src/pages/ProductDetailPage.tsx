@@ -29,9 +29,10 @@ import {
 import { useProductById } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { useCart } from '@/store/cart';
-import { formatPrice, CATEGORY_LABELS } from '@/types/shop';
+import { applyDiscount, formatPrice, hasDiscount, CATEGORY_LABELS } from '@/types/shop';
 import type { ShopVariant } from '@/types/shop';
 import { cn } from '@/lib/utils';
+import { Flame } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -89,10 +90,15 @@ export default function ProductDetailPage() {
     return product.stock ?? variants.reduce((s, v) => s + v.stock, 0);
   }, [product, selectedVariant, selectedColor]);
 
-  const effectivePrice = useMemo(
+  const variantPrice = useMemo(
     () => (product?.base_price ?? 0) + (selectedVariant?.price_adjustment ?? 0),
     [product, selectedVariant],
   );
+
+  const onSale = hasDiscount(product?.discount_percent);
+  const effectivePrice = onSale
+    ? applyDiscount(variantPrice, product?.discount_percent)
+    : variantPrice;
 
   useEffect(() => {
     if (effectiveStock > 0) setQty((q) => Math.min(q, effectiveStock));
@@ -366,11 +372,17 @@ export default function ProductDetailPage() {
             {/* ── RIGHT: product info (2/5) — sticky on desktop ────────── */}
             <div className="lg:col-span-2 lg:sticky lg:top-24 lg:self-start space-y-6">
 
-              {/* Category + brand */}
+              {/* Category + brand + discount */}
               <div className="flex items-center gap-3 flex-wrap">
                 <Badge className="rounded-full px-4 py-1 text-xs font-semibold capitalize bg-primary text-white border-0 hover:bg-primary transition-none">
                   {categoryLabel}
                 </Badge>
+                {onSale && (
+                  <Badge className="rounded-full px-3 py-1 text-xs font-bold bg-red-500 text-white border-0 hover:bg-red-500 transition-none gap-1 shadow-sm">
+                    <Flame className="h-3 w-3" />
+                    -{Math.round(product.discount_percent!)}% OFF
+                  </Badge>
+                )}
                 {product.brand && (
                   <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
                     {product.brand}
@@ -412,8 +424,21 @@ export default function ProductDetailPage() {
 
               {/* Price block */}
               <div className="py-5 border-y border-slate-100/80 space-y-1.5">
+                {onSale && (
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-lg text-gray-400 line-through tabular-nums">
+                      {formatPrice(variantPrice)}
+                    </span>
+                    <span className="text-xs font-bold text-red-600 bg-red-50 rounded-full px-2 py-0.5 ring-1 ring-red-200">
+                      Ahorrás {formatPrice(variantPrice - effectivePrice)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="font-display text-4xl lg:text-5xl font-bold text-[#1a1a2e] tabular-nums leading-none">
+                  <span className={cn(
+                    'font-display text-4xl lg:text-5xl font-bold tabular-nums leading-none',
+                    onSale ? 'text-red-600' : 'text-[#1a1a2e]',
+                  )}>
                     {formatPrice(effectivePrice)}
                   </span>
                   {selectedVariant && selectedVariant.price_adjustment !== 0 && (

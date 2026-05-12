@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 /* =========================================================================
-   POOLED · Design System v2 — Paleta cromática oficial
-   Inspirada en la materialidad del producto: acero, aluminio, superficies técnicas.
+   POOLED · Design System v3 — Paleta monocromática Azul Profundo
+   El brand vive enteramente dentro de la familia #0B203C: del wash más
+   suave (brand-50) al más profundo (brand-900). No hay un segundo azul.
 
-   Hex anchors (brief de marketing):
+   Hex anchors:
      #000000 · Negro           — texto principal
      #FFFFFF · Blanco          — page bg
      #BFC0C2 · Gris Acero Blanco — bordes / dividers
      #2F2F32 · Gris Acero Oscuro — texto secundario / body
-     #0B1F3A · Azul Profundo   — secciones oscuras (footer, login)
-     #2E6BFF · Azul Luz        — brand accent / CTAs
+     #0B203C · Azul Profundo   — brand accent / CTAs / secciones oscuras
    ========================================================================= */
 
 @layer base {
@@ -31,16 +31,28 @@
     --neutral-900: 0 0% 0%;       /* #000000 — texto principal             */
 
     /* ---------------------------------------------------------------------
-       BRAND — Azul Luz #2E6BFF para CTAs, links, precios, estados activos.
-       Azul Profundo #0B1F3A para secciones oscuras.
+       BRAND — Azul Profundo #0B203C. Tonal scale built from a single hue
+       so every brand surface, text, and border lives within one palette.
        --------------------------------------------------------------------- */
-    --brand-soft:    220 100% 96%;  /* tinted info wash (chips, callouts)  */
-    --brand-subtle:  220 80%  80%;  /* subtle borders / hover halos        */
-    --brand:         220 100% 59%;  /* #2E6BFF — DEFAULT                   */
-    --brand-hover:   220 100% 49%;  /* darker — hover                      */
-    --brand-active:  220 100% 40%;  /* pressed                             */
-    --brand-fg:      0 0% 100%;     /* #FFFFFF                             */
-    --surface-dark:  215 68%  14%;  /* #0B1F3A — Azul Profundo             */
+    --brand-50:      215 38% 96%;   /* #F0F3F7 — softest wash               */
+    --brand-100:     215 28% 90%;   /* #DDE3EB                              */
+    --brand-200:     215 24% 80%;   /* #C2CCD9 — subtle borders             */
+    --brand-300:     215 22% 62%;   /* #8B9AAD                              */
+    --brand-400:     215 28% 42%;   /* #4F627B — on-dark muted text         */
+    --brand-500:     215 45% 28%;   /* #28425E                              */
+    --brand-600:     215 58% 22%;   /* #18324F — hover                      */
+    --brand-700:     215 70% 14%;   /* #0B203C — DEFAULT                    */
+    --brand-800:     215 78% 9%;    /* #061425 — active                     */
+    --brand-900:     215 85% 5%;    /* #020A14 — deepest                    */
+
+    --brand-soft:    215 38% 96%;   /* alias brand-50  — chips, callouts    */
+    --brand-subtle:  215 24% 80%;   /* alias brand-200 — subtle borders     */
+    --brand:         215 70% 14%;   /* alias brand-700 — DEFAULT            */
+    --brand-hover:   215 58% 22%;   /* alias brand-600                      */
+    --brand-active:  215 78% 9%;    /* alias brand-800                      */
+    --brand-fg:      0 0% 100%;     /* #FFFFFF                              */
+    --brand-on-dark: 215 22% 70%;   /* light brand tint for text on navy    */
+    --surface-dark:  215 70% 14%;   /* #0B203C — same hue family            */
 
     /* ---------------------------------------------------------------------
        SEMANTIC — restrained, premium tone
@@ -176,7 +188,11 @@
 
 @layer base {
   * { @apply border-border; }
-  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
   body {
     background: hsl(var(--background));
     color: hsl(var(--foreground));
@@ -188,6 +204,11 @@
     font-family: var(--font-display);
     letter-spacing: var(--tracking-tight);
     color: hsl(var(--neutral-900));
+  }
+  /* Offset anchor targets under the fixed 64px header so the title isn't hidden */
+  section[id] { scroll-margin-top: 5rem; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
   ::selection { background: hsl(var(--brand) / 0.18); color: hsl(var(--neutral-900)); }
 }

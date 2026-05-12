@@ -83,6 +83,19 @@ export const formatPrice = (n: number | null | undefined): string => {
   }).format(value);
 };
 
+/**
+ * Compute the discounted price from a base price and a percentage (0–100).
+ * Returns the original price if discount is null/0/invalid. Clamps to 0–100.
+ */
+export const applyDiscount = (basePrice: number, discount: number | null | undefined): number => {
+  if (!discount || !Number.isFinite(discount) || discount <= 0) return basePrice;
+  const pct = Math.min(100, Math.max(0, discount));
+  return basePrice * (1 - pct / 100);
+};
+
+export const hasDiscount = (discount: number | null | undefined): discount is number =>
+  typeof discount === 'number' && Number.isFinite(discount) && discount > 0;
+
 // ── Public-API product (GET /products and GET /products/:id) ─────────────────
 
 export interface ShopVariant {
@@ -110,6 +123,8 @@ export interface ShopProduct {
   subtitle?: string;
   description: string;
   base_price: number;
+  /** Promotional discount as a percentage (0–100). 0/undefined = no discount. */
+  discount_percent?: number | null;
   category: string;
   brand: string;
   images: string[];

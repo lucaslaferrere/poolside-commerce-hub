@@ -20,6 +20,8 @@ export interface AdminProduct {
   name: string;
   description: string;
   base_price: number;
+  /** Promotional discount as a percentage (0–100). 0/undefined = no discount. */
+  discount_percent?: number | null;
   category: Category;
   brand: string;
   images: string[];

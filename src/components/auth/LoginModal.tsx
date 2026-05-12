@@ -125,30 +125,24 @@ export function LoginModal({ open, onOpenChange, defaultTab = 'login', onSuccess
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden border-0 gap-0 [&>button:last-child]:text-white [&>button:last-child]:top-4 [&>button:last-child]:right-4">
+      <DialogContent className="max-w-md p-0 overflow-hidden border-0 gap-0 [&>button:last-child]:text-white [&>button:last-child]:top-4 [&>button:last-child]:right-4 [&>button:last-child]:z-50 [&>button:last-child]:opacity-90 [&>button:last-child]:hover:opacity-100">
         <DialogTitle className="sr-only">
           {tab === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
         </DialogTitle>
 
         {/* Branded header */}
-        <div className="relative h-56 gradient-deep overflow-hidden">
+        <div className="relative h-44 gradient-deep overflow-hidden">
           {BUBBLES.map((b) => (
             <motion.div
               key={b.id}
-              className="absolute bottom-0 rounded-full bg-white/20 border border-white/30"
+              className="absolute bottom-0 rounded-full bg-white/20 border border-white/30 pointer-events-none"
               style={{ width: b.size, height: b.size, left: `${b.left}%` }}
               animate={{ y: [-b.size, -160], opacity: [0, 0.7, 0] }}
               transition={{ duration: b.duration, delay: b.delay, repeat: Infinity, ease: 'easeInOut' }}
             />
           ))}
-          <svg className="absolute bottom-0 w-full" viewBox="0 0 400 30" preserveAspectRatio="none" style={{ height: 30 }}>
-            <path
-              d="M0,15 C50,30 100,0 150,15 C200,30 250,0 300,15 C350,30 400,0 400,15 L400,30 L0,30 Z"
-              fill="hsl(var(--background))"
-            />
-          </svg>
-          <div className="relative z-10 flex flex-col items-center justify-center h-full gap-2 pb-4">
-            <img src="/Pooled blanco.svg" alt="Pooled" className="h-[200px]" />
+          <div className="pointer-events-none relative z-10 flex h-full items-center justify-center">
+            <img src="/Pooled blanco.svg" alt="Pooled" className="h-32 w-auto" />
           </div>
         </div>
 

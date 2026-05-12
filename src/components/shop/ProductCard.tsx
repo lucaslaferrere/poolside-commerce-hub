@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Droplet } from 'lucide-react';
+import { ShoppingCart, Droplet, Flame } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/store/cart';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { formatPrice, CATEGORY_LABELS, type Category } from '@/types/shop';
+import { applyDiscount, formatPrice, hasDiscount, CATEGORY_LABELS } from '@/types/shop';
 import type { ShopProduct } from '@/types/shop';
 
 interface Props {
@@ -21,13 +21,16 @@ export function ProductCard({ product }: Props) {
   const imageUrl = product.images?.[0] ?? null;
   const categoryLabel = (CATEGORY_LABELS as Record<string, string>)[product.category] ?? product.category;
 
+  const onSale = hasDiscount(product.discount_percent);
+  const finalPrice = applyDiscount(product.base_price, product.discount_percent);
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     add({
       id: product.id,
       name: product.name,
-      price: product.base_price,
+      price: finalPrice,
       image_url: imageUrl,
       type: 'product',
       variant_sku: product.variants?.[0]?.sku ?? '',
@@ -64,16 +67,27 @@ export function ProductCard({ product }: Props) {
           <Badge className="absolute top-3 left-3 capitalize border-0 bg-neutral-0/90 text-neutral-700 backdrop-blur-sm text-[11px] font-medium tracking-wide shadow-xs">
             {categoryLabel}
           </Badge>
-          <Badge
-            className={cn(
-              'absolute top-3 right-3 border-0 text-[11px] font-medium tracking-wide',
-              inStock
-                ? 'bg-success text-success-foreground'
-                : 'bg-neutral-900 text-neutral-0',
-            )}
-          >
-            {inStock ? 'En stock' : 'Sin stock'}
-          </Badge>
+
+          {/* Discount badge — takes the spotlight when present */}
+          {onSale ? (
+            <Badge
+              className="absolute top-3 right-3 border-0 bg-red-500 text-white text-[11px] font-bold tracking-wide shadow-md gap-1"
+            >
+              <Flame className="h-3 w-3" />
+              -{Math.round(product.discount_percent!)}% OFF
+            </Badge>
+          ) : (
+            <Badge
+              className={cn(
+                'absolute top-3 right-3 border-0 text-[11px] font-medium tracking-wide',
+                inStock
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-neutral-900 text-neutral-0',
+              )}
+            >
+              {inStock ? 'En stock' : 'Sin stock'}
+            </Badge>
+          )}
         </div>
 
         {/* Body */}
@@ -87,9 +101,20 @@ export function ProductCard({ product }: Props) {
             </p>
           )}
           <div className="mt-auto pt-3 space-y-3">
-            <span className="font-display font-semibold text-lg text-brand block">
-              {formatPrice(product.base_price)}
-            </span>
+            {onSale ? (
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="font-display font-bold text-lg text-red-600 tabular-nums leading-none">
+                  {formatPrice(finalPrice)}
+                </span>
+                <span className="text-xs text-gray-400 line-through tabular-nums">
+                  {formatPrice(product.base_price)}
+                </span>
+              </div>
+            ) : (
+              <span className="font-display font-semibold text-lg text-brand block">
+                {formatPrice(product.base_price)}
+              </span>
+            )}
             <Button
               onClick={handleAddToCart}
               disabled={!inStock}

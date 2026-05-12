@@ -30,7 +30,7 @@ export function Hero() {
   return (
       <section
           id="inicio"
-          className="pooled-hero relative h-[100svh] min-h-[680px] w-full overflow-hidden bg-[#010810] text-white"
+          className="pooled-hero relative h-[90svh] min-h-[600px] w-full overflow-hidden bg-[#010810] text-white"
       >
         {/* Video background */}
         <video
@@ -91,15 +91,31 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Scroll cue */}
-        <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[#00A3D6]/60"
-        >
-          <span>Descubrí más</span>
-          <span className="h-6 w-px bg-[#00A3D6]/40" />
-        </motion.div>
+
+
+        {/* Water-surface wave — three layered paths for depth.
+            Path corners overhang the viewBox by 300 user units on each side
+            so the horizontal sway animation never exposes the dark hero. */}
+        <div className="pooled-hero__wave pointer-events-none absolute inset-x-0 bottom-[-1px] z-10" aria-hidden="true">
+          <svg
+            viewBox="0 0 1440 200"
+            preserveAspectRatio="none"
+            className="block w-full h-[110px] md:h-[150px]"
+          >
+            <path
+              d="M-300,70 C240,140 480,30 720,80 C960,130 1200,30 1740,80 L1740,260 L-300,260 Z"
+              fill="rgba(255,255,255,0.18)"
+            />
+            <path
+              d="M-300,100 C240,170 480,55 720,105 C960,155 1200,55 1740,105 L1740,260 L-300,260 Z"
+              fill="rgba(255,255,255,0.45)"
+            />
+            <path
+              d="M-300,130 C240,200 480,80 720,130 C960,180 1200,80 1740,130 L1740,260 L-300,260 Z"
+              fill="#ffffff"
+            />
+          </svg>
+        </div>
 
         <style>{styles}</style>
       </section>
@@ -328,10 +344,28 @@ const styles = `
   background: rgba(0, 92, 138, 0.2);
 }
 
+/* Water-surface wave — gentle horizontal sway for layered depth */
+.pooled-hero__wave svg path:nth-child(1) {
+  transform-origin: center bottom;
+  animation: pooled-wave-back 9s ease-in-out infinite alternate;
+}
+.pooled-hero__wave svg path:nth-child(2) {
+  transform-origin: center bottom;
+  animation: pooled-wave-mid  7s ease-in-out infinite alternate;
+}
+.pooled-hero__wave svg path:nth-child(3) {
+  transform-origin: center bottom;
+  animation: pooled-wave-front 5.5s ease-in-out infinite alternate;
+}
+@keyframes pooled-wave-back  { from { transform: translateX(-2%); } to { transform: translateX(2%);  } }
+@keyframes pooled-wave-mid   { from { transform: translateX(2%);  } to { transform: translateX(-2%); } }
+@keyframes pooled-wave-front { from { transform: translateX(-1%); } to { transform: translateX(1%);  } }
+
 @media (prefers-reduced-motion: reduce) {
   .pooled-hero__halo,
   .pooled-hero__beam,
   .pooled-hero__particle,
-  .pooled-hero__water-ambient { animation: none; }
+  .pooled-hero__water-ambient,
+  .pooled-hero__wave svg path { animation: none; }
 }
 `;
