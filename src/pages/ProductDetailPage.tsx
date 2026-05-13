@@ -491,7 +491,7 @@ export default function ProductDetailPage() {
                   )}
                 >
                   {inStock
-                    ? `En stock · ${effectiveStock} unidades disponibles`
+                    ? 'En stock'
                     : 'Sin stock — consultá disponibilidad'}
                 </span>
               </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,13 +9,15 @@ import { toast } from 'sonner';
 import { buildWhatsAppLink, BUSINESS_NAME } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
 import { useKits } from '@/hooks/useKits';
-import { apiPost } from '@/lib/api';
+import { useProducts } from '@/hooks/useProducts';
+import { apiPost, resolveImageUrl } from '@/lib/api';
 
 type Answers = {
   pool_size?: 'chica' | 'mediana' | 'grande';
   pool_type?: 'fibra' | 'hormigon' | 'revestida';
-  usage_type?: 'residencial' | 'comercial';
+  usage_type?: 'residencial' | 'comercial' | 'personalizado';
   control_type?: 'manual' | 'remoto' | 'app';
+  customUsage?: string;
 };
 
 const STEPS = [
@@ -43,6 +45,7 @@ const STEPS = [
     options: [
       { value: 'residencial', label: 'Residencial', desc: 'Casa de familia' },
       { value: 'comercial', label: 'Comercial', desc: 'Hotel, club, alquiler' },
+      { value: 'personalizado', label: 'Personalizada', desc: 'Contame tu caso particular' },
     ],
   },
   {
@@ -59,37 +62,69 @@ const STEPS = [
 export function BuyingWizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
+  const [customUsageText, setCustomUsageText] = useState('');
   const [done, setDone] = useState(false);
   const { data } = useKits();
   const kits = Array.isArray(data) ? data : [];
+  const { data: productsData } = useProducts();
+  const products = productsData ?? [];
   const add = useCart((s) => s.add);
   const openCart = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
 
+  const productNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of products) map.set(p.id, p.name);
+    return map;
+  }, [products]);
+
   const current = STEPS[step];
   const progress = ((step + (done ? 1 : 0)) / STEPS.length) * 100;
+  const isPersonalizado = answers.usage_type === 'personalizado';
 
   const recommended = (() => {
     if (!answers.pool_size || kits.length === 0) return null;
     return kits.find((k) => k.pool_size === answers.pool_size) || kits[0];
   })();
 
+  const kitItems = (() => {
+    if (!recommended) return [];
+    if (recommended.product_ids?.length) {
+      const named = recommended.product_ids
+        .map((id) => productNameById.get(id))
+        .filter((n): n is string => Boolean(n));
+      if (named.length) return named;
+    }
+    return ['Luminaria LED', 'Control inalámbrico', 'Accesorios'];
+  })();
+
+  const finishWizard = (next: Answers) => {
+    setDone(true);
+    apiPost('/wizard-recommendations', {
+      pool_size: next.pool_size,
+      pool_type: next.pool_type,
+      usage_type: next.usage_type,
+      control_type: next.control_type,
+      recommended_kit_id: recommended?.id,
+    }).catch(() => {});
+  };
+
   const select = (value: string) => {
     const next = { ...answers, [current.key]: value };
     setAnswers(next);
+    // Personalizado: stay on step to show text input
+    if (current.key === 'usage_type' && value === 'personalizado') return;
     if (step < STEPS.length - 1) {
       setStep(step + 1);
     } else {
-      setDone(true);
-      // Fire-and-forget analytics — errors are intentionally ignored
-      apiPost('/wizard-recommendations', {
-        pool_size: next.pool_size,
-        pool_type: next.pool_type,
-        usage_type: next.usage_type,
-        control_type: next.control_type,
-        recommended_kit_id: recommended?.id,
-      }).catch(() => {});
+      finishWizard(next);
     }
+  };
+
+  const submitPersonalizado = () => {
+    const next = { ...answers, customUsage: customUsageText };
+    setAnswers(next);
+    finishWizard(next);
   };
 
   const reset = () => {
@@ -187,7 +222,7 @@ export function BuyingWizard() {
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-center mb-8">
                   {current.title}
                 </h3>
-                <div className="grid sm:grid-cols-3 gap-3">
+                <div className={cn('grid gap-3', current.options.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
                   {current.options.map((opt) => {
                     const selected = answers[current.key] === opt.value;
                     return (
@@ -208,6 +243,25 @@ export function BuyingWizard() {
                   })}
                 </div>
 
+                {answers.usage_type === 'personalizado' && current.key === 'usage_type' && (
+                  <div className="mt-5 space-y-3">
+                    <textarea
+                      rows={3}
+                      placeholder="Contanos para qué necesitás la iluminación..."
+                      value={customUsageText}
+                      onChange={(e) => setCustomUsageText(e.target.value)}
+                      className="w-full rounded-xl border-2 border-border bg-muted/40 px-4 py-3 text-sm resize-none focus:outline-none focus:border-primary transition-colors"
+                    />
+                    <Button
+                      onClick={submitPersonalizado}
+                      disabled={!customUsageText.trim()}
+                      className="w-full gradient-aqua text-primary-foreground"
+                    >
+                      Enviar consulta <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
                 {step > 0 && (
                   <Button variant="ghost" onClick={() => setStep(step - 1)} className="mt-6">
                     <ArrowLeft className="h-4 w-4" /> Anterior
@@ -221,53 +275,81 @@ export function BuyingWizard() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center"
               >
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
-                  <Sparkles className="h-3 w-3" /> Recomendación lista
-                </div>
-                <h3 className="font-display text-2xl md:text-3xl font-bold mb-2">
-                  Tu kit ideal: {recommended?.name}
-                </h3>
-                <p className="text-muted-foreground mb-6 max-w-xl mx-auto">{recommended?.description}</p>
-
-                {recommended && (
-                  <div className="grid sm:grid-cols-2 gap-6 items-center max-w-2xl mx-auto bg-muted/40 rounded-xl p-5">
-                    {recommended.image_url && (
-                      <img src={recommended.image_url} alt={recommended.name} loading="lazy" className="rounded-lg aspect-square object-cover w-full" />
-                    )}
-                    <div className="text-left space-y-3">
-                      <div>
-                        {recommended.original_price && (
-                          <span className="text-sm text-muted-foreground line-through mr-2">
-                            {formatPrice(Number(recommended.original_price))}
-                          </span>
-                        )}
-                        <span className="font-display font-bold text-3xl text-primary block">
-                          {formatPrice(Number(recommended.price))}
-                        </span>
-                      </div>
-                      <ul className="space-y-1.5 text-sm">
-                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> Envío a todo el país</li>
-                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> Garantía oficial</li>
-                        <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> Asesoría incluida</li>
-                      </ul>
+                {isPersonalizado ? (
+                  <>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
+                      <MessageCircle className="h-3 w-3" /> Consulta lista
                     </div>
-                  </div>
-                )}
+                    <h3 className="font-display text-2xl md:text-3xl font-bold mb-2">
+                      ¡Te ayudamos a elegir!
+                    </h3>
+                    <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+                      Envianos tu mensaje por WhatsApp y te recomendamos la mejor solución para tu caso.
+                    </p>
+                    <Button asChild size="lg" className="gradient-aqua text-primary-foreground">
+                      <a
+                        href={buildWhatsAppLink(`Hola ${BUSINESS_NAME}! Necesito iluminación para: ${answers.customUsage || customUsageText}. ¿Me ayudás a elegir el kit ideal?`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="h-4 w-4" /> Consultar por WhatsApp
+                      </a>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
+                      <Sparkles className="h-3 w-3" /> Recomendación lista
+                    </div>
+                    <h3 className="font-display text-2xl md:text-3xl font-bold mb-2">
+                      Tu kit ideal: {recommended?.name}
+                    </h3>
+                    <p className="text-muted-foreground mb-6 max-w-xl mx-auto">{recommended?.description}</p>
 
-                <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button size="lg" onClick={addKit} className="gradient-aqua text-primary-foreground">
-                    Agregar kit al carrito <ArrowRight className="h-4 w-4" />
-                  </Button>
-                  <Button asChild size="lg" variant="outline">
-                    <a
-                      href={buildWhatsAppLink(`Hola ${BUSINESS_NAME}! Hice la guía y me recomendaron el "${recommended?.name}". Quiero más info.`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageCircle className="h-4 w-4" /> Consultar
-                    </a>
-                  </Button>
-                </div>
+                    {recommended && (
+                      <div className="grid sm:grid-cols-2 gap-6 items-center max-w-2xl mx-auto bg-muted/40 rounded-xl p-5">
+                        {recommended.image_url && (
+                          <img src={resolveImageUrl(recommended.image_url)} alt={recommended.name} loading="lazy" className="rounded-lg aspect-square object-cover w-full" />
+                        )}
+                        <div className="text-left space-y-3">
+                          <div>
+                            {recommended.original_price && (
+                              <span className="text-sm text-muted-foreground line-through mr-2">
+                                {formatPrice(Number(recommended.original_price))}
+                              </span>
+                            )}
+                            <span className="font-display font-bold text-3xl text-primary block">
+                              {formatPrice(Number(recommended.price))}
+                            </span>
+                          </div>
+                          <ul className="space-y-1 text-sm">
+                            {kitItems.slice(0, 4).map((item) => (
+                              <li key={item} className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                                <span className="line-clamp-1">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+                      <Button size="lg" onClick={addKit} className="gradient-aqua text-primary-foreground">
+                        Agregar kit al carrito <ArrowRight className="h-4 w-4" />
+                      </Button>
+                      <Button asChild size="lg" variant="outline">
+                        <a
+                          href={buildWhatsAppLink(`Hola ${BUSINESS_NAME}! Hice la guía y me recomendaron el "${recommended?.name}". Quiero más info.`)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <MessageCircle className="h-4 w-4" /> Consultar
+                        </a>
+                      </Button>
+                    </div>
+                  </>
+                )}
 
                 <Button variant="ghost" onClick={reset} className="mt-4 text-xs">
                   Volver a empezar

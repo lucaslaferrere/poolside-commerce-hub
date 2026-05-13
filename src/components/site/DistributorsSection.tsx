@@ -26,7 +26,7 @@ const schema = z.object({
 type Form = z.infer<typeof schema>;
 
 const BENEFITS: { icon: typeof Tag; title: string; desc: string }[] = [
-  { icon: Tag,           title: 'Hasta 35% de descuento',  desc: 'En toda la línea de productos.' },
+  { icon: Tag,           title: 'Hasta 20% de descuento',  desc: 'En toda la línea de productos.' },
   { icon: GraduationCap, title: 'Capacitaciones técnicas', desc: 'Workshops y certificaciones LED.' },
   { icon: Sparkles,      title: 'Material POP',            desc: 'Catálogos, displays y muestras incluidas.' },
   { icon: Truck,         title: 'Entregas prioritarias',   desc: 'Despachos 24/48 hs a todo el país.' },
@@ -121,7 +121,7 @@ export function DistributorsSection() {
               <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.1] tracking-tight text-neutral-900 mt-5">
                 ¿Sos instalador
                 <br className="hidden sm:block" />{' '}
-                o tenés tienda?
+                o tenés comercio?
               </h2>
 
               <p className="mt-4 text-neutral-600 text-base leading-relaxed max-w-md">

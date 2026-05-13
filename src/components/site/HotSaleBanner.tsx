@@ -141,11 +141,11 @@ export function HotSaleBanner() {
                   >
                     <li className="inline-flex items-center gap-1.5">
                       <Tag className="h-3.5 w-3.5" />
-                      Hasta -50% OFF
+                      Hasta -20% OFF
                     </li>
                     <li className="inline-flex items-center gap-1.5">
-                      <Truck className="h-3.5 w-3.5" />
-                      Envío gratis +$150K
+                      <Truck className="h-5 w-5" />
+                      Envío gratis a partir de $700mil
                     </li>
                     <li className="inline-flex items-center gap-1.5">
                       <ShieldCheck className="h-3.5 w-3.5" />
@@ -236,10 +236,10 @@ export function HotSaleBanner() {
             <div className="bg-black text-white py-3 px-6 flex items-center justify-center gap-x-6 gap-y-1 flex-wrap text-[11px] font-bold uppercase tracking-[0.18em]">
               <span className="inline-flex items-center gap-1.5 text-yellow-300">
                 <Flame className="h-3 w-3" />
-                Hasta -50%
+                Hasta -20%
               </span>
               <span className="opacity-30">●</span>
-              <span className="opacity-95">Envío gratis +$150K</span>
+              <span className="opacity-95">Envío gratis a partir de $700mil</span>
               <span className="opacity-30 hidden sm:inline">●</span>
               <span className="opacity-95 hidden sm:inline">Garantía oficial</span>
               <span className="opacity-30 hidden md:inline">●</span>

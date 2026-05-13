@@ -24,9 +24,9 @@ import { useProducts } from '@/hooks/useProducts';
 import { resolveImageUrl } from '@/lib/api';
 
 const BENEFITS = [
-  { icon: Tag,         label: 'Hasta -20%',           sub: 'por combo' },
+  { icon: Tag,         label: 'Hasta -10%',           sub: 'por combo' },
   { icon: Truck,       label: 'Envíos',       sub: 'a todo el país' },
-  { icon: ShieldCheck, label: 'Garantía oficial',     sub: 'hasta 5 años' },
+  { icon: ShieldCheck, label: 'Garantía oficial',     sub: 'hasta 3 años' },
   { icon: Wrench,      label: 'Asesoría técnica',     sub: 'incluida' },
 ];
 
@@ -227,6 +227,10 @@ export function KitsSection() {
                           Más elegido
                         </Badge>
                       )}
+                      <Badge className="absolute bottom-3 right-3 border-0 bg-emerald-500 text-white text-[10px] font-semibold shadow-sm gap-1">
+                        <Truck className="h-3 w-3" />
+                        Envío gratis
+                      </Badge>
                     </div>
 
                     {/* Content */}
