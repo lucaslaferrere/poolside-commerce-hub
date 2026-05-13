@@ -9,6 +9,7 @@ import { applyDiscount, formatPrice, hasDiscount } from '@/types/shop';
 import type { ShopProduct } from '@/types/shop';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { resolveImageUrl } from '@/lib/api';
 
 interface Props {
   product: ShopProduct;
@@ -30,7 +31,7 @@ export function ProductCard({ product, index = 0 }: Props) {
       id: product.id,
       name: product.name,
       price: finalPrice,
-      image_url: product.images?.[0] ?? null,
+      image_url: resolveImageUrl(product.images?.[0]) || null,
       type: 'product',
       variant_sku: product.variants?.[0]?.sku ?? '',
     });
@@ -51,7 +52,7 @@ export function ProductCard({ product, index = 0 }: Props) {
         <div className="relative aspect-square overflow-hidden bg-neutral-50">
           {product.images?.[0] ? (
             <img
-              src={product.images[0]}
+              src={resolveImageUrl(product.images[0])}
               alt={product.name}
               loading="lazy"
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-slow ease-standard"

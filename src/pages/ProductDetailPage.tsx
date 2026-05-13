@@ -30,6 +30,7 @@ import { useProductById } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { useCart } from '@/store/cart';
 import { applyDiscount, formatPrice, hasDiscount, CATEGORY_LABELS } from '@/types/shop';
+import { resolveImageUrl } from '@/lib/api';
 import type { ShopVariant } from '@/types/shop';
 import { cn } from '@/lib/utils';
 import { Flame } from 'lucide-react';
@@ -120,7 +121,7 @@ export default function ProductDetailPage() {
         id: cartId,
         name: `${product.name}${variantLabel}`,
         price: effectivePrice,
-        image_url: product.images[0] ?? null,
+        image_url: resolveImageUrl(product.images[0]) || null,
         type: 'product',
         variant_sku: selectedVariant?.sku ?? product.variants?.[0]?.sku ?? '',
       },
@@ -323,7 +324,7 @@ export default function ProductDetailPage() {
                 {(product.images?.length ?? 0) > 0 ? (
                   <img
                     key={activeImage}
-                    src={product.images[activeImage]}
+                    src={resolveImageUrl(product.images[activeImage])}
                     alt={product.name}
                     className="h-full w-full object-cover animate-fade-in"
                   />
@@ -346,7 +347,7 @@ export default function ProductDetailPage() {
               {/* Thumbnails */}
               {(product.images?.length ?? 0) > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-1">
-                  {product.images!.map((src, i) => (
+                  {product.images!.map((rawSrc, i) => (
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
@@ -359,7 +360,7 @@ export default function ProductDetailPage() {
                       )}
                     >
                       <img
-                        src={src}
+                        src={resolveImageUrl(rawSrc)}
                         alt={`${product.name} — vista ${i + 1}`}
                         className="h-full w-full object-cover"
                       />

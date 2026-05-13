@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { applyDiscount, formatPrice, hasDiscount, CATEGORY_LABELS } from '@/types/shop';
 import type { ShopProduct } from '@/types/shop';
+import { resolveImageUrl } from '@/lib/api';
 
 interface Props {
   product: ShopProduct;
@@ -18,7 +19,7 @@ export function ProductCard({ product }: Props) {
   const openCart = useCart((s) => s.open);
 
   const inStock = product.stock > 0;
-  const imageUrl = product.images?.[0] ?? null;
+  const imageUrl = resolveImageUrl(product.images?.[0]) || null;
   const categoryLabel = (CATEGORY_LABELS as Record<string, string>)[product.category] ?? product.category;
 
   const onSale = hasDiscount(product.discount_percent);

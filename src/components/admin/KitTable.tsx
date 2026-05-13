@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/types/shop';
 import type { Kit } from '@/types/shop';
+import { resolveImageUrl } from '@/lib/api';
 
 interface Props {
   kits: Kit[];
@@ -52,7 +53,7 @@ export function KitTable({ kits, isLoading, onEdit, onDelete }: Props) {
               <td className="px-4 py-3">
                 {kit.image_url ? (
                   <img
-                    src={kit.image_url}
+                    src={resolveImageUrl(kit.image_url)}
                     alt={kit.name}
                     className="h-10 w-10 rounded-lg object-cover border border-neutral-200"
                   />

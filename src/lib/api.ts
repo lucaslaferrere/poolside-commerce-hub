@@ -1,5 +1,26 @@
 const BASE = import.meta.env.VITE_API_URL as string;
 
+// Derive the server origin from VITE_API_URL
+// e.g. "https://api.pooled.com.ar/api/v1" → "https://api.pooled.com.ar"
+const API_ORIGIN = (() => {
+  try { return new URL(BASE).origin; } catch { return ''; }
+})();
+
+/**
+ * Resolve a product image URL to an absolute URL.
+ * - Relative paths (/uploads/...) → prepend API origin
+ * - Old stub localhost URLs → rewrite host to current API origin
+ * - External URLs (https://...) → unchanged
+ */
+export function resolveImageUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  if (url.startsWith('/uploads/')) return `${API_ORIGIN}${url}`;
+  if (/^https?:\/\/localhost/i.test(url)) {
+    try { return `${API_ORIGIN}${new URL(url).pathname}`; } catch { return url; }
+  }
+  return url;
+}
+
 function authHeaders(): HeadersInit {
   const token = localStorage.getItem('auth_token');
   return token ? { Authorization: `Bearer ${token}` } : {};

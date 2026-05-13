@@ -21,6 +21,7 @@ import { useCart } from '@/store/cart';
 import { toast } from 'sonner';
 import { useKits } from '@/hooks/useKits';
 import { useProducts } from '@/hooks/useProducts';
+import { resolveImageUrl } from '@/lib/api';
 
 const BENEFITS = [
   { icon: Tag,         label: 'Hasta -20%',           sub: 'por combo' },
@@ -71,7 +72,7 @@ export function KitsSection() {
   }, [products]);
 
   const handleAdd = (k: Kit) => {
-    add({ id: k.id, name: k.name, price: Number(k.price), image_url: k.image_url, type: 'kit' });
+    add({ id: k.id, name: k.name, price: Number(k.price), image_url: resolveImageUrl(k.image_url) || null, type: 'kit' });
     triggerSplash();
     toast.success('Kit agregado', { description: k.name });
     setTimeout(() => open(), 650);
@@ -195,7 +196,7 @@ export function KitsSection() {
                     <div className="relative aspect-[5/4] overflow-hidden bg-slate-100">
                       {k.image_url ? (
                         <img
-                          src={k.image_url}
+                          src={resolveImageUrl(k.image_url)}
                           alt={k.name}
                           loading="lazy"
                           className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"

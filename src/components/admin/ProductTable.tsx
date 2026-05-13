@@ -13,6 +13,7 @@ import {
 import { formatPrice } from '@/types/shop';
 import type { AdminProduct } from '@/types/admin';
 import { cn } from '@/lib/utils';
+import { resolveImageUrl } from '@/lib/api';
 
 interface Props {
   products: AdminProduct[];
@@ -96,7 +97,7 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete }: P
                   <TableCell className="pl-4">
                     {p.images?.[0] ? (
                       <img
-                        src={p.images[0]}
+                        src={resolveImageUrl(p.images[0])}
                         alt={p.name}
                         loading="lazy"
                         className="h-10 w-10 rounded-md object-cover bg-muted"
