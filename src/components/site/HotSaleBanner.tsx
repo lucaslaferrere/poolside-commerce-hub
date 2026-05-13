@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Flame, Sparkles, Tag, Truck, ShieldCheck, X } from 'lucide-react';
-import rgbImg  from '@/assets/product-rgb-light.jpg';
-import kitImg  from '@/assets/product-kit.jpg';
-import ledImg  from '@/assets/product-led-spot.jpg';
-import ctrlImg from '@/assets/product-controller.jpg';
+import foto1 from '@/assets/Screenshot 2026-05-13 150755.png';
+import foto2 from '@/assets/Screenshot 2026-05-13 150843.png';
+import foto3 from '@/assets/Screenshot 2026-05-13 150904.png';
 
 /**
  * High-visibility Hot Sale popup. Fires ~600ms after first paint on EVERY
@@ -190,10 +189,10 @@ export function HotSaleBanner() {
 
                 <div className="relative grid grid-cols-2 gap-3 w-full max-w-[320px]">
                   {[
-                    { img: rgbImg,  label: 'Luminaria RGB', discount: 35, delay: 0.30, rotate: -2.5 },
-                    { img: ledImg,  label: 'LED Spot',      discount: 25, delay: 0.40, rotate:  2   },
-                    { img: kitImg,  label: 'Kit completo',  discount: 50, delay: 0.50, rotate:  1.5 },
-                    { img: ctrlImg, label: 'Controlador',   discount: 20, delay: 0.60, rotate: -2   },
+                    { img: foto1, label: 'Luminaria RGB', discount: 35, delay: 0.30, rotate: -2.5 },
+                    { img: foto2, label: 'LED Spot',      discount: 25, delay: 0.40, rotate:  2   },
+                    { img: foto3, label: 'Kit completo',  discount: 50, delay: 0.50, rotate:  1.5 },
+                    { img: foto1, label: 'Controlador',   discount: 20, delay: 0.60, rotate: -2   },
                   ].map((item, i) => (
                     <motion.div
                       key={i}
