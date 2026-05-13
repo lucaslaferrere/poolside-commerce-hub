@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Plus, Trash2, Upload, X, ImageIcon, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Upload, X, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -112,8 +112,8 @@ export function ProductFormModal({
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [specs, setSpecs] = useState<SpecRow[]>([]);
   const [mainSpecs, setMainSpecs] = useState<MainSpecRow[]>([]);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [keptImages, setKeptImages] = useState<string[]>([]);
+  const [newFiles, setNewFiles] = useState<{ file: File; preview: string }[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -124,8 +124,8 @@ export function ProductFormModal({
       setVariants([]);
       setSpecs([]);
       setMainSpecs([]);
-      setImageFile(null);
-      setImagePreview(null);
+      setKeptImages([]);
+      setNewFiles((prev) => { prev.forEach((f) => URL.revokeObjectURL(f.preview)); return []; });
       setErrors({});
       setSubmitError(null);
       return;
@@ -163,34 +163,33 @@ export function ProductFormModal({
           key: ms.key,
         })),
       );
-      setImagePreview(product.images?.[0] ?? null);
+      setKeptImages(product.images ?? []);
     }
   }, [open, product]);
-
-  useEffect(() => {
-    if (!imageFile) return;
-    return () => URL.revokeObjectURL(imagePreview ?? '');
-  }, [imageFile]);
 
   const upd =
     (k: keyof FormFields) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setFields((f) => ({ ...f, [k]: e.target.value }));
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (imageFile) URL.revokeObjectURL(imagePreview ?? '');
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
-
-  const clearImage = () => {
-    if (imageFile) URL.revokeObjectURL(imagePreview ?? '');
-    setImageFile(null);
-    setImagePreview(null);
+  const addImages = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setNewFiles((prev) => [
+      ...prev,
+      ...files.map((file) => ({ file, preview: URL.createObjectURL(file) })),
+    ]);
     if (fileRef.current) fileRef.current.value = '';
   };
+
+  const removeKeptImage = (url: string) =>
+    setKeptImages((prev) => prev.filter((u) => u !== url));
+
+  const removeNewFile = (preview: string) =>
+    setNewFiles((prev) => {
+      URL.revokeObjectURL(preview);
+      return prev.filter((f) => f.preview !== preview);
+    });
 
   // Variants
   const addVariant = () => setVariants((v) => [...v, emptyVariant()]);
@@ -286,7 +285,8 @@ export function ProductFormModal({
     fd.append('variants', JSON.stringify(parsedVariants));
     fd.append('specs', JSON.stringify(parsedSpecs));
     fd.append('main_specs', JSON.stringify(parsedMainSpecs));
-    if (imageFile) fd.append('image', imageFile);
+    fd.append('images', JSON.stringify(keptImages));
+    newFiles.forEach(({ file }) => fd.append('image', file));
 
     try {
       await onSubmit(fd, product?.id);
@@ -485,57 +485,66 @@ export function ProductFormModal({
                   </p>
                 </div>
 
-                {/* Image upload */}
+                {/* Image upload — multi */}
                 <div className="space-y-2 pt-1">
-                  <Label className="text-xs font-medium text-neutral-700">
-                    Imagen del producto
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-neutral-700">
+                      Imágenes del producto
+                    </Label>
+                    <span className="text-[10px] text-neutral-400">
+                      {keptImages.length + newFiles.length} imagen{keptImages.length + newFiles.length !== 1 ? 'es' : ''}
+                    </span>
+                  </div>
 
                   <input
                     ref={fileRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
+                    multiple
                     className="hidden"
-                    onChange={handleFileChange}
+                    onChange={addImages}
                   />
 
-                  {imagePreview ? (
-                    <div className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-video">
-                      <img
-                        src={imagePreview}
-                        alt="Vista previa"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
-                      <button
-                        type="button"
-                        onClick={clearImage}
-                        className="absolute top-2 right-2 p-1.5 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
-                        aria-label="Quitar imagen"
-                      >
-                        <X className="h-3.5 w-3.5 text-neutral-700" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/95 text-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
-                      >
-                        <Upload className="h-3 w-3" /> Cambiar
-                      </button>
+                  {(keptImages.length > 0 || newFiles.length > 0) && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {keptImages.map((url) => (
+                        <div key={url} className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-square">
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeKeptImage(url)}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                            aria-label="Quitar imagen"
+                          >
+                            <X className="h-3 w-3 text-neutral-700" />
+                          </button>
+                        </div>
+                      ))}
+                      {newFiles.map(({ preview }) => (
+                        <div key={preview} className="relative group rounded-lg overflow-hidden border border-brand/30 bg-neutral-50 aspect-square">
+                          <img src={preview} alt="" className="w-full h-full object-cover" />
+                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-brand text-white">NUEVA</div>
+                          <button
+                            type="button"
+                            onClick={() => removeNewFile(preview)}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                            aria-label="Quitar imagen"
+                          >
+                            <X className="h-3 w-3 text-neutral-700" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      className="w-full aspect-video border-2 border-dashed border-neutral-300 rounded-lg flex flex-col items-center justify-center gap-1.5 text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all"
-                    >
-                      <ImageIcon className="h-7 w-7 opacity-50" />
-                      <span className="text-sm font-medium">Subir imagen</span>
-                      <span className="text-xs opacity-70">
-                        JPG, PNG o WebP · máx. 5 MB
-                      </span>
-                    </button>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="w-full h-10 border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center gap-2 text-sm text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Agregar imagen{keptImages.length + newFiles.length > 0 ? 's' : ''}
+                  </button>
                 </div>
               </section>
 
