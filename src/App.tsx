@@ -18,6 +18,7 @@ import AdminLayout from './pages/admin/AdminLayout.tsx';
 import AdminDashboard from './pages/admin/Dashboard.tsx';
 import AdminProducts from './pages/admin/Products.tsx';
 import AdminOrdersPage from './pages/admin/OrdersPage.tsx';
+import AdminKitsPage from './pages/admin/Kits.tsx';
 import WarrantyPage from './pages/WarrantyPage.tsx';
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
+                <Route path="kits" element={<AdminKitsPage />} />
                 <Route path="orders" element={<AdminOrdersPage />} />
               </Route>
 
