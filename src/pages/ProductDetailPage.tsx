@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
+  ChevronRight,
   Droplet,
   ShoppingCart,
   AlertCircle,
@@ -342,6 +343,25 @@ export default function ProductDetailPage() {
                 )}
                 {/* Vignette for depth */}
                 <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_0_40px_rgba(0,0,0,0.04)]" />
+                {/* Arrow navigation */}
+                {(product.images?.length ?? 0) > 1 && (
+                  <>
+                    <button
+                      onClick={() => setActiveImage((i) => (i - 1 + product.images!.length) % product.images!.length)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
+                      aria-label="Imagen anterior"
+                    >
+                      <ChevronLeft className="h-5 w-5 text-slate-700" />
+                    </button>
+                    <button
+                      onClick={() => setActiveImage((i) => (i + 1) % product.images!.length)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
+                      aria-label="Imagen siguiente"
+                    >
+                      <ChevronRight className="h-5 w-5 text-slate-700" />
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Thumbnails */}

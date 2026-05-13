@@ -28,6 +28,7 @@ import {
 } from '@/types/admin';
 import type { Category } from '@/types/shop';
 import { cn } from '@/lib/utils';
+import { resolveImageUrl } from '@/lib/api';
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
@@ -509,7 +510,7 @@ export function ProductFormModal({
                     <div className="grid grid-cols-2 gap-2">
                       {keptImages.map((url) => (
                         <div key={url} className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-square">
-                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <img src={resolveImageUrl(url)} alt="" className="w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() => removeKeptImage(url)}
