@@ -12,11 +12,9 @@ import {
   SignalHigh,
   ArrowUpRight,
 } from 'lucide-react';
-import heroImg from '@/assets/hero-pool-night.jpg';
-import rgbImg  from '@/assets/product-rgb-light.jpg';
-import kitImg  from '@/assets/product-kit.jpg';
-import ledImg  from '@/assets/product-led-spot.jpg';
-import ctrlImg from '@/assets/product-controller.jpg';
+import foto1 from '@/assets/Screenshot 2026-05-13 150755.png';
+import foto2 from '@/assets/Screenshot 2026-05-13 150843.png';
+import foto3 from '@/assets/Screenshot 2026-05-13 150904.png';
 
 interface Post {
   img: string;
@@ -27,14 +25,14 @@ interface Post {
 }
 
 const POSTS: Post[] = [
-  { img: heroImg, location: 'Cariló · Buenos Aires', caption: 'Piscina de 9m con sistema RGB Pooled. Diseño y montaje propio.', likes: '2.412', time: 'Hace 1 día' },
-  { img: rgbImg,  location: 'San Isidro',             caption: 'Sincronización con app: 16M de colores y escenas guardadas.',  likes: '1.876', time: 'Hace 2 días' },
-  { img: kitImg,  location: 'Pinamar',                caption: 'Kit completo instalado en un fin de semana. Cliente feliz.',     likes: '3.104', time: 'Hace 3 días' },
-  { img: ledImg,  location: 'Tigre',                  caption: 'LED 12 W blanco frío. Reemplazo de halógena tradicional.',       likes: '964',   time: 'Hace 4 días' },
-  { img: ctrlImg, location: 'Nordelta',               caption: 'Controlador wifi compatible con Alexa & Google Home.',           likes: '1.328', time: 'Hace 5 días' },
-  { img: heroImg, location: 'Pilar',                  caption: 'Inauguración nocturna. La piscina queda como el escenario.',      likes: '4.221', time: 'Hace 6 días' },
-  { img: rgbImg,  location: 'Mar del Plata',          caption: 'Modo fiesta activado para el cumpleaños del cliente.',           likes: '2.703', time: 'Hace 1 sem' },
-  { img: kitImg,  location: 'Bariloche',              caption: 'Antes / después de una renovación completa.',                     likes: '1.547', time: 'Hace 1 sem' },
+  { img: foto1, location: 'Buenos Aires',  caption: 'Instalación Pooled.', likes: '2.412', time: 'Hace 1 día' },
+  { img: foto2, location: 'San Isidro',    caption: 'Iluminación de piscina Pooled.', likes: '1.876', time: 'Hace 2 días' },
+  { img: foto3, location: 'Pinamar',       caption: 'Sistema completo instalado.', likes: '3.104', time: 'Hace 3 días' },
+  { img: foto1, location: 'Tigre',         caption: 'Instalación Pooled.', likes: '964',   time: 'Hace 4 días' },
+  { img: foto2, location: 'Nordelta',      caption: 'Iluminación de piscina Pooled.', likes: '1.328', time: 'Hace 5 días' },
+  { img: foto3, location: 'Pilar',         caption: 'Sistema completo instalado.', likes: '4.221', time: 'Hace 6 días' },
+  { img: foto1, location: 'Mar del Plata', caption: 'Instalación Pooled.', likes: '2.703', time: 'Hace 1 sem' },
+  { img: foto2, location: 'Bariloche',     caption: 'Iluminación de piscina Pooled.', likes: '1.547', time: 'Hace 1 sem' },
 ];
 
 export function InstagramFeed() {
@@ -86,16 +84,16 @@ export function InstagramFeed() {
         <div className="ig__showcase relative mx-auto max-w-3xl">
           {/* Ambient blurred images behind the phone (desktop only) */}
           <div className="ig__ambient ig__ambient--tl" aria-hidden="true">
-            <img src={heroImg} alt="" />
+            <img src={foto1} alt="" />
           </div>
           <div className="ig__ambient ig__ambient--tr" aria-hidden="true">
-            <img src={rgbImg} alt="" />
+            <img src={foto2} alt="" />
           </div>
           <div className="ig__ambient ig__ambient--bl" aria-hidden="true">
-            <img src={kitImg} alt="" />
+            <img src={foto3} alt="" />
           </div>
           <div className="ig__ambient ig__ambient--br" aria-hidden="true">
-            <img src={ledImg} alt="" />
+            <img src={foto1} alt="" />
           </div>
 
           {/* Phone */}
@@ -162,7 +160,7 @@ export function InstagramFeed() {
             className="ig__cta"
           >
             <Instagram className="h-4 w-4" />
-            Seguinos en @pooled
+            Seguinos en @pooled.ok
             <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
         </div>
