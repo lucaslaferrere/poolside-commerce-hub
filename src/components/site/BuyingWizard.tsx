@@ -17,7 +17,6 @@ type Answers = {
   pool_type?: 'fibra' | 'hormigon' | 'revestida';
   usage_type?: 'residencial' | 'comercial' | 'personalizado';
   control_type?: 'manual' | 'remoto' | 'app';
-  customUsage?: string;
 };
 
 const STEPS = [
@@ -122,13 +121,12 @@ export function BuyingWizard() {
   };
 
   const submitPersonalizado = () => {
-    const next = { ...answers, customUsage: customUsageText };
-    setAnswers(next);
-    finishWizard(next);
+    finishWizard(answers);
   };
 
   const reset = () => {
     setAnswers({});
+    setCustomUsageText('');
     setStep(0);
     setDone(false);
   };
@@ -288,7 +286,7 @@ export function BuyingWizard() {
                     </p>
                     <Button asChild size="lg" className="gradient-aqua text-primary-foreground">
                       <a
-                        href={buildWhatsAppLink(`Hola ${BUSINESS_NAME}! Necesito iluminación para: ${answers.customUsage || customUsageText}. ¿Me ayudás a elegir el kit ideal?`)}
+                        href={buildWhatsAppLink(`Hola ${BUSINESS_NAME}! Necesito iluminación para: ${customUsageText}. ¿Me ayudás a elegir el kit ideal?`)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
