@@ -15,6 +15,11 @@ export interface Spec {
   value: string;
 }
 
+export interface MainSpec {
+  key: string;
+  value: string;
+}
+
 export interface AdminProduct {
   id: string;
   name: string;
@@ -27,6 +32,7 @@ export interface AdminProduct {
   images: string[];
   variants: Variant[];
   specs?: Spec[];
+  main_specs?: MainSpec[];
   stock: number;
 }
 
@@ -43,6 +49,12 @@ export interface SpecRow {
   _key: string;
   key: string;
   value: string;
+}
+
+export interface MainSpecRow {
+  _key: string;
+  value: string;
+  key: string;
 }
 
 export const CATEGORY_OPTIONS: { value: Category; label: string }[] = [

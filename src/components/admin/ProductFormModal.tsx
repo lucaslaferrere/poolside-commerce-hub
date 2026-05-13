@@ -24,6 +24,7 @@ import {
   type AdminProduct,
   type VariantRow,
   type SpecRow,
+  type MainSpecRow,
 } from '@/types/admin';
 import type { Category } from '@/types/shop';
 import { cn } from '@/lib/utils';
@@ -66,6 +67,12 @@ const emptySpec = (): SpecRow => ({
   value: '',
 });
 
+const emptyMainSpec = (): MainSpecRow => ({
+  _key: uid(),
+  value: '',
+  key: '',
+});
+
 interface FormFields {
   name: string;
   description: string;
@@ -104,6 +111,7 @@ export function ProductFormModal({
   const [fields, setFields] = useState<FormFields>(BLANK);
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [specs, setSpecs] = useState<SpecRow[]>([]);
+  const [mainSpecs, setMainSpecs] = useState<MainSpecRow[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
@@ -115,6 +123,7 @@ export function ProductFormModal({
       setFields(BLANK);
       setVariants([]);
       setSpecs([]);
+      setMainSpecs([]);
       setImageFile(null);
       setImagePreview(null);
       setErrors({});
@@ -145,6 +154,13 @@ export function ProductFormModal({
           _key: uid(),
           key: s.key,
           value: s.value,
+        })),
+      );
+      setMainSpecs(
+        (product.main_specs ?? []).map((ms) => ({
+          _key: uid(),
+          value: ms.value,
+          key: ms.key,
         })),
       );
       setImagePreview(product.images?.[0] ?? null);
@@ -195,6 +211,20 @@ export function ProductFormModal({
     (key: string, field: keyof Omit<SpecRow, '_key'>) =>
     (e: ChangeEvent<HTMLInputElement>) =>
       setSpecs((s) =>
+        s.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
+      );
+
+  // Main specs (cuadros destacados)
+  const addMainSpec = () => {
+    if (mainSpecs.length >= 6) return;
+    setMainSpecs((s) => [...s, emptyMainSpec()]);
+  };
+  const removeMainSpec = (key: string) =>
+    setMainSpecs((s) => s.filter((r) => r._key !== key));
+  const updMainSpec =
+    (key: string, field: keyof Omit<MainSpecRow, '_key'>) =>
+    (e: ChangeEvent<HTMLInputElement>) =>
+      setMainSpecs((s) =>
         s.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
       );
 
@@ -249,8 +279,13 @@ export function ProductFormModal({
     fd.append('base_price', String(basePrice));
     fd.append('stock', String(stockNum));
     fd.append('discount_percent', String(discountPct));
+    const parsedMainSpecs = mainSpecs
+      .map((ms) => ({ value: ms.value.trim(), key: ms.key.trim() }))
+      .filter((ms) => ms.value.length > 0 && ms.key.length > 0);
+
     fd.append('variants', JSON.stringify(parsedVariants));
     fd.append('specs', JSON.stringify(parsedSpecs));
+    fd.append('main_specs', JSON.stringify(parsedMainSpecs));
     if (imageFile) fd.append('image', imageFile);
 
     try {
@@ -670,6 +705,65 @@ export function ProductFormModal({
                 <BrandAddButton onClick={addSpec} label="Agregar fila" />
               </section>
             </div>
+
+            {/* ──────────────────────────────────────────────────── */}
+            {/*  Cuadros destacados (main_specs) — fila full-width  */}
+            {/* ──────────────────────────────────────────────────── */}
+            <section className="px-6 pb-6 pt-2 space-y-3 border-t border-neutral-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <SectionLabel>Cuadros destacados</SectionLabel>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                    Se muestran en la ficha del producto. Máx. 6.
+                  </p>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-medium tracking-wide border-neutral-200 text-neutral-500"
+                >
+                  {mainSpecs.length}/6
+                </Badge>
+              </div>
+
+              {mainSpecs.length > 0 && (
+                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {mainSpecs.map((ms, idx) => (
+                    <li key={ms._key} className="flex items-center gap-2">
+                      <div className="flex-1 grid grid-cols-2 gap-1.5">
+                        <Input
+                          aria-label={`Valor cuadro ${idx + 1}`}
+                          className="h-8 text-sm font-semibold"
+                          placeholder="18W total"
+                          value={ms.value}
+                          onChange={updMainSpec(ms._key, 'value')}
+                        />
+                        <Input
+                          aria-label={`Etiqueta cuadro ${idx + 1}`}
+                          className="h-8 text-xs uppercase tracking-wide"
+                          placeholder="POTENCIA"
+                          value={ms.key}
+                          onChange={updMainSpec(ms._key, 'key')}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-neutral-400 hover:text-danger hover:bg-danger/10"
+                        onClick={() => removeMainSpec(ms._key)}
+                        aria-label={`Eliminar cuadro ${idx + 1}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {mainSpecs.length < 6 && (
+                <BrandAddButton onClick={addMainSpec} label="Agregar cuadro" />
+              )}
+            </section>
           </div>
 
           {/* Sticky footer */}
