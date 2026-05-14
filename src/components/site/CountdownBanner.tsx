@@ -102,11 +102,13 @@ export function CountdownBanner() {
 
       {/* Marquee strip */}
       <div className="overflow-hidden bg-red-800 py-1 text-[11px] font-bold uppercase tracking-[0.16em] select-none">
-        <div className="animate-marquee flex w-max">
+        <div
+          style={{ display: 'flex', width: 'max-content', animation: 'marquee 22s linear infinite' }}
+        >
           {[0, 1].map((copy) => (
-            <span key={copy} className="flex items-center">
+            <span key={copy} className="flex items-center whitespace-nowrap">
               {ITEMS.map((item, i) => (
-                <span key={i} className="flex items-center gap-3 px-4">
+                <span key={i} className="flex items-center gap-3 px-6">
                   <span>{item}</span>
                   <span className="opacity-30">◆</span>
                 </span>
