@@ -21,10 +21,10 @@ export function Footer() {
               Productos
             </h4>
             <ul className="space-y-3 text-sm text-primary-foreground/70">
-              <li><a href="#tienda" className="hover:text-white transition-colors">Catálogo</a></li>
-              <li><a href="#kits" className="hover:text-white transition-colors">Kits prearmados</a></li>
-              <li><a href="#guia" className="hover:text-white transition-colors">Guía de compra</a></li>
-              <li><a href="#faq" className="hover:text-white transition-colors">Preguntas frecuentes</a></li>
+              <li><Link to="/tienda" className="hover:text-white transition-colors">Catálogo</Link></li>
+              <li><Link to={{ pathname: '/', hash: '#kits' }} className="hover:text-white transition-colors">Kits prearmados</Link></li>
+              <li><Link to={{ pathname: '/', hash: '#guia' }} className="hover:text-white transition-colors">Guía de compra</Link></li>
+              <li><Link to={{ pathname: '/', hash: '#faq' }} className="hover:text-white transition-colors">Preguntas frecuentes</Link></li>
               <li><Link to="/garantia" className="hover:text-white transition-colors">Garantía</Link></li>
             </ul>
           </div>
