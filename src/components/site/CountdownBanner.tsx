@@ -93,6 +93,32 @@ export function CountdownBanner() {
       >
         <X className="h-3.5 w-3.5" />
       </button>
+
+      {/* Marquee strip */}
+      <div className="overflow-hidden bg-black/25 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white/90 select-none">
+        <style>{`
+          @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+          .marquee-track { display: flex; width: max-content; animation: marquee 22s linear infinite; }
+          .marquee-track:hover { animation-play-state: paused; }
+          @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+        `}</style>
+        <div className="marquee-track">
+          {[0, 1].map((i) => (
+            <span key={i} className="flex items-center gap-6 pr-6">
+              <span className="inline-flex items-center gap-1.5 text-yellow-300"><Flame className="h-3 w-3" /> HOT SALE 14, 15, 16 y 17 de Mayo</span>
+              <span className="opacity-40">●</span>
+              <span>Hasta -20% OFF</span>
+              <span className="opacity-40">●</span>
+              <span>Envío gratis a partir de $700mil</span>
+              <span className="opacity-40">●</span>
+              <span>Garantía oficial</span>
+              <span className="opacity-40">●</span>
+              <span>Pago en cuotas</span>
+              <span className="opacity-40">●</span>
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
