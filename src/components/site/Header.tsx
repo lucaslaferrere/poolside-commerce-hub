@@ -23,6 +23,7 @@ import { useCart } from '@/store/cart';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { UserMenu } from '@/components/auth/UserMenu';
+import { CountdownBanner } from './CountdownBanner';
 
 type NavLink =
   | { kind: 'hash'; label: string; hash: string }   // jumps to an anchor on the home page
@@ -134,6 +135,7 @@ export function Header() {
           : 'bg-transparent',
       )}
     >
+      <CountdownBanner />
       <div className="container flex h-16 items-center justify-between gap-3">
         {/* Logo — always a Link so it returns home from any page */}
         <Link to="/" className="shrink-0">
