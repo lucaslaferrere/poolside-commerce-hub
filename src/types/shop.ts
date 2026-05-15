@@ -24,6 +24,7 @@ export interface Kit {
   pool_size: string | null;
   product_ids: string[] | null;
   featured: boolean;
+  visible?: boolean | null;
 }
 
 export interface CartItem {

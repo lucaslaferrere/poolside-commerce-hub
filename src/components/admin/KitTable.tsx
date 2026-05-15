@@ -1,19 +1,21 @@
-import { Pencil, Trash2, Package } from 'lucide-react';
+import { Pencil, Trash2, Package, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/types/shop';
 import type { Kit } from '@/types/shop';
 import { resolveImageUrl } from '@/lib/api';
+import { cn } from '@/lib/utils';
 
 interface Props {
   kits: Kit[];
   isLoading: boolean;
   onEdit: (kit: Kit) => void;
   onDelete: (kit: Kit) => void;
+  onToggleVisibility: (kit: Kit) => void;
 }
 
-export function KitTable({ kits, isLoading, onEdit, onDelete }: Props) {
+export function KitTable({ kits, isLoading, onEdit, onDelete, onToggleVisibility }: Props) {
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -48,8 +50,10 @@ export function KitTable({ kits, isLoading, onEdit, onDelete }: Props) {
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-100 bg-white">
-          {kits.map((kit) => (
-            <tr key={kit.id} className="hover:bg-neutral-50/60 transition-colors">
+          {kits.map((kit) => {
+            const isHidden = kit.visible === false;
+            return (
+            <tr key={kit.id} className={cn('hover:bg-neutral-50/60 transition-colors', isHidden && 'opacity-50')}>
               <td className="px-4 py-3">
                 {kit.image_url ? (
                   <img
@@ -94,6 +98,20 @@ export function KitTable({ kits, isLoading, onEdit, onDelete }: Props) {
                   <Button
                     variant="ghost"
                     size="icon"
+                    title={isHidden ? 'Oculto en tienda — clic para mostrar' : 'Visible en tienda — clic para ocultar'}
+                    className={cn(
+                      'h-8 w-8 transition-colors',
+                      isHidden
+                        ? 'text-neutral-400 hover:text-neutral-600'
+                        : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50',
+                    )}
+                    onClick={() => onToggleVisibility(kit)}
+                  >
+                    {isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-8 w-8 text-neutral-400 hover:text-brand hover:bg-brand/10"
                     onClick={() => onEdit(kit)}
                   >
@@ -110,7 +128,8 @@ export function KitTable({ kits, isLoading, onEdit, onDelete }: Props) {
                 </div>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>

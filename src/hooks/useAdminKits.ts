@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiGet, apiPostForm, apiPutForm, apiDelete } from '@/lib/api';
+import { apiGet, apiPostForm, apiPutForm, apiDelete, apiPatch } from '@/lib/api';
 import type { Kit } from '@/types/shop';
 
 const QK = ['admin', 'kits'] as const;
@@ -37,5 +37,15 @@ export function useAdminKitMutations() {
     onError: (e: Error) => toast.error('Error al eliminar kit', { description: e.message }),
   });
 
-  return { create, update, remove };
+  const toggleVisibility = useMutation({
+    mutationFn: ({ id, visible }: { id: string; visible: boolean }) =>
+      apiPatch<Kit>(`/admin/kits/${id}/visibility`, { visible }),
+    onSuccess: (_, { visible }) => {
+      invalidate();
+      toast.success(visible ? 'Kit visible en tienda' : 'Kit oculto en tienda');
+    },
+    onError: (e: Error) => toast.error('Error al cambiar visibilidad', { description: e.message }),
+  });
+
+  return { create, update, remove, toggleVisibility };
 }

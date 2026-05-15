@@ -14,7 +14,7 @@ import type { Kit } from '@/types/shop';
 
 export default function AdminKitsPage() {
   const { data: kits = [], isLoading } = useAdminKits();
-  const { create, update, remove } = useAdminKitMutations();
+  const { create, update, remove, toggleVisibility } = useAdminKitMutations();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Kit | null>(null);
@@ -58,6 +58,9 @@ export default function AdminKitsPage() {
         isLoading={isLoading}
         onEdit={openEdit}
         onDelete={setDeleting}
+        onToggleVisibility={(k) =>
+          toggleVisibility.mutate({ id: k.id, visible: k.visible === false })
+        }
       />
 
       <KitFormModal
