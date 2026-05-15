@@ -57,7 +57,7 @@ function KitSkeleton() {
 }
 
 export function KitsSection() {
-  const { data, isLoading } = useKits(true);
+  const { data, isLoading } = useKits();
   const kits = Array.isArray(data) ? data : [];
   const { data: productsData } = useProducts();
   const products = productsData ?? [];
