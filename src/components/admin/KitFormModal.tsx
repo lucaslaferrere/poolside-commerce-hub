@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, type ChangeEvent } from 'react';
 import { Upload, X, ImageIcon, AlertCircle, Check, ChevronDown } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -136,6 +136,11 @@ export function KitFormModal({ open, onOpenChange, kit, isSubmitting, onSubmit }
   const isEdit = !!kit;
   const selectedProducts = products.filter((p) => selectedProductIds.includes(p.id));
 
+  const suggestedPrice = useMemo(
+    () => selectedProducts.reduce((sum, p) => sum + (p.base_price ?? 0), 0),
+    [selectedProducts],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-2xl max-h-[88vh] p-0 gap-0 overflow-hidden flex flex-col">
@@ -173,7 +178,20 @@ export function KitFormModal({ open, onOpenChange, kit, isSubmitting, onSubmit }
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-neutral-700">Precio (ARS) <span className="text-danger">*</span></Label>
-                <Input type="number" min="0" step="0.01" value={fields.price} onChange={upd('price')} placeholder="0.00" />
+                <Input type="number" min="0" step="0.01" value={fields.price} onChange={upd('price')}
+                  placeholder={suggestedPrice > 0 ? String(suggestedPrice.toFixed(2)) : '0.00'} />
+                {suggestedPrice > 0 && (
+                  <div className="flex items-center justify-between text-xs text-neutral-500">
+                    <span>Suma de productos: <strong className="text-neutral-700">${suggestedPrice.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                    <button
+                      type="button"
+                      onClick={() => setFields((f) => ({ ...f, price: suggestedPrice.toFixed(2) }))}
+                      className="text-brand hover:underline font-medium"
+                    >
+                      Usar este precio
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-neutral-700">
