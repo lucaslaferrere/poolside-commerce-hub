@@ -34,6 +34,8 @@ export interface AdminProduct {
   specs?: Spec[];
   main_specs?: MainSpec[];
   stock: number;
+  /** undefined/null = visible (legacy docs). false = explicitly hidden from store. */
+  visible?: boolean | null;
 }
 
 // Local row used only inside the form (all fields as strings for controlled inputs)

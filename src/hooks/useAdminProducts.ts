@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiGet, apiDelete, apiPostForm, apiPutForm } from '@/lib/api';
+import { apiGet, apiDelete, apiPostForm, apiPutForm, apiPatch } from '@/lib/api';
 import type { AdminProduct } from '@/types/admin';
 
 const QK_ROOT = ['admin', 'products'] as const;
@@ -106,5 +106,15 @@ export function useAdminProductMutations() {
     onError: (e: Error) => toast.error('Error al eliminar el producto', { description: e.message }),
   });
 
-  return { create, update, remove };
+  const toggleVisibility = useMutation({
+    mutationFn: ({ id, visible }: { id: string; visible: boolean }) =>
+      apiPatch<AdminProduct>(`/admin/products/${id}/visibility`, { visible }),
+    onSuccess: (_, { visible }) => {
+      invalidate();
+      toast.success(visible ? 'Producto visible en tienda' : 'Producto oculto en tienda');
+    },
+    onError: (e: Error) => toast.error('Error al cambiar visibilidad', { description: e.message }),
+  });
+
+  return { create, update, remove, toggleVisibility };
 }

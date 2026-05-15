@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Package } from 'lucide-react';
+import { Pencil, Trash2, Package, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,9 +21,10 @@ interface Props {
   error: Error | null;
   onEdit: (product: AdminProduct) => void;
   onDelete: (product: AdminProduct) => void;
+  onToggleVisibility: (product: AdminProduct) => void;
 }
 
-export function ProductTable({ products, isLoading, error, onEdit, onDelete }: Props) {
+export function ProductTable({ products, isLoading, error, onEdit, onDelete, onToggleVisibility }: Props) {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16 border rounded-xl bg-destructive/5 text-center">
@@ -43,7 +44,7 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete }: P
             <TableHead className="hidden sm:table-cell">Categoría</TableHead>
             <TableHead className="text-right hidden md:table-cell">Precio</TableHead>
             <TableHead className="text-right w-[72px]">Stock</TableHead>
-            <TableHead className="w-[88px] text-center pr-4">Acciones</TableHead>
+            <TableHead className="w-[112px] text-center pr-4">Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -92,8 +93,9 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete }: P
                   ? 'text-amber-600'
                   : 'text-foreground';
 
+              const isHidden = p.visible === false;
               return (
-                <TableRow key={p.id} className="group">
+                <TableRow key={p.id} className={cn('group', isHidden && 'opacity-50')}>
                   <TableCell className="pl-4">
                     {p.images?.[0] ? (
                       <img
@@ -132,6 +134,21 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete }: P
 
                   <TableCell className="pr-4">
                     <div className="flex items-center justify-center gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={isHidden ? 'Oculto en tienda — clic para mostrar' : 'Visible en tienda — clic para ocultar'}
+                        className={cn(
+                          'h-8 w-8 transition-colors',
+                          isHidden
+                            ? 'text-neutral-400 hover:text-neutral-600'
+                            : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50',
+                        )}
+                        onClick={() => onToggleVisibility(p)}
+                        aria-label={isHidden ? `Mostrar ${p.name}` : `Ocultar ${p.name}`}
+                      >
+                        {isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

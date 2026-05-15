@@ -29,7 +29,7 @@ export default function AdminProducts() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useAdminProductsPage({ page, limit });
 
-  const { create, update, remove } = useAdminProductMutations();
+  const { create, update, remove, toggleVisibility } = useAdminProductMutations();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<AdminProduct | null>(null);
@@ -106,6 +106,9 @@ export default function AdminProducts() {
         error={isError ? (error as Error) : null}
         onEdit={openEdit}
         onDelete={setDeleting}
+        onToggleVisibility={(p) =>
+          toggleVisibility.mutate({ id: p.id, visible: p.visible === false })
+        }
       />
 
       {/* Pagination footer */}
