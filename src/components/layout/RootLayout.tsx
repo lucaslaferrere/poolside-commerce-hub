@@ -4,7 +4,6 @@ import { Header } from '@/components/site/Header';
 import { CartDrawer } from '@/components/site/CartDrawer';
 import { WhatsAppFAB } from '@/components/site/WhatsAppFAB';
 import { WaterSplash } from '@/components/site/WaterSplash';
-import { HotSaleBanner } from '@/components/site/HotSaleBanner';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -43,7 +42,6 @@ export function RootLayout({ children }: RootLayoutProps) {
       <Header />
       <main>{children}</main>
       <CartDrawer />
-      <HotSaleBanner />
       {isHomePage && (
         <>
           <WhatsAppFAB />
