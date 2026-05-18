@@ -5,11 +5,11 @@ import type { Kit } from '@/types/shop';
 export function useKits(featured?: boolean) {
   return useQuery({
     queryKey: ['kits', { featured }],
-    queryFn: () =>
-      apiGet<Kit[]>(
-        '/kits',
-        featured !== undefined ? { featured: String(featured) } : undefined,
-      ),
+    queryFn: () => {
+      const params: Record<string, string> = { limit: '200' };
+      if (featured !== undefined) params.featured = String(featured);
+      return apiGet<Kit[]>('/kits', params);
+    },
     select: (data) => Array.isArray(data) ? data : [],
   });
 }

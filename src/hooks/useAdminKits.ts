@@ -8,7 +8,7 @@ const QK = ['admin', 'kits'] as const;
 export function useAdminKits() {
   return useQuery({
     queryKey: QK,
-    queryFn: () => apiGet<Kit[]>('/admin/kits'),
+    queryFn: () => apiGet<Kit[]>('/admin/kits', { limit: '200' }),
     select: (data) => Array.isArray(data) ? data : [],
   });
 }
