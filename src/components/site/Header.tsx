@@ -29,7 +29,6 @@ type NavLink =
   | { kind: 'route'; label: string; to: string };   // react-router navigation
 
 const PUBLIC_NAV: NavLink[] = [
-  { kind: 'hash',  label: 'Inicio',         hash: 'inicio' },
   { kind: 'route', label: 'Tienda',         to: '/tienda' },
   { kind: 'hash',  label: 'Kits',           hash: 'kits' },
   { kind: 'hash',  label: 'Guía',           hash: 'guia' },
