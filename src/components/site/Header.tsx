@@ -33,7 +33,7 @@ const PUBLIC_NAV: NavLink[] = [
   { kind: 'hash',  label: 'Kits',           hash: 'kits' },
   { kind: 'hash',  label: 'Guía',           hash: 'guia' },
   { kind: 'hash',  label: 'Distribuidores', hash: 'distribuidores' },
-  { kind: 'hash',  label: 'FAQ',            hash: 'faq' },
+  { kind: 'hash',  label: 'Preguntas Frecuentes',            hash: 'faq' },
   { kind: 'route', label: 'Garantía',       to: '/garantia' },
 ];
 

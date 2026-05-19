@@ -22,8 +22,12 @@ export interface Kit {
   original_price: number | null;
   image_url: string | null;
   pool_size: string | null;
+  line?: string | null;
+  materials?: string[] | null;
+  uso?: string | null;
   product_ids: string[] | null;
   featured: boolean;
+  sort_order?: number;
   visible?: boolean | null;
 }
 
@@ -135,6 +139,7 @@ export interface ShopProduct {
   main_specs?: ShopMainSpec[];
   benefits?: ShopBenefit[];
   stock: number;
+  sort_order?: number;
   created_at: string;
   updated_at: string;
 }

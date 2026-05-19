@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Plus, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,8 +13,19 @@ import { useAdminKits, useAdminKitMutations } from '@/hooks/useAdminKits';
 import type { Kit } from '@/types/shop';
 
 export default function AdminKitsPage() {
-  const { data: kits = [], isLoading } = useAdminKits();
-  const { create, update, remove, toggleVisibility } = useAdminKitMutations();
+  const { data: rawKits = [], isLoading } = useAdminKits();
+  const { create, update, remove, toggleVisibility, reorderKits } = useAdminKitMutations();
+
+  const kits = useMemo(() => {
+    return [...rawKits].sort((a, b) => {
+      const oa = a.sort_order ?? 0;
+      const ob = b.sort_order ?? 0;
+      if (oa > 0 && ob > 0) return oa - ob;
+      if (oa > 0) return -1;
+      if (ob > 0) return 1;
+      return 0;
+    });
+  }, [rawKits]);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Kit | null>(null);
@@ -40,6 +51,13 @@ export default function AdminKitsPage() {
 
   const isSubmitting = create.isPending || update.isPending;
 
+  const handleReorder = useCallback(
+    (reordered: Kit[]) => {
+      reorderKits.mutate(reordered.map((k, i) => ({ id: k.id, sort_order: i + 1 })));
+    },
+    [reorderKits],
+  );
+
   return (
     <>
       <AdminPageHeader
@@ -61,6 +79,7 @@ export default function AdminKitsPage() {
         onToggleVisibility={(k) =>
           toggleVisibility.mutate({ id: k.id, visible: k.visible === false })
         }
+        onReorder={handleReorder}
       />
 
       <KitFormModal

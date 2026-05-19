@@ -29,7 +29,6 @@ export function useProducts() {
   return useQuery({
     queryKey: ['shop', 'products'],
     queryFn: fetchProducts,
-    staleTime: 1000 * 60 * 5,
   });
 }
 

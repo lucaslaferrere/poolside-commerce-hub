@@ -36,6 +36,7 @@ export interface AdminProduct {
   stock: number;
   /** undefined/null = visible (legacy docs). false = explicitly hidden from store. */
   visible?: boolean | null;
+  sort_order?: number;
 }
 
 // Local row used only inside the form (all fields as strings for controlled inputs)

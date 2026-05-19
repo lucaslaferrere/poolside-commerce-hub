@@ -116,5 +116,19 @@ export function useAdminProductMutations() {
     onError: (e: Error) => toast.error('Error al cambiar visibilidad', { description: e.message }),
   });
 
-  return { create, update, remove, toggleVisibility };
+  const reorderPage = useMutation({
+    mutationFn: (items: { id: string; sort_order: number }[]) =>
+      Promise.all(
+        items.map((item) =>
+          apiPatch<AdminProduct>(`/admin/products/${item.id}/sort-order`, { sort_order: item.sort_order }),
+        ),
+      ),
+    onSuccess: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ['shop', 'products'] });
+    },
+    onError: (e: Error) => toast.error('Error al reordenar productos', { description: e.message }),
+  });
+
+  return { create, update, remove, toggleVisibility, reorderPage };
 }

@@ -11,7 +11,7 @@ const FAQS = [
   },
   {
     q: '¿Tienen garantía?',
-    a: 'Todos los productos tienen garantía oficial de 2 años. La línea Osire incluye garantía extendida de 5 años.',
+    a: 'Todas las luminarias tienen garantía oficial de 1 año. La línea Osire incluye garantía extendida de 3 años.',
   },
   {
     q: '¿Necesito un electricista para instalar?',

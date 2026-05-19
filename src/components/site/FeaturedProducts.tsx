@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { ProductCard } from './ProductCard';
@@ -27,7 +28,19 @@ function SkeletonCard() {
 
 export function FeaturedProducts() {
   const { data, isLoading } = useProducts();
-  const products = data ?? [];
+  const rawProducts = data ?? [];
+
+  // Products with sort_order > 0 appear first (ascending), then the rest in backend order
+  const products = useMemo(() => {
+    return [...rawProducts].sort((a, b) => {
+      const oa = a.sort_order ?? 0;
+      const ob = b.sort_order ?? 0;
+      if (oa > 0 && ob > 0) return oa - ob;
+      if (oa > 0) return -1;
+      if (ob > 0) return 1;
+      return 0;
+    });
+  }, [rawProducts]);
 
   return (
     <section
