@@ -47,6 +47,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAdminInsights } from '@/hooks/useAdminProducts';
+import { useKits } from '@/hooks/useKits';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTrafficStats } from '@/hooks/useTrafficStats';
@@ -109,6 +110,7 @@ export default function AdminDashboard() {
   const { data: ordersData, isLoading: loadingOrders } = useAdminOrders();
   const { data: analyticsData, isLoading: loadingAnalytics } = useAnalytics(analyticsPeriod);
   const { data: trafficData, isLoading: loadingTraffic } = useTrafficStats();
+  const { data: kitsData = [] } = useKits();
   const orders = ordersData?.orders ?? [];
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
@@ -498,7 +500,7 @@ export default function AdminDashboard() {
                 {trafficData.top_pages.map((p) => (
                   <tr key={p.url} className="hover:bg-neutral-50 transition-colors">
                     <td className="px-5 py-3 text-neutral-700">
-                      <span className="font-medium">{resolvePageLabel(p.url, products)}</span>
+                      <span className="font-medium">{resolvePageLabel(p.url, products, kitsData)}</span>
                       <span className="ml-2 font-mono text-[11px] text-neutral-400">{p.url}</span>
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-neutral-700">{p.count}</td>
@@ -1051,7 +1053,7 @@ const PAGE_LABELS: Record<string, string> = {
   '/checkout': 'Checkout',
 };
 
-function resolvePageLabel(url: string, products: { id: string; name: string }[]): string {
+function resolvePageLabel(url: string, products: { id: string; name: string }[], kits: { id: string; name: string }[] = []): string {
   if (PAGE_LABELS[url]) return PAGE_LABELS[url];
   const productMatch = url.match(/^\/tienda\/([a-f0-9]{24})$/);
   if (productMatch) {
@@ -1059,7 +1061,10 @@ function resolvePageLabel(url: string, products: { id: string; name: string }[])
     return product ? product.name : 'Producto';
   }
   const kitMatch = url.match(/^\/kits\/([a-f0-9]{24})$/);
-  if (kitMatch) return 'Kit — detalle';
+  if (kitMatch) {
+    const kit = kits.find((k) => k.id === kitMatch[1]);
+    return kit ? `Kit: ${kit.name}` : 'Kit';
+  }
   return url;
 }
 

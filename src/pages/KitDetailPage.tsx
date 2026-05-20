@@ -28,8 +28,9 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/store/cart';
 import { formatPrice } from '@/types/shop';
 import { resolveImageUrl } from '@/lib/api';
+import { trackEvent } from '@/lib/analytics';
 import { toast } from 'sonner';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 
 const POOL_SIZE_LABEL: Record<string, string> = {
   chica: 'Chica',
@@ -77,6 +78,10 @@ export default function KitDetailPage() {
     }
     return kit.pool_size ? (GENERIC_ITEMS[kit.pool_size] ?? []) : ['Luminaria LED', 'Control inalámbrico', 'Accesorios'];
   }, [kit, productNameById]);
+
+  useEffect(() => {
+    if (kit) trackEvent('product_view', { product_id: kit.id, product_name: kit.name });
+  }, [kit?.id]);
 
   const handleAddToCart = () => {
     if (!kit) return;
