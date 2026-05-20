@@ -8,12 +8,15 @@ import {
   Boxes,
   Calendar,
   ChevronDown,
+  CreditCard,
   DollarSign,
+  Eye,
   LineChart as LineChartIcon,
   Package,
   PieChart as PieChartIcon,
   Receipt,
   ShoppingBag,
+  ShoppingCart,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react';
@@ -41,6 +44,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAdminInsights } from '@/hooks/useAdminProducts';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { formatPrice } from '@/types/shop';
 import type { Order, OrderStatus } from '@/types/shop';
 import { AdminPageHeader } from './AdminLayout';
@@ -95,8 +99,10 @@ function getRangeBounds(range: RangeKey, now = new Date()): { start: Date; end: 
 
 export default function AdminDashboard() {
   const [range, setRange] = useState<RangeKey>('30d');
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<'7d' | '30d'>('7d');
   const { data: products = [], isLoading: loadingProducts, isError: errProducts, refetch: refetchProducts } = useAdminInsights();
   const { data: ordersData, isLoading: loadingOrders } = useAdminOrders();
+  const { data: analyticsData, isLoading: loadingAnalytics } = useAnalytics(analyticsPeriod);
   const orders = ordersData?.orders ?? [];
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
@@ -337,6 +343,91 @@ export default function AdminDashboard() {
               color={METRIC_COLORS.inventory}
             />
           </>
+        )}
+      </div>
+
+      {/* Analytics — Actividad */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-base font-semibold text-neutral-900">Actividad del sitio</h2>
+          <div className="flex gap-1">
+            {(['7d', '30d'] as const).map((p) => (
+              <Button
+                key={p}
+                size="sm"
+                variant={analyticsPeriod === p ? 'default' : 'outline'}
+                className="h-7 text-xs px-3"
+                onClick={() => setAnalyticsPeriod(p)}
+              >
+                {p === '7d' ? '7 días' : '30 días'}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {loadingAnalytics ? (
+            Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
+          ) : (
+            <>
+              <KpiCard
+                label="Carritos iniciados"
+                value={String(analyticsData?.cart_adds ?? 0)}
+                hint={analyticsPeriod === '7d' ? 'Últimos 7 días' : 'Últimos 30 días'}
+                icon={ShoppingCart}
+                color={METRIC_COLORS.orders}
+              />
+              <KpiCard
+                label="Checkouts iniciados"
+                value={String(analyticsData?.checkout_starts ?? 0)}
+                hint={analyticsPeriod === '7d' ? 'Últimos 7 días' : 'Últimos 30 días'}
+                icon={CreditCard}
+                color={METRIC_COLORS.aov}
+              />
+              <KpiCard
+                label="Tasa de conversión"
+                value={`${(((analyticsData?.conversion_rate) ?? 0) * 100).toFixed(1)}%`}
+                hint="Órdenes pagas / checkouts"
+                icon={TrendingUp}
+                color={METRIC_COLORS.revenue}
+              />
+              <KpiCard
+                label="Vistas de producto"
+                value={String(analyticsData?.product_views ?? 0)}
+                hint={analyticsPeriod === '7d' ? 'Últimos 7 días' : 'Últimos 30 días'}
+                icon={Eye}
+                color={METRIC_COLORS.stock}
+              />
+            </>
+          )}
+        </div>
+
+        {/* Top productos */}
+        {!loadingAnalytics && analyticsData && analyticsData.top_products.length > 0 && (
+          <div className="mt-4 rounded-lg border border-neutral-200 bg-white overflow-hidden">
+            <header className="px-5 py-3 border-b border-neutral-200 bg-neutral-50/60">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Top productos — vistas &amp; carritos
+              </h3>
+            </header>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-neutral-500 bg-neutral-50/40">
+                  <th className="px-5 py-2.5">Producto</th>
+                  <th className="px-5 py-2.5 text-right">Vistas</th>
+                  <th className="px-5 py-2.5 text-right">En carrito</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {analyticsData.top_products.map((p) => (
+                  <tr key={p.id} className="hover:bg-neutral-50 transition-colors">
+                    <td className="px-5 py-3 font-medium text-neutral-800 truncate max-w-[220px]">{p.name}</td>
+                    <td className="px-5 py-3 text-right tabular-nums text-neutral-700">{p.views}</td>
+                    <td className="px-5 py-3 text-right tabular-nums text-neutral-700">{p.cart_adds}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

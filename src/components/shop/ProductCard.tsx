@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { applyDiscount, formatPrice, hasDiscount, CATEGORY_LABELS } from '@/types/shop';
 import type { ShopProduct } from '@/types/shop';
 import { resolveImageUrl } from '@/lib/api';
+import { trackEvent } from '@/lib/analytics';
 
 interface Props {
   product: ShopProduct;
@@ -41,8 +42,12 @@ export function ProductCard({ product }: Props) {
     setTimeout(() => openCart(), 650);
   };
 
+  const handleProductView = () => {
+    trackEvent('product_view', { product_id: product.id, product_name: product.name });
+  };
+
   return (
-    <Link to={`/tienda/${product.id}`} className="group block h-full">
+    <Link to={`/tienda/${product.id}`} className="group block h-full" onClick={handleProductView}>
       <div
         className={cn(
           'h-full flex flex-col overflow-hidden rounded-lg',

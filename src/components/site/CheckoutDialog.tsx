@@ -10,6 +10,7 @@ import { CheckCircle2, CreditCard, Wallet, Truck, ExternalLink } from 'lucide-re
 import { useCart } from '@/store/cart';
 import { formatPrice } from '@/types/shop';
 import { apiPost } from '@/lib/api';
+import { trackEvent } from '@/lib/analytics';
 import { toast } from 'sonner';
 
 interface CheckoutResult {
@@ -65,6 +66,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
       return;
     }
     setErrors({});
+    trackEvent('checkout_start', { total: sub, item_count: items.length });
     setLoading(true);
     try {
       const result = await apiPost<CheckoutResult>('/checkout', {
