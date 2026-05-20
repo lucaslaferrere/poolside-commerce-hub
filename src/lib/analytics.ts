@@ -10,6 +10,10 @@ function getSessionId(): string {
   return id;
 }
 
+export function trackPageView(path: string): void {
+  trackEvent('page_view', { url: path });
+}
+
 export function trackEvent(type: string, payload?: Record<string, unknown>): void {
   try {
     fetch(`${BASE}/events`, {

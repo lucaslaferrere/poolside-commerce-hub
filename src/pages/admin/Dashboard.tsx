@@ -49,7 +49,7 @@ import {
 import { useAdminInsights } from '@/hooks/useAdminProducts';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { useUmamiStats, umamiConfigured } from '@/hooks/useUmamiStats';
+import { useTrafficStats } from '@/hooks/useTrafficStats';
 import { formatPrice } from '@/types/shop';
 import type { Order, OrderStatus } from '@/types/shop';
 import { AdminPageHeader } from './AdminLayout';
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
   const { data: products = [], isLoading: loadingProducts, isError: errProducts, refetch: refetchProducts } = useAdminInsights();
   const { data: ordersData, isLoading: loadingOrders } = useAdminOrders();
   const { data: analyticsData, isLoading: loadingAnalytics } = useAnalytics(analyticsPeriod);
-  const { data: umamiData, isLoading: loadingUmami, isError: errUmami } = useUmamiStats(analyticsPeriod);
+  const { data: trafficData, isLoading: loadingTraffic } = useTrafficStats();
   const orders = ordersData?.orders ?? [];
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
@@ -437,66 +437,75 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Tráfico web — Umami */}
-      {umamiConfigured ? (
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Globe className="h-4 w-4 text-neutral-400" />
-            <h2 className="font-display text-base font-semibold text-neutral-900">Tráfico web</h2>
-            <span className="text-[10px] uppercase tracking-wide text-neutral-400 bg-neutral-100 rounded px-1.5 py-0.5 font-medium">Umami</span>
-          </div>
-          {errUmami ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              No se pudo conectar con Umami. Verificá que el servicio esté activo.
-            </div>
+      {/* Tráfico web */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Globe className="h-4 w-4 text-neutral-400" />
+          <h2 className="font-display text-base font-semibold text-neutral-900">Tráfico web</h2>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {loadingTraffic ? (
+            Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {loadingUmami ? (
-                Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
-              ) : (
-                <>
-                  <KpiCard
-                    label="Visitas hoy / período"
-                    value={String(umamiData?.pageviews?.value ?? 0)}
-                    hint={`${umamiData?.pageviews?.change >= 0 ? '+' : ''}${umamiData?.pageviews?.change ?? 0} vs anterior`}
-                    icon={Activity}
-                    color={METRIC_COLORS.revenue}
-                  />
-                  <KpiCard
-                    label="Visitantes únicos"
-                    value={String(umamiData?.uniques?.value ?? 0)}
-                    hint={`${umamiData?.uniques?.change >= 0 ? '+' : ''}${umamiData?.uniques?.change ?? 0} vs anterior`}
-                    icon={Users}
-                    color={METRIC_COLORS.orders}
-                  />
-                  <KpiCard
-                    label="Tasa de rebote"
-                    value={
-                      umamiData && umamiData.uniques?.value > 0
-                        ? `${((umamiData.bounces?.value / umamiData.uniques.value) * 100).toFixed(1)}%`
-                        : '—'
-                    }
-                    hint="Visitas de una sola página"
-                    icon={MousePointerClick}
-                    color={METRIC_COLORS.aov}
-                  />
-                  <KpiCard
-                    label="Tiempo promedio"
-                    value={
-                      umamiData && umamiData.uniques?.value > 0
-                        ? `${Math.round((umamiData.totaltime?.value ?? 0) / Math.max(umamiData.uniques.value, 1))}s`
-                        : '—'
-                    }
-                    hint="Por visitante único"
-                    icon={Eye}
-                    color={METRIC_COLORS.stock}
-                  />
-                </>
-              )}
-            </div>
+            <>
+              <KpiCard
+                label="Visitas hoy"
+                value={String(trafficData?.views_today ?? 0)}
+                hint="Desde las 00:00 hs"
+                icon={Activity}
+                color={METRIC_COLORS.revenue}
+              />
+              <KpiCard
+                label="Visitas (7 días)"
+                value={String(trafficData?.views_week ?? 0)}
+                hint="Últimos 7 días"
+                icon={MousePointerClick}
+                color={METRIC_COLORS.orders}
+              />
+              <KpiCard
+                label="Visitas (30 días)"
+                value={String(trafficData?.views_month ?? 0)}
+                hint="Últimos 30 días"
+                icon={Eye}
+                color={METRIC_COLORS.aov}
+              />
+              <KpiCard
+                label="Visitantes únicos"
+                value={String(trafficData?.unique_sessions ?? 0)}
+                hint="Últimos 30 días"
+                icon={Users}
+                color={METRIC_COLORS.stock}
+              />
+            </>
           )}
         </div>
-      ) : null}
+
+        {!loadingTraffic && trafficData && trafficData.top_pages.length > 0 && (
+          <div className="mt-4 rounded-lg border border-neutral-200 bg-white overflow-hidden">
+            <header className="px-5 py-3 border-b border-neutral-200 bg-neutral-50/60">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Páginas más visitadas — últimos 30 días
+              </h3>
+            </header>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-neutral-500 bg-neutral-50/40">
+                  <th className="px-5 py-2.5">Página</th>
+                  <th className="px-5 py-2.5 text-right">Visitas</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {trafficData.top_pages.map((p) => (
+                  <tr key={p.url} className="hover:bg-neutral-50 transition-colors">
+                    <td className="px-5 py-3 font-mono text-xs text-neutral-700">{p.url}</td>
+                    <td className="px-5 py-3 text-right tabular-nums text-neutral-700">{p.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">

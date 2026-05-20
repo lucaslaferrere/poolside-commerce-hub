@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { trackPageView } from '@/lib/analytics';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -21,6 +23,12 @@ import AdminOrdersPage from './pages/admin/OrdersPage.tsx';
 import AdminKitsPage from './pages/admin/Kits.tsx';
 import WarrantyPage from './pages/WarrantyPage.tsx';
 
+function PageViewTracker() {
+  const { pathname } = useLocation();
+  useEffect(() => { trackPageView(pathname); }, [pathname]);
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -30,6 +38,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PageViewTracker />
           <RootLayout>
             <Routes>
               <Route path="/" element={<Index />} />
