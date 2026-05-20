@@ -13,3 +13,11 @@ export function useKits(featured?: boolean) {
     select: (data) => Array.isArray(data) ? data : [],
   });
 }
+
+export function useKitById(id: string | undefined) {
+  return useQuery({
+    queryKey: ['kits', id],
+    queryFn: () => apiGet<Kit>(`/kits/${id}`),
+    enabled: Boolean(id),
+  });
+}

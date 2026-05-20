@@ -22,6 +22,7 @@ import AdminProducts from './pages/admin/Products.tsx';
 import AdminOrdersPage from './pages/admin/OrdersPage.tsx';
 import AdminKitsPage from './pages/admin/Kits.tsx';
 import WarrantyPage from './pages/WarrantyPage.tsx';
+import KitDetailPage from './pages/KitDetailPage.tsx';
 
 function PageViewTracker() {
   const { pathname } = useLocation();
@@ -78,6 +79,7 @@ const App = () => (
 
               <Route path="/tienda" element={<TiendaPage />} />
               <Route path="/tienda/:id" element={<ProductDetailPage />} />
+              <Route path="/kits/:id" element={<KitDetailPage />} />
               <Route
                 path="/checkout"
                 element={

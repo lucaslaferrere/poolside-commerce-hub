@@ -497,7 +497,10 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-neutral-100">
                 {trafficData.top_pages.map((p) => (
                   <tr key={p.url} className="hover:bg-neutral-50 transition-colors">
-                    <td className="px-5 py-3 font-mono text-xs text-neutral-700">{p.url}</td>
+                    <td className="px-5 py-3 text-neutral-700">
+                      <span className="font-medium">{resolvePageLabel(p.url, products)}</span>
+                      <span className="ml-2 font-mono text-[11px] text-neutral-400">{p.url}</span>
+                    </td>
                     <td className="px-5 py-3 text-right tabular-nums text-neutral-700">{p.count}</td>
                   </tr>
                 ))}
@@ -1038,6 +1041,27 @@ function StatusPill({ status }: { status: Order['status'] }) {
 /* ────────────────────────────────────────────────────────────────────────
    Helpers
    ──────────────────────────────────────────────────────────────────────── */
+
+const PAGE_LABELS: Record<string, string> = {
+  '/': 'Inicio',
+  '/tienda': 'Tienda',
+  '/garantia': 'Garantía',
+  '/profile': 'Mi perfil',
+  '/orders': 'Mis pedidos',
+  '/checkout': 'Checkout',
+};
+
+function resolvePageLabel(url: string, products: { id: string; name: string }[]): string {
+  if (PAGE_LABELS[url]) return PAGE_LABELS[url];
+  const productMatch = url.match(/^\/tienda\/([a-f0-9]{24})$/);
+  if (productMatch) {
+    const product = products.find((p) => p.id === productMatch[1]);
+    return product ? product.name : 'Producto';
+  }
+  const kitMatch = url.match(/^\/kits\/([a-f0-9]{24})$/);
+  if (kitMatch) return 'Kit — detalle';
+  return url;
+}
 
 function pct(curr: number, prev: number): number | null {
   if (!prev || !Number.isFinite(prev)) return null;

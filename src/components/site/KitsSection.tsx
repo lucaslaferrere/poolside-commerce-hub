@@ -211,13 +211,22 @@ function KitCard({ kit: k, onAdd, productNameById }: KitCardProps) {
               </span>
             )}
           </div>
-          <Button
-            onClick={() => onAdd(k)}
-            className="w-full bg-primary text-primary-foreground hover:bg-[hsl(var(--brand-hover))] active:bg-[hsl(var(--brand-active))]"
-          >
-            <Plus className="h-4 w-4" />
-            Agregar al carrito
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              asChild
+              variant="outline"
+              className="flex-1 border-primary/30 text-primary hover:bg-primary/5"
+            >
+              <Link to={`/kits/${k.id}`}>Ver detalle</Link>
+            </Button>
+            <Button
+              onClick={() => onAdd(k)}
+              className="flex-1 bg-primary text-primary-foreground hover:bg-[hsl(var(--brand-hover))] active:bg-[hsl(var(--brand-active))]"
+            >
+              <Plus className="h-4 w-4" />
+              Agregar
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
