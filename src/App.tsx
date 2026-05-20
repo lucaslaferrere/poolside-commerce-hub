@@ -26,7 +26,11 @@ import KitDetailPage from './pages/KitDetailPage.tsx';
 
 function PageViewTracker() {
   const { pathname } = useLocation();
-  useEffect(() => { trackPageView(pathname); }, [pathname]);
+  useEffect(() => {
+    if (!pathname.startsWith('/admin')) {
+      trackPageView(pathname);
+    }
+  }, [pathname]);
   return null;
 }
 

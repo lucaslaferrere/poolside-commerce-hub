@@ -168,9 +168,9 @@ export default function KitDetailPage() {
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to="/#kits" className="text-muted-foreground hover:text-primary transition-colors text-xs">
+                    <a href="/#kits" className="text-muted-foreground hover:text-primary transition-colors text-xs">
                       Kits
-                    </Link>
+                    </a>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
