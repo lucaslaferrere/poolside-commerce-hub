@@ -8,9 +8,13 @@ import {
   Boxes,
   Calendar,
   ChevronDown,
+  Activity,
   CreditCard,
   DollarSign,
   Eye,
+  Globe,
+  MousePointerClick,
+  Users,
   LineChart as LineChartIcon,
   Package,
   PieChart as PieChartIcon,
@@ -45,6 +49,7 @@ import {
 import { useAdminInsights } from '@/hooks/useAdminProducts';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useUmamiStats, umamiConfigured } from '@/hooks/useUmamiStats';
 import { formatPrice } from '@/types/shop';
 import type { Order, OrderStatus } from '@/types/shop';
 import { AdminPageHeader } from './AdminLayout';
@@ -103,6 +108,7 @@ export default function AdminDashboard() {
   const { data: products = [], isLoading: loadingProducts, isError: errProducts, refetch: refetchProducts } = useAdminInsights();
   const { data: ordersData, isLoading: loadingOrders } = useAdminOrders();
   const { data: analyticsData, isLoading: loadingAnalytics } = useAnalytics(analyticsPeriod);
+  const { data: umamiData, isLoading: loadingUmami, isError: errUmami } = useUmamiStats(analyticsPeriod);
   const orders = ordersData?.orders ?? [];
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
@@ -430,6 +436,67 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Tráfico web — Umami */}
+      {umamiConfigured ? (
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Globe className="h-4 w-4 text-neutral-400" />
+            <h2 className="font-display text-base font-semibold text-neutral-900">Tráfico web</h2>
+            <span className="text-[10px] uppercase tracking-wide text-neutral-400 bg-neutral-100 rounded px-1.5 py-0.5 font-medium">Umami</span>
+          </div>
+          {errUmami ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              No se pudo conectar con Umami. Verificá que el servicio esté activo.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {loadingUmami ? (
+                Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
+              ) : (
+                <>
+                  <KpiCard
+                    label="Visitas hoy / período"
+                    value={String(umamiData?.pageviews?.value ?? 0)}
+                    hint={`${umamiData?.pageviews?.change >= 0 ? '+' : ''}${umamiData?.pageviews?.change ?? 0} vs anterior`}
+                    icon={Activity}
+                    color={METRIC_COLORS.revenue}
+                  />
+                  <KpiCard
+                    label="Visitantes únicos"
+                    value={String(umamiData?.uniques?.value ?? 0)}
+                    hint={`${umamiData?.uniques?.change >= 0 ? '+' : ''}${umamiData?.uniques?.change ?? 0} vs anterior`}
+                    icon={Users}
+                    color={METRIC_COLORS.orders}
+                  />
+                  <KpiCard
+                    label="Tasa de rebote"
+                    value={
+                      umamiData && umamiData.uniques?.value > 0
+                        ? `${((umamiData.bounces?.value / umamiData.uniques.value) * 100).toFixed(1)}%`
+                        : '—'
+                    }
+                    hint="Visitas de una sola página"
+                    icon={MousePointerClick}
+                    color={METRIC_COLORS.aov}
+                  />
+                  <KpiCard
+                    label="Tiempo promedio"
+                    value={
+                      umamiData && umamiData.uniques?.value > 0
+                        ? `${Math.round((umamiData.totaltime?.value ?? 0) / Math.max(umamiData.uniques.value, 1))}s`
+                        : '—'
+                    }
+                    hint="Por visitante único"
+                    icon={Eye}
+                    color={METRIC_COLORS.stock}
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      ) : null}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
