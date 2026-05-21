@@ -1,4 +1,4 @@
-import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react';
+import { Instagram, Facebook, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function Footer() {
@@ -55,7 +55,7 @@ export function Footer() {
             <h4 className="font-display text-sm font-semibold uppercase tracking-[0.16em] text-white/90 mb-5">
               Seguinos
             </h4>
-            <div className="flex gap-2.5">
+            <div className="flex flex-wrap gap-2.5">
               <a
                 href="https://www.instagram.com/pooled.ok"
                 target="_blank"
@@ -73,6 +73,26 @@ export function Footer() {
                 className="grid h-10 w-10 place-items-center rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200"
               >
                 <Facebook className="h-4 w-4" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@pooledok"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="grid h-10 w-10 place-items-center rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z" />
+                </svg>
+              </a>
+              <a
+                href="https://www.linkedin.com/company/pooledargentina/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="grid h-10 w-10 place-items-center rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200"
+              >
+                <Linkedin className="h-4 w-4" />
               </a>
             </div>
             <p className="text-xs text-primary-foreground/55 mt-5 leading-relaxed">
