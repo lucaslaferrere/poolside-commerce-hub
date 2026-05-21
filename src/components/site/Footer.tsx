@@ -26,6 +26,11 @@ export function Footer() {
               <li><Link to={{ pathname: '/', hash: '#guia' }} className="hover:text-white transition-colors">Guía de compra</Link></li>
               <li><Link to={{ pathname: '/', hash: '#faq' }} className="hover:text-white transition-colors">Preguntas frecuentes</Link></li>
               <li><Link to="/garantia" className="hover:text-white transition-colors">Garantía</Link></li>
+              <li>
+                <a href="https://empresa.pooled.com.ar" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                  Sobre Pooled
+                </a>
+              </li>
             </ul>
           </div>
 

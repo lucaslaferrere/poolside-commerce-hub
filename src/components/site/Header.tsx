@@ -33,9 +33,11 @@ const PUBLIC_NAV: NavLink[] = [
   { kind: 'hash',  label: 'Kits',           hash: 'kits' },
   { kind: 'hash',  label: 'Guía',           hash: 'guia' },
   { kind: 'hash',  label: 'Distribuidores', hash: 'distribuidores' },
-  { kind: 'hash',  label: 'Preguntas Frecuentes',            hash: 'faq' },
+  { kind: 'hash',  label: 'Preguntas Frecuentes', hash: 'faq' },
   { kind: 'route', label: 'Garantía',       to: '/garantia' },
 ];
+
+const EMPRESA_URL = 'https://empresa.pooled.com.ar';
 
 const ADMIN_NAV: { label: string; to: string; icon: typeof LayoutDashboard }[] = [
   { label: 'Dashboard', to: '/admin',  icon: LayoutDashboard },
@@ -154,6 +156,9 @@ export function Header() {
               renderHashLink(l)
             ),
           )}
+          <a href={EMPRESA_URL} target="_blank" rel="noopener noreferrer" className={navLinkClass}>
+            Empresa
+          </a>
 
           {isAdmin &&
             ADMIN_NAV.map((item) => (
@@ -264,6 +269,15 @@ export function Header() {
                     renderHashLink(l, true)
                   ),
                 )}
+                <a
+                  href={EMPRESA_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-3 rounded-md font-medium text-neutral-700 hover:bg-neutral-100 hover:text-brand transition-colors"
+                >
+                  Empresa
+                </a>
 
                 {isAdmin && (
                   <>
