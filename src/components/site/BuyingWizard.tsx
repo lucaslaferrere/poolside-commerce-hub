@@ -14,7 +14,7 @@ import { resolveImageUrl } from '@/lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Stage = 'size' | 'material' | 'uso' | 'form' | 'grande_done' | 'kit_result' | 'no_kit';
+type Stage = 'size' | 'material' | 'uso' | 'para_que' | 'form' | 'grande_done' | 'kit_result' | 'no_kit';
 type PoolSize = 'chica' | 'mediana' | 'grande';
 type PoolMaterial = 'fibra' | 'hormigon' | 'revestida';
 type PoolUso = 'residencial' | 'servicio';
@@ -77,7 +77,8 @@ const STAGE_PROGRESS: Record<Stage, number> = {
   size:        12,
   material:    40,
   uso:         68,
-  form:        68,
+  para_que:    68,
+  form:        85,
   grande_done: 100,
   kit_result:  100,
   no_kit:      100,
@@ -189,8 +190,26 @@ export function BuyingWizard() {
 
   const selectMaterial = (mat: PoolMaterial) => {
     setPoolMaterial(mat);
-    // Grande → detailed form; Chica/Mediana → uso question
-    setStage(poolSize === 'grande' ? 'form' : 'uso');
+    setStage(poolSize === 'grande' ? 'para_que' : 'uso');
+  };
+
+  const selectParaQue = (value: string) => {
+    setField('para_que', value);
+    if (value === 'otro') {
+      setStage('form');
+    } else {
+      // Residencial o Club/Hotel → WhatsApp directo sin formulario extra
+      const paraQueLabel = PARA_QUE_OPTIONS.find(o => o.value === value)?.label ?? value;
+      const matLabel = poolMaterial ? MATERIAL_LABEL[poolMaterial] : '';
+      const msg =
+        `Hola ${BUSINESS_NAME}! Completé la guía de iluminación:\n` +
+        `• *Tamaño*: Grande (más de 60 m³)\n` +
+        `• *Material*: ${matLabel}\n` +
+        `• *Uso*: ${paraQueLabel}\n` +
+        `¿Me pueden asesorar sobre iluminación para mi piscina?`;
+      window.open(buildWhatsAppLink(msg), '_blank', 'noopener,noreferrer');
+      setStage('grande_done');
+    }
   };
 
   const selectUso = (uso: PoolUso) => {
@@ -207,7 +226,8 @@ export function BuyingWizard() {
   const goBack = () => {
     if (stage === 'material')   { setPoolMaterial(null); setStage('size'); }
     if (stage === 'uso')        { setPoolUso(null); setStage('material'); }
-    if (stage === 'form')       { setStage('material'); }
+    if (stage === 'para_que')   { setField('para_que', ''); setStage('material'); }
+    if (stage === 'form')       { setField('para_que', ''); setStage('para_que'); }
     if (stage === 'kit_result') { setPoolUso(null); setStage('uso'); }
     if (stage === 'no_kit')     { setPoolUso(null); setStage('uso'); }
   };
@@ -274,8 +294,7 @@ export function BuyingWizard() {
   // ── Actions ───────────────────────────────────────────────────────────────────
 
   const formValid =
-    !!grandeForm.para_que &&
-    (grandeForm.para_que !== 'otro' || grandeForm.para_que_otro.trim().length > 0) &&
+    grandeForm.para_que_otro.trim().length > 0 &&
     grandeForm.zona.trim().length > 0 &&
     !!grandeForm.estado &&
     grandeForm.largo.trim().length > 0 &&
@@ -428,7 +447,30 @@ export function BuyingWizard() {
               </motion.div>
             )}
 
-            {/* ── FORM (grande path) ────────────────────────────────────────────── */}
+            {/* ── PARA QUE (grande path) ───────────────────────────────────────── */}
+            {stage === 'para_que' && (
+              <motion.div
+                key="para_que"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.25 }}
+              >
+                <h3 className="font-display text-2xl md:text-3xl font-bold text-center mb-8">
+                  ¿Para qué es la piscina?
+                </h3>
+                <OptionGrid
+                  options={PARA_QUE_OPTIONS}
+                  selected={grandeForm.para_que}
+                  onSelect={selectParaQue}
+                />
+                <Button variant="ghost" onClick={goBack} className="mt-6 text-sm">
+                  <ArrowLeft className="h-4 w-4 mr-1" /> Anterior
+                </Button>
+              </motion.div>
+            )}
+
+            {/* ── FORM (solo para "Otro") ───────────────────────────────────────── */}
             {stage === 'form' && (
               <motion.div
                 key="form"
@@ -438,31 +480,25 @@ export function BuyingWizard() {
                 transition={{ duration: 0.25 }}
               >
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-center mb-1">
-                  Contanos un poco más
+                  Contanos tu caso
                 </h3>
                 <p className="text-center text-muted-foreground text-sm mb-7">
-                  Así podemos armarte el presupuesto ideal para tu piscina grande.
+                  Así podemos armarte el presupuesto ideal para tu piscina.
                 </p>
 
                 <div className="space-y-6">
                   <div>
-                    <p className="text-sm font-semibold mb-2.5">¿Para qué es la piscina?</p>
-                    <OptionGrid
-                      options={PARA_QUE_OPTIONS}
-                      selected={grandeForm.para_que}
-                      onSelect={(v) => setField('para_que', v)}
-                      compact
+                    <label className="text-sm font-semibold block mb-2.5">
+                      ¿Para qué necesitás la iluminación? <span className="text-destructive">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contanos tu caso..."
+                      value={grandeForm.para_que_otro}
+                      onChange={(e) => setField('para_que_otro', e.target.value)}
+                      className="w-full rounded-xl border-2 border-border bg-muted/40 px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
+                      autoFocus
                     />
-                    {grandeForm.para_que === 'otro' && (
-                      <input
-                        type="text"
-                        placeholder="Contanos para qué necesitás la iluminación..."
-                        value={grandeForm.para_que_otro}
-                        onChange={(e) => setField('para_que_otro', e.target.value)}
-                        className="mt-3 w-full rounded-xl border-2 border-border bg-muted/40 px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                        autoFocus
-                      />
-                    )}
                   </div>
 
                   <div>
