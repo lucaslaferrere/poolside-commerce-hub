@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle2, ArrowLeft, MessageCircle, Sparkles } from 'lucide-react';
 import { formatPrice } from '@/types/shop';
+import type { Kit } from '@/types/shop';
 import { useCart } from '@/store/cart';
 import { toast } from 'sonner';
 import { buildWhatsAppLink, BUSINESS_NAME } from '@/lib/whatsapp';
@@ -72,6 +73,14 @@ const COLOR_OPTIONS = [
   { value: 'blanco', label: 'Blanco',     desc: 'Luz blanca cálida o fría' },
   { value: 'rgbw',   label: 'RGBW', desc: 'Colores y efectos de luz' },
 ];
+
+const LINES = ['osire', 'profesional', 'poolight'] as const;
+
+const LINE_META_WIZARD: Record<string, { label: string; badgeClass: string }> = {
+  osire:       { label: 'Premium',     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200' },
+  profesional: { label: 'Profesional', badgeClass: 'bg-sky-100 text-sky-700 border-sky-200' },
+  poolight:    { label: 'Esencial',    badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+};
 
 const STAGE_PROGRESS: Record<Stage, number> = {
   size:        12,
@@ -160,31 +169,29 @@ export function BuyingWizard() {
     return map;
   }, [products]);
 
-  const recommendedKit = useMemo(() => {
-    if (!poolSize) return null;
-    // "Otro" en grande siempre va al formulario, nunca al kit
-    if (poolSize === 'grande' && grandeForm.para_que === 'otro') return null;
+  const recommendedKits = useMemo((): Kit[] => {
+    if (!poolSize) return [];
+    if (poolSize === 'grande' && grandeForm.para_que === 'otro') return [];
 
     const effectiveUso =
       poolSize === 'grande'
         ? grandeForm.para_que === 'residencial' ? 'residencial' : 'servicio'
         : poolUso;
 
-    return kits.find((k) => {
+    const matching = kits.filter((k) => {
       if (k.pool_size !== poolSize) return false;
       if (k.materials?.length && poolMaterial && !k.materials.includes(poolMaterial)) return false;
       if (k.uso && k.uso !== 'ambos' && effectiveUso && k.uso !== effectiveUso) return false;
       return true;
-    }) ?? null;
-  }, [kits, poolSize, poolMaterial, poolUso, grandeForm.para_que]);
+    });
 
-  const kitItems = useMemo(() => {
-    if (!recommendedKit?.product_ids?.length) return [];
-    const named = recommendedKit.product_ids
-      .map((id) => productNameById.get(id))
-      .filter((n): n is string => Boolean(n));
-    return named;
-  }, [recommendedKit, productNameById]);
+    const result: Kit[] = [];
+    for (const line of LINES) {
+      const kit = matching.find((k) => k.line === line);
+      if (kit) result.push(kit);
+    }
+    return result.length > 0 ? result : matching.slice(0, 3);
+  }, [kits, poolSize, poolMaterial, poolUso, grandeForm.para_que]);
 
   const progress = STAGE_PROGRESS[stage];
 
@@ -207,25 +214,25 @@ export function BuyingWizard() {
       setStage('form');
     } else {
       const effectiveUso = value === 'residencial' ? 'residencial' : 'servicio';
-      const kit = kits.find((k) => {
+      const anyKit = kits.some((k) => {
         if (k.pool_size !== poolSize) return false;
         if (k.materials?.length && poolMaterial && !k.materials.includes(poolMaterial)) return false;
         if (k.uso && k.uso !== 'ambos' && k.uso !== effectiveUso) return false;
         return true;
-      }) ?? null;
-      setStage(kit ? 'kit_result' : 'no_kit');
+      });
+      setStage(anyKit ? 'kit_result' : 'no_kit');
     }
   };
 
   const selectUso = (uso: PoolUso) => {
     setPoolUso(uso);
-    const kit = kits.find((k) => {
+    const anyKit = kits.some((k) => {
       if (k.pool_size !== poolSize) return false;
       if (k.materials?.length && poolMaterial && !k.materials.includes(poolMaterial)) return false;
       if (k.uso && k.uso !== 'ambos' && k.uso !== uso) return false;
       return true;
-    }) ?? null;
-    setStage(kit ? 'kit_result' : 'no_kit');
+    });
+    setStage(anyKit ? 'kit_result' : 'no_kit');
   };
 
   const goBack = () => {
@@ -299,8 +306,9 @@ export function BuyingWizard() {
     const usoLabel  = poolSize === 'grande'
       ? (PARA_QUE_OPTIONS.find(o => o.value === grandeForm.para_que)?.label ?? grandeForm.para_que)
       : (USO_OPTIONS.find(o => o.value === poolUso)?.label ?? '');
+    const kitNames = recommendedKits.map(k => `"${k.name}"`).join(', ');
     return (
-      `Hola ${BUSINESS_NAME}! Hice la guía y me recomendaron el "${recommendedKit?.name}".\n` +
+      `Hola ${BUSINESS_NAME}! Hice la guía y me recomendaron: ${kitNames}.\n` +
       `• *Tamaño*: ${sizeLabel} · *Material*: ${matLabel} · *Uso*: ${usoLabel}\n` +
       `Quiero más información.`
     );
@@ -322,17 +330,16 @@ export function BuyingWizard() {
     setStage('grande_done');
   };
 
-  const addKit = () => {
-    if (!recommendedKit) return;
+  const addKit = (kit: Kit) => {
     add({
-      id: recommendedKit.id,
-      name: recommendedKit.name,
-      price: Number(recommendedKit.price),
-      image_url: recommendedKit.image_url,
+      id: kit.id,
+      name: kit.name,
+      price: Number(kit.price),
+      image_url: kit.image_url,
       type: 'kit',
     });
     triggerSplash();
-    toast.success('Kit agregado al carrito', { description: recommendedKit.name });
+    toast.success('Kit agregado al carrito', { description: kit.name });
     setTimeout(() => openCart(), 650);
   };
 
@@ -645,8 +652,8 @@ export function BuyingWizard() {
               </motion.div>
             )}
 
-            {/* ── KIT RESULT (chica / mediana) ──────────────────────────────────── */}
-            {stage === 'kit_result' && recommendedKit && (
+            {/* ── KIT RESULT ────────────────────────────────────────────────────── */}
+            {stage === 'kit_result' && recommendedKits.length > 0 && (
               <motion.div
                 key="kit_result"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -655,67 +662,75 @@ export function BuyingWizard() {
                 className="text-center"
               >
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
-                  <Sparkles className="h-3 w-3" /> Recomendación lista
+                  <Sparkles className="h-3 w-3" /> Kits recomendados
                 </div>
                 <h3 className="font-display text-2xl md:text-3xl font-bold mb-1">
-                  {recommendedKit.name}
+                  Piscina {SIZE_OPTIONS.find(o => o.value === poolSize)?.label.toLowerCase()}
                 </h3>
-                <p className="text-muted-foreground text-sm mb-2">
-                  Recomendado para piscinas {SIZE_OPTIONS.find(o => o.value === poolSize)?.label.toLowerCase()}.
+                <p className="text-muted-foreground text-sm mb-6">
+                  Elegí la línea que mejor se adapta a tu presupuesto.
                 </p>
-                {recommendedKit.description && (
-                  <p className="text-muted-foreground mb-6 max-w-xl mx-auto text-sm">
-                    {recommendedKit.description}
-                  </p>
-                )}
 
-                <div className="grid sm:grid-cols-2 gap-6 items-center max-w-2xl mx-auto bg-muted/40 rounded-xl p-5 mb-8">
-                  {recommendedKit.image_url && (
-                    <img
-                      src={resolveImageUrl(recommendedKit.image_url)}
-                      alt={recommendedKit.name}
-                      loading="lazy"
-                      className="rounded-lg aspect-square object-cover w-full"
-                    />
-                  )}
-                  <div className="text-left space-y-3">
-                    <div>
-                      {recommendedKit.original_price && (
-                        <span className="text-sm text-muted-foreground line-through mr-2">
-                          {formatPrice(Number(recommendedKit.original_price))}
-                        </span>
-                      )}
-                      <span className="font-display font-bold text-3xl text-primary block">
-                        {formatPrice(Number(recommendedKit.price))}
-                      </span>
-                    </div>
-                    {kitItems.length > 0 && (
-                      <ul className="space-y-1 text-sm">
-                        {kitItems.slice(0, 4).map((item) => (
-                          <li key={item} className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                            <span className="line-clamp-1">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                <div className={cn(
+                  'grid gap-4 mb-6',
+                  recommendedKits.length === 1 ? 'grid-cols-1 max-w-xs mx-auto'
+                    : recommendedKits.length === 2 ? 'grid-cols-1 sm:grid-cols-2'
+                    : 'grid-cols-1 sm:grid-cols-3',
+                )}>
+                  {recommendedKits.map((kit) => {
+                    const lineMeta = kit.line ? LINE_META_WIZARD[kit.line] : null;
+                    const origPrice = kit.original_price ? Number(kit.original_price) : 0;
+                    const kitPrice = Number(kit.price);
+                    const discount = origPrice > 0 ? Math.round(((origPrice - kitPrice) / origPrice) * 100) : 0;
+                    const itemsForKit = kit.product_ids?.length
+                      ? kit.product_ids.map((id) => productNameById.get(id)).filter((n): n is string => Boolean(n)).slice(0, 3)
+                      : [];
+                    return (
+                      <div key={kit.id} className="rounded-xl border-2 border-border bg-muted/20 p-4 flex flex-col gap-3 text-left">
+                        {lineMeta && (
+                          <span className={`self-start inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border ${lineMeta.badgeClass}`}>
+                            {lineMeta.label}
+                          </span>
+                        )}
+                        {kit.image_url && (
+                          <div className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100">
+                            <img src={resolveImageUrl(kit.image_url)} alt={kit.name} loading="lazy" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <p className="font-display font-bold text-base leading-snug">{kit.name}</p>
+                        {itemsForKit.length > 0 && (
+                          <ul className="space-y-1">
+                            {itemsForKit.map((item) => (
+                              <li key={item} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
+                                <span className="line-clamp-1">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <div className="mt-auto pt-1">
+                          {discount > 0 && (
+                            <span className="text-xs text-muted-foreground line-through mr-1.5">
+                              {formatPrice(origPrice)}
+                            </span>
+                          )}
+                          <span className="font-display font-bold text-xl text-primary">
+                            {formatPrice(kitPrice)}
+                          </span>
+                        </div>
+                        <Button size="sm" onClick={() => addKit(kit)} className="w-full gradient-aqua text-primary-foreground">
+                          Agregar al carrito
+                        </Button>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button size="lg" onClick={addKit} className="gradient-aqua text-primary-foreground">
-                    Agregar al carrito
-                  </Button>
-                  <Button asChild size="lg" variant="outline">
-                    <a
-                      href={buildWhatsAppLink(buildKitConsultMessage())}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-1" /> Consultar
-                    </a>
-                  </Button>
-                </div>
+                <Button asChild variant="outline" size="sm">
+                  <a href={buildWhatsAppLink(buildKitConsultMessage())} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="h-4 w-4 mr-1" /> Consultar por WhatsApp
+                  </a>
+                </Button>
 
                 <div className="mt-5 flex justify-center gap-4">
                   <Button variant="ghost" onClick={goBack} className="text-xs">
