@@ -161,14 +161,22 @@ export function BuyingWizard() {
   }, [products]);
 
   const recommendedKit = useMemo(() => {
-    if (!poolSize || poolSize === 'grande') return null;
+    if (!poolSize) return null;
+    // "Otro" en grande siempre va al formulario, nunca al kit
+    if (poolSize === 'grande' && grandeForm.para_que === 'otro') return null;
+
+    const effectiveUso =
+      poolSize === 'grande'
+        ? grandeForm.para_que === 'residencial' ? 'residencial' : 'servicio'
+        : poolUso;
+
     return kits.find((k) => {
       if (k.pool_size !== poolSize) return false;
       if (k.materials?.length && poolMaterial && !k.materials.includes(poolMaterial)) return false;
-      if (k.uso && k.uso !== 'ambos' && poolUso && k.uso !== poolUso) return false;
+      if (k.uso && k.uso !== 'ambos' && effectiveUso && k.uso !== effectiveUso) return false;
       return true;
     }) ?? null;
-  }, [kits, poolSize, poolMaterial, poolUso]);
+  }, [kits, poolSize, poolMaterial, poolUso, grandeForm.para_que]);
 
   const kitItems = useMemo(() => {
     if (!recommendedKit?.product_ids?.length) return [];
@@ -198,17 +206,14 @@ export function BuyingWizard() {
     if (value === 'otro') {
       setStage('form');
     } else {
-      // Residencial o Club/Hotel → WhatsApp directo sin formulario extra
-      const paraQueLabel = PARA_QUE_OPTIONS.find(o => o.value === value)?.label ?? value;
-      const matLabel = poolMaterial ? MATERIAL_LABEL[poolMaterial] : '';
-      const msg =
-        `Hola ${BUSINESS_NAME}! Completé la guía de iluminación:\n` +
-        `• *Tamaño*: Grande (más de 60 m³)\n` +
-        `• *Material*: ${matLabel}\n` +
-        `• *Uso*: ${paraQueLabel}\n` +
-        `¿Me pueden asesorar sobre iluminación para mi piscina?`;
-      window.open(buildWhatsAppLink(msg), '_blank', 'noopener,noreferrer');
-      setStage('grande_done');
+      const effectiveUso = value === 'residencial' ? 'residencial' : 'servicio';
+      const kit = kits.find((k) => {
+        if (k.pool_size !== poolSize) return false;
+        if (k.materials?.length && poolMaterial && !k.materials.includes(poolMaterial)) return false;
+        if (k.uso && k.uso !== 'ambos' && k.uso !== effectiveUso) return false;
+        return true;
+      }) ?? null;
+      setStage(kit ? 'kit_result' : 'no_kit');
     }
   };
 
@@ -228,8 +233,14 @@ export function BuyingWizard() {
     if (stage === 'uso')        { setPoolUso(null); setStage('material'); }
     if (stage === 'para_que')   { setField('para_que', ''); setStage('material'); }
     if (stage === 'form')       { setField('para_que', ''); setStage('para_que'); }
-    if (stage === 'kit_result') { setPoolUso(null); setStage('uso'); }
-    if (stage === 'no_kit')     { setPoolUso(null); setStage('uso'); }
+    if (stage === 'kit_result') {
+      if (poolSize === 'grande') { setField('para_que', ''); setStage('para_que'); }
+      else { setPoolUso(null); setStage('uso'); }
+    }
+    if (stage === 'no_kit') {
+      if (poolSize === 'grande') { setField('para_que', ''); setStage('para_que'); }
+      else { setPoolUso(null); setStage('uso'); }
+    }
   };
 
   const reset = () => {
@@ -270,7 +281,9 @@ export function BuyingWizard() {
   const buildNoKitMessage = () => {
     const sizeLabel = SIZE_OPTIONS.find(o => o.value === poolSize)?.label ?? '';
     const matLabel  = poolMaterial ? MATERIAL_LABEL[poolMaterial] : '';
-    const usoLabel  = USO_OPTIONS.find(o => o.value === poolUso)?.label ?? '';
+    const usoLabel  = poolSize === 'grande'
+      ? (PARA_QUE_OPTIONS.find(o => o.value === grandeForm.para_que)?.label ?? grandeForm.para_que)
+      : (USO_OPTIONS.find(o => o.value === poolUso)?.label ?? '');
     return (
       `Hola ${BUSINESS_NAME}! Hice la guía:\n` +
       `• *Tamaño*: ${sizeLabel}\n` +
@@ -283,7 +296,9 @@ export function BuyingWizard() {
   const buildKitConsultMessage = () => {
     const sizeLabel = SIZE_OPTIONS.find(o => o.value === poolSize)?.label ?? '';
     const matLabel  = poolMaterial ? MATERIAL_LABEL[poolMaterial] : '';
-    const usoLabel  = USO_OPTIONS.find(o => o.value === poolUso)?.label ?? '';
+    const usoLabel  = poolSize === 'grande'
+      ? (PARA_QUE_OPTIONS.find(o => o.value === grandeForm.para_que)?.label ?? grandeForm.para_que)
+      : (USO_OPTIONS.find(o => o.value === poolUso)?.label ?? '');
     return (
       `Hola ${BUSINESS_NAME}! Hice la guía y me recomendaron el "${recommendedKit?.name}".\n` +
       `• *Tamaño*: ${sizeLabel} · *Material*: ${matLabel} · *Uso*: ${usoLabel}\n` +
