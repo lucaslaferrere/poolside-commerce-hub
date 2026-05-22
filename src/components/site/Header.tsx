@@ -141,7 +141,7 @@ export function Header() {
           <img
             src={solid ? LOGO_DARK : LOGO_LIGHT}
             alt="Pooled"
-            className="h-40 w-auto"
+            className="h-[50px] w-auto"
           />
         </Link>
 
