@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-12">
           {/* Brand */}
           <div className="md:col-span-4">
-            <img src="/Pooled blanco.svg" alt="Pooled" className="h-12 md:h-24 w-auto" />
+            <img src="/Pooled blanco.svg" alt="Pooled" className="h-40 w-auto" />
             <p className="text-sm leading-relaxed text-primary-foreground/70 mt-4 max-w-xs">
               Iluminación LED y accesorios para piscina. Calidad pro y asesoría experta.
             </p>
