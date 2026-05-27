@@ -15,6 +15,7 @@ import {
 import foto1 from '@/assets/Screenshot 2026-05-13 150755.png';
 import foto2 from '@/assets/Screenshot 2026-05-13 150843.png';
 import foto3 from '@/assets/Screenshot 2026-05-13 150904.png';
+import avatar from '@/assets/Screenshot 2026-05-27 155549.png';
 
 interface Post {
   img: string;
@@ -180,9 +181,7 @@ function IgPost({ post }: { post: Post }) {
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="grid place-items-center h-8 w-8 rounded-full bg-brand text-brand-foreground text-[10px] font-bold shrink-0">
-            P
-          </span>
+          <img src={avatar} alt="pooled.ok" className="h-8 w-8 rounded-full object-cover shrink-0" />
           <div className="min-w-0">
             <p className="text-[12px] font-semibold leading-tight text-neutral-900 truncate">pooled</p>
             <p className="text-[10px] text-neutral-500 truncate">{post.location}</p>
