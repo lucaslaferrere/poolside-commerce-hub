@@ -112,7 +112,7 @@ export function Footer() {
         <div className="container py-5 flex flex-col-reverse sm:flex-row items-center justify-between gap-2 text-xs text-primary-foreground/60">
           <span>© {new Date().getFullYear()} Pooled. Todos los derechos reservados.</span>
           <span>
-            Hecho por{' '}
+            Hecho con ❤️ por{' '}
             <a
               href="https://www.lrsolutions.com.ar/"
               target="_blank"
