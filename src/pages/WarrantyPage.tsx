@@ -1,6 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, XCircle, Shield, MessageCircle, ChevronLeft } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, XCircle, Shield, MessageCircle, Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Footer } from '@/components/site/Footer';
 import { buildWhatsAppLink, BUSINESS_NAME } from '@/lib/whatsapp';
+import { apiPost } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 interface FormState {
@@ -30,9 +30,12 @@ const BLANK: FormState = {
 
 const MODELS = ['OSIRE', 'HORUS', 'NAZAR', 'POOLIGHT', 'Controlador'];
 
+type SubmitStatus = 'idle' | 'loading' | 'success' | 'error';
+
 export default function WarrantyPage() {
   const [form, setForm] = useState<FormState>(BLANK);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [status, setStatus] = useState<SubmitStatus>('idle');
 
   const upd = (k: keyof FormState) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -52,32 +55,17 @@ export default function WarrantyPage() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
-    const msg = [
-      `🛡️ *SOLICITUD DE GARANTÍA — ${BUSINESS_NAME}*`,
-      '',
-      `*Producto*`,
-      `• Serie: ${form.serial}`,
-      `• Modelo: ${form.model}`,
-      `• Problema: ${form.problem_desc}`,
-      '',
-      `*Compra*`,
-      `• Factura/Comprobante: ${form.invoice}`,
-      `• Fecha de compra: ${form.purchase_date}`,
-      '',
-      `*Datos de contacto*`,
-      `• Nombre: ${form.name}`,
-      `• Email: ${form.email}`,
-      `• Teléfono: ${form.phone}`,
-      ...(form.message ? ['', `*Mensaje adicional*`, form.message] : []),
-      '',
-      `⚠️ Adjuntá foto del producto y video del problema en este chat.`,
-    ].join('\n');
-
-    window.open(buildWhatsAppLink(msg), '_blank');
+    setStatus('loading');
+    try {
+      await apiPost('/warranty', form);
+      setStatus('success');
+      setForm(BLANK);
+    } catch {
+      setStatus('error');
+    }
   };
 
   return (
@@ -140,8 +128,8 @@ export default function WarrantyPage() {
               </Field>
 
               <div className="flex gap-3 p-3 rounded-lg border border-blue-100 bg-blue-50 text-blue-800 text-xs">
-                <MessageCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <p>Adjuntá la <strong>foto del producto</strong> y el <strong>video del problema</strong> directamente en el chat de WhatsApp que se abre al enviar este formulario.</p>
+                <Mail className="h-4 w-4 shrink-0 mt-0.5" />
+                <p>Adjuntá la <strong>foto del producto</strong> y el <strong>video del problema</strong> respondiendo el email de confirmación que te enviamos.</p>
               </div>
             </section>
 
@@ -183,13 +171,32 @@ export default function WarrantyPage() {
               </Field>
             </section>
 
-            <Button type="submit" size="lg" className="w-full gradient-aqua text-primary-foreground gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Enviar solicitud por WhatsApp
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Tiempo de respuesta: <strong>48 horas hábiles</strong>
-            </p>
+            {status === 'success' ? (
+              <div className="flex flex-col items-center gap-3 py-6 text-center">
+                <CheckCircle2 className="h-12 w-12 text-emerald-500" />
+                <p className="font-semibold text-lg text-primary">¡Solicitud enviada!</p>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Recibimos tu solicitud y te contactamos en <strong>48 horas hábiles</strong>.<br />
+                  Respondé el email con fotos y video del problema.
+                </p>
+              </div>
+            ) : (
+              <>
+                {status === 'error' && (
+                  <div className="flex gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5 text-destructive text-sm">
+                    <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                    No se pudo enviar. Intentá de nuevo o escribinos por WhatsApp.
+                  </div>
+                )}
+                <Button type="submit" size="lg" disabled={status === 'loading'} className="w-full gradient-aqua text-primary-foreground gap-2">
+                  {status === 'loading' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
+                  {status === 'loading' ? 'Enviando...' : 'Enviar solicitud por email'}
+                </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  Tiempo de respuesta: <strong>48 horas hábiles</strong>
+                </p>
+              </>
+            )}
           </form>
 
           {/* Cobertura */}
