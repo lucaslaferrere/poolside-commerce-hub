@@ -300,6 +300,20 @@ export function BuyingWizard() {
     );
   };
 
+  const buildLineConsultMessage = (line: string) => {
+    const sizeLabel = SIZE_OPTIONS.find(o => o.value === poolSize)?.label ?? '';
+    const matLabel  = poolMaterial ? MATERIAL_LABEL[poolMaterial] : '';
+    const usoLabel  = poolSize === 'grande'
+      ? (PARA_QUE_OPTIONS.find(o => o.value === grandeForm.para_que)?.label ?? grandeForm.para_que)
+      : (USO_OPTIONS.find(o => o.value === poolUso)?.label ?? '');
+    const lineLabel = LINE_META_WIZARD[line]?.label ?? line;
+    return (
+      `Hola ${BUSINESS_NAME}! Hice la guía pero no encontré kit estándar para la línea ${lineLabel}.\n` +
+      `• *Tamaño*: ${sizeLabel} · *Material*: ${matLabel} · *Uso*: ${usoLabel}\n` +
+      `¿Pueden armarme una solución a medida?`
+    );
+  };
+
   const buildKitConsultMessage = () => {
     const sizeLabel = SIZE_OPTIONS.find(o => o.value === poolSize)?.label ?? '';
     const matLabel  = poolMaterial ? MATERIAL_LABEL[poolMaterial] : '';
@@ -667,59 +681,99 @@ export function BuyingWizard() {
                 <h3 className="font-display text-2xl md:text-3xl font-bold mb-1">
                   Piscina {SIZE_OPTIONS.find(o => o.value === poolSize)?.label.toLowerCase()}
                 </h3>
-                <p className="text-muted-foreground text-sm mb-6">
+                <p className="text-muted-foreground text-sm mb-8">
                   Elegí la línea que mejor se adapta a tu presupuesto.
                 </p>
 
-                <div className={cn(
-                  'grid gap-4 mb-6',
-                  recommendedKits.length === 1 ? 'grid-cols-1 max-w-xs mx-auto'
-                    : recommendedKits.length === 2 ? 'grid-cols-1 sm:grid-cols-2'
-                    : 'grid-cols-1 sm:grid-cols-3',
-                )}>
-                  {recommendedKits.map((kit) => {
-                    const lineMeta = kit.line ? LINE_META_WIZARD[kit.line] : null;
-                    const origPrice = kit.original_price ? Number(kit.original_price) : 0;
-                    const kitPrice = Number(kit.price);
-                    const discount = origPrice > 0 ? Math.round(((origPrice - kitPrice) / origPrice) * 100) : 0;
-                    const itemsForKit = kit.product_ids?.length
-                      ? kit.product_ids.map((id) => productNameById.get(id)).filter((n): n is string => Boolean(n)).slice(0, 3)
-                      : [];
-                    return (
-                      <div key={kit.id} className="rounded-xl border-2 border-border bg-muted/20 p-4 flex flex-col gap-3 text-left">
-                        {lineMeta && (
-                          <span className={`self-start inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border ${lineMeta.badgeClass}`}>
+                <div className="grid gap-4 mb-6 grid-cols-1 sm:grid-cols-3">
+                  {LINES.map((line) => {
+                    const kit = recommendedKits.find((k) => k.line === line);
+                    const lineMeta = LINE_META_WIZARD[line];
+                    const isRecommended = line === 'profesional';
+
+                    if (kit) {
+                      const origPrice = kit.original_price ? Number(kit.original_price) : 0;
+                      const kitPrice = Number(kit.price);
+                      const discount = origPrice > 0 ? Math.round(((origPrice - kitPrice) / origPrice) * 100) : 0;
+                      const itemsForKit = kit.product_ids?.length
+                        ? kit.product_ids.map((id) => productNameById.get(id)).filter((n): n is string => Boolean(n)).slice(0, 3)
+                        : [];
+                      return (
+                        <div
+                          key={kit.id}
+                          className={cn(
+                            'relative rounded-xl border-2 p-4 flex flex-col gap-3 text-left',
+                            isRecommended
+                              ? 'border-primary bg-primary/5 shadow-md'
+                              : 'border-border bg-muted/20',
+                          )}
+                        >
+                          {isRecommended && (
+                            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                              <span className="inline-flex items-center gap-1 bg-primary text-primary-foreground text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                                <Sparkles className="h-3 w-3" /> Recomendado
+                              </span>
+                            </div>
+                          )}
+                          <span className={cn(
+                            'self-start inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border',
+                            lineMeta.badgeClass,
+                            isRecommended && 'mt-2',
+                          )}>
                             {lineMeta.label}
                           </span>
-                        )}
-                        {kit.image_url && (
-                          <div className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100">
-                            <img src={resolveImageUrl(kit.image_url)} alt={kit.name} loading="lazy" className="w-full h-full object-cover" />
-                          </div>
-                        )}
-                        <p className="font-display font-bold text-base leading-snug">{kit.name}</p>
-                        {itemsForKit.length > 0 && (
-                          <ul className="space-y-1">
-                            {itemsForKit.map((item) => (
-                              <li key={item} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
-                                <span className="line-clamp-1">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        <div className="mt-auto pt-1">
-                          {discount > 0 && (
-                            <span className="text-xs text-muted-foreground line-through mr-1.5">
-                              {formatPrice(origPrice)}
-                            </span>
+                          {kit.image_url && (
+                            <div className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100">
+                              <img src={resolveImageUrl(kit.image_url)} alt={kit.name} loading="lazy" className="w-full h-full object-cover" />
+                            </div>
                           )}
-                          <span className="font-display font-bold text-xl text-primary">
-                            {formatPrice(kitPrice)}
-                          </span>
+                          <p className="font-display font-bold text-base leading-snug">{kit.name}</p>
+                          {itemsForKit.length > 0 && (
+                            <ul className="space-y-1">
+                              {itemsForKit.map((item) => (
+                                <li key={item} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
+                                  <span className="line-clamp-1">{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          <div className="mt-auto pt-1">
+                            {discount > 0 && (
+                              <span className="text-xs text-muted-foreground line-through mr-1.5">
+                                {formatPrice(origPrice)}
+                              </span>
+                            )}
+                            <span className="font-display font-bold text-xl text-primary">
+                              {formatPrice(kitPrice)}
+                            </span>
+                          </div>
+                          <Button size="sm" onClick={() => addKit(kit)} className="w-full gradient-aqua text-primary-foreground">
+                            Agregar al carrito
+                          </Button>
                         </div>
-                        <Button size="sm" onClick={() => addKit(kit)} className="w-full gradient-aqua text-primary-foreground">
-                          Agregar al carrito
+                      );
+                    }
+
+                    // Placeholder para línea sin kit
+                    return (
+                      <div key={line} className="rounded-xl border-2 border-dashed border-border bg-muted/10 p-4 flex flex-col gap-3 text-left">
+                        <span className={`self-start inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border ${lineMeta.badgeClass}`}>
+                          {lineMeta.label}
+                        </span>
+                        <div className="flex-1 flex flex-col items-center justify-center py-6 text-center gap-2">
+                          <MessageCircle className="h-7 w-7 text-muted-foreground/30" />
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Solución a medida
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 leading-relaxed">
+                            No tenemos un kit estándar para esta configuración en línea {lineMeta.label}. Te asesoramos.
+                          </p>
+                        </div>
+                        <Button asChild size="sm" variant="outline" className="w-full">
+                          <a href={buildWhatsAppLink(buildLineConsultMessage(line))} target="_blank" rel="noopener noreferrer">
+                            <MessageCircle className="h-3.5 w-3.5 mr-1.5" /> Consultar
+                          </a>
                         </Button>
                       </div>
                     );
