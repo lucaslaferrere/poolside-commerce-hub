@@ -72,11 +72,8 @@ export default function Register() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 font-display font-bold text-xl">
-            <span className="grid place-items-center h-10 w-10 rounded-full gradient-aqua text-primary-foreground shadow-aqua">
-              <Droplet className="h-5 w-5" fill="currentColor" />
-            </span>
-            Pooled
+          <Link to="/" className="inline-flex items-center justify-center">
+            <img src="/Pooled negro.svg" alt="Pooled" className="h-40" />
           </Link>
           <h1 className="font-display text-2xl font-bold mt-4">Crear cuenta</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -145,7 +142,7 @@ export default function Register() {
 
           <p className="text-center text-sm text-muted-foreground mt-4">
             ¿Ya tenés cuenta?{' '}
-            <Link to="/" className="text-secondary font-medium hover:underline">
+            <Link to="/" className="text-primary font-medium hover:underline">
               Iniciá sesión
             </Link>
           </p>

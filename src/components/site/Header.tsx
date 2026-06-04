@@ -8,6 +8,9 @@ import {
   LayoutDashboard,
   ClipboardList,
 } from 'lucide-react';
+
+const LOGO_DARK  = '/Pooled negro.svg';
+const LOGO_LIGHT = '/Pooled blanco.svg';
 import {
   Sheet,
   SheetContent,
@@ -26,13 +29,15 @@ type NavLink =
   | { kind: 'route'; label: string; to: string };   // react-router navigation
 
 const PUBLIC_NAV: NavLink[] = [
-  { kind: 'hash',  label: 'Inicio',         hash: 'inicio' },
   { kind: 'route', label: 'Tienda',         to: '/tienda' },
   { kind: 'hash',  label: 'Kits',           hash: 'kits' },
   { kind: 'hash',  label: 'Guía',           hash: 'guia' },
   { kind: 'hash',  label: 'Distribuidores', hash: 'distribuidores' },
-  { kind: 'hash',  label: 'FAQ',            hash: 'faq' },
+  { kind: 'hash',  label: 'Preguntas Frecuentes', hash: 'faq' },
+  { kind: 'route', label: 'Garantía',       to: '/garantia' },
 ];
+
+const EMPRESA_URL = 'https://empresa.pooled.com.ar';
 
 const ADMIN_NAV: { label: string; to: string; icon: typeof LayoutDashboard }[] = [
   { label: 'Dashboard', to: '/admin',  icon: LayoutDashboard },
@@ -132,13 +137,12 @@ export function Header() {
     >
       <div className="container flex h-16 items-center justify-between gap-3">
         {/* Logo — always a Link so it returns home from any page */}
-        <Link to="/" className="flex items-center gap-2 font-display font-semibold text-lg shrink-0">
-          <span className="grid place-items-center h-9 w-9 rounded-full bg-brand text-brand-foreground">
-            <Droplet className="h-4 w-4" fill="currentColor" />
-          </span>
-          <span className={cn(solid ? 'text-neutral-900' : 'text-white drop-shadow')}>
-            Pooled
-          </span>
+        <Link to="/" className="shrink-0">
+          <img
+            src={solid ? LOGO_DARK : LOGO_LIGHT}
+            alt="Pooled"
+            className="h-10 sm:h-14 md:h-[200px] w-auto"
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -152,6 +156,9 @@ export function Header() {
               renderHashLink(l)
             ),
           )}
+          <a href={EMPRESA_URL} target="_blank" rel="noopener noreferrer" className={navLinkClass}>
+            Empresa
+          </a>
 
           {isAdmin &&
             ADMIN_NAV.map((item) => (
@@ -242,11 +249,8 @@ export function Header() {
 
             <SheetContent side="left" className="w-[280px]">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-2 font-display">
-                  <span className="grid place-items-center h-8 w-8 rounded-full bg-brand text-brand-foreground">
-                    <Droplet className="h-4 w-4" fill="currentColor" />
-                  </span>
-                  Pooled
+                <SheetTitle>
+                  <img src={LOGO_DARK} alt="Pooled" className="h-12 w-auto" />
                 </SheetTitle>
               </SheetHeader>
 
@@ -265,6 +269,15 @@ export function Header() {
                     renderHashLink(l, true)
                   ),
                 )}
+                <a
+                  href={EMPRESA_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-3 rounded-md font-medium text-neutral-700 hover:bg-neutral-100 hover:text-brand transition-colors"
+                >
+                  Empresa
+                </a>
 
                 {isAdmin && (
                   <>

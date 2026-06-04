@@ -26,11 +26,12 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface CheckoutResult {
-  order_id?: string;
-  mercadopago_url?: string;
+  order?: { id?: string };
+  init_point?: string;
+  sandbox_init_point?: string;
 }
 
-type Payment = 'mercadopago' | 'transferencia' | 'efectivo';
+type Payment = 'mercadopago' | 'transferencia';
 
 // All fields are required — including notes — per the brief.
 const schema = z.object({
@@ -114,11 +115,9 @@ export default function CheckoutPage() {
         shipping_zip:     parsed.data.shipping_zip,
         notes:            parsed.data.notes,
         items: items.map((i) => ({
-          id: i.id,
-          name: i.name,
-          price: i.price,
+          product_id: i.id.split('|')[0],
+          variant_sku: i.variant_sku ?? '',
           quantity: i.quantity,
-          type: i.type,
         })),
         subtotal: sub,
         shipping_cost: shipping,
@@ -129,7 +128,12 @@ export default function CheckoutPage() {
       setDone(true);
       clear();
       toast.success('¡Pedido confirmado!');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const mpUrl = r.init_point || r.sandbox_init_point;
+      if (mpUrl && payment === 'mercadopago') {
+        window.location.href = mpUrl;
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } catch (err) {
       toast.error('Error al crear el pedido', {
         description: err instanceof Error ? err.message : 'Error desconocido',
@@ -237,11 +241,10 @@ export default function CheckoutPage() {
                   <RadioGroup
                     value={payment}
                     onValueChange={(v) => setPayment(v as Payment)}
-                    className="grid sm:grid-cols-3 gap-2"
+                    className="grid sm:grid-cols-2 gap-2"
                   >
                     <PayOption value="mercadopago"   icon={<CreditCard className="h-4 w-4" />} label="MercadoPago"   current={payment} />
                     <PayOption value="transferencia" icon={<Wallet     className="h-4 w-4" />} label="Transferencia" current={payment} />
-                    <PayOption value="efectivo"      icon={<Wallet     className="h-4 w-4" />} label="Efectivo"      current={payment} />
                   </RadioGroup>
                   {payment === 'transferencia' && (
                     <p className="text-xs text-success font-medium mt-1">
@@ -346,20 +349,19 @@ function SuccessPanel({ result }: { result: CheckoutResult | null }) {
         ¡Pedido confirmado!
       </h1>
       <p className="text-sm text-neutral-500 mt-3 max-w-md mx-auto leading-relaxed">
-        Te enviamos un email con los detalles. Si elegiste transferencia o efectivo te
-        contactamos a la brevedad.
-        {result?.order_id && (
+        Te enviamos un email con los detalles. Si elegiste transferencia te contactamos a la brevedad.
+        {result?.order?.id && (
           <>
             <br />
-            <span className="text-neutral-700 font-medium">N° de orden: {result.order_id}</span>
+            <span className="text-neutral-700 font-medium">N° de orden: {result.order.id}</span>
           </>
         )}
       </p>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-        {result?.mercadopago_url && (
+        {(result?.init_point || result?.sandbox_init_point) && (
           <a
-            href={result.mercadopago_url}
+            href={result.init_point || result.sandbox_init_point}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 h-11 px-6 rounded-md text-sm font-medium tracking-wide text-white bg-brand hover:bg-brand-hover transition-colors"

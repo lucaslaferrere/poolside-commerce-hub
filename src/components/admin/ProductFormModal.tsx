@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Plus, Trash2, Upload, X, ImageIcon, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Upload, X, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,9 +24,11 @@ import {
   type AdminProduct,
   type VariantRow,
   type SpecRow,
+  type MainSpecRow,
 } from '@/types/admin';
 import type { Category } from '@/types/shop';
 import { cn } from '@/lib/utils';
+import { resolveImageUrl } from '@/lib/api';
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
@@ -66,6 +68,12 @@ const emptySpec = (): SpecRow => ({
   value: '',
 });
 
+const emptyMainSpec = (): MainSpecRow => ({
+  _key: uid(),
+  value: '',
+  key: '',
+});
+
 interface FormFields {
   name: string;
   description: string;
@@ -73,6 +81,7 @@ interface FormFields {
   brand: string;
   price: string;
   stock: string;
+  discount: string;
 }
 
 const BLANK: FormFields = {
@@ -82,6 +91,7 @@ const BLANK: FormFields = {
   brand: '',
   price: '',
   stock: '',
+  discount: '',
 };
 
 interface Props {
@@ -102,8 +112,9 @@ export function ProductFormModal({
   const [fields, setFields] = useState<FormFields>(BLANK);
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [specs, setSpecs] = useState<SpecRow[]>([]);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mainSpecs, setMainSpecs] = useState<MainSpecRow[]>([]);
+  const [keptImages, setKeptImages] = useState<string[]>([]);
+  const [newFiles, setNewFiles] = useState<{ file: File; preview: string }[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -113,8 +124,9 @@ export function ProductFormModal({
       setFields(BLANK);
       setVariants([]);
       setSpecs([]);
-      setImageFile(null);
-      setImagePreview(null);
+      setMainSpecs([]);
+      setKeptImages([]);
+      setNewFiles((prev) => { prev.forEach((f) => URL.revokeObjectURL(f.preview)); return []; });
       setErrors({});
       setSubmitError(null);
       return;
@@ -127,6 +139,7 @@ export function ProductFormModal({
         brand: product.brand ?? '',
         price: String(product.base_price),
         stock: String(product.stock),
+        discount: product.discount_percent ? String(product.discount_percent) : '',
       });
       setVariants(
         (product.variants ?? []).map((v) => ({
@@ -144,34 +157,40 @@ export function ProductFormModal({
           value: s.value,
         })),
       );
-      setImagePreview(product.images?.[0] ?? null);
+      setMainSpecs(
+        (product.main_specs ?? []).map((ms) => ({
+          _key: uid(),
+          value: ms.value,
+          key: ms.key,
+        })),
+      );
+      setKeptImages(product.images ?? []);
     }
   }, [open, product]);
-
-  useEffect(() => {
-    if (!imageFile) return;
-    return () => URL.revokeObjectURL(imagePreview ?? '');
-  }, [imageFile]);
 
   const upd =
     (k: keyof FormFields) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setFields((f) => ({ ...f, [k]: e.target.value }));
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (imageFile) URL.revokeObjectURL(imagePreview ?? '');
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
-
-  const clearImage = () => {
-    if (imageFile) URL.revokeObjectURL(imagePreview ?? '');
-    setImageFile(null);
-    setImagePreview(null);
+  const addImages = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setNewFiles((prev) => [
+      ...prev,
+      ...files.map((file) => ({ file, preview: URL.createObjectURL(file) })),
+    ]);
     if (fileRef.current) fileRef.current.value = '';
   };
+
+  const removeKeptImage = (url: string) =>
+    setKeptImages((prev) => prev.filter((u) => u !== url));
+
+  const removeNewFile = (preview: string) =>
+    setNewFiles((prev) => {
+      URL.revokeObjectURL(preview);
+      return prev.filter((f) => f.preview !== preview);
+    });
 
   // Variants
   const addVariant = () => setVariants((v) => [...v, emptyVariant()]);
@@ -192,6 +211,20 @@ export function ProductFormModal({
     (key: string, field: keyof Omit<SpecRow, '_key'>) =>
     (e: ChangeEvent<HTMLInputElement>) =>
       setSpecs((s) =>
+        s.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
+      );
+
+  // Main specs (cuadros destacados)
+  const addMainSpec = () => {
+    if (mainSpecs.length >= 6) return;
+    setMainSpecs((s) => [...s, emptyMainSpec()]);
+  };
+  const removeMainSpec = (key: string) =>
+    setMainSpecs((s) => s.filter((r) => r._key !== key));
+  const updMainSpec =
+    (key: string, field: keyof Omit<MainSpecRow, '_key'>) =>
+    (e: ChangeEvent<HTMLInputElement>) =>
+      setMainSpecs((s) =>
         s.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
       );
 
@@ -218,6 +251,8 @@ export function ProductFormModal({
     //      literal (e.g. 12.5) — not a quoted string.
     const basePrice = Math.max(0, toFloat(fields.price));
     const stockNum = Math.max(0, toInt(fields.stock));
+    // Discount is 0–100; empty / NaN / out-of-range all collapse to 0.
+    const discountPct = Math.min(100, Math.max(0, toFloat(fields.discount)));
 
     // Variants — drop rows w/o identity (no color AND no size). Numeric
     // fields are real numbers inside the JSON payload, not strings.
@@ -243,9 +278,16 @@ export function ProductFormModal({
     // String() on a JS Number gives "12.5" — canonical, dot-decimal, parser-safe.
     fd.append('base_price', String(basePrice));
     fd.append('stock', String(stockNum));
+    fd.append('discount_percent', String(discountPct));
+    const parsedMainSpecs = mainSpecs
+      .map((ms) => ({ value: ms.value.trim(), key: ms.key.trim() }))
+      .filter((ms) => ms.value.length > 0 && ms.key.length > 0);
+
     fd.append('variants', JSON.stringify(parsedVariants));
     fd.append('specs', JSON.stringify(parsedSpecs));
-    if (imageFile) fd.append('image', imageFile);
+    fd.append('main_specs', JSON.stringify(parsedMainSpecs));
+    fd.append('images', JSON.stringify(keptImages));
+    newFiles.forEach(({ file }) => fd.append('image', file));
 
     try {
       await onSubmit(fd, product?.id);
@@ -413,57 +455,97 @@ export function ProductFormModal({
                   />
                 </div>
 
-                {/* Image upload */}
+                {/* Discount — optional */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor="pf-discount" className="text-xs font-medium text-neutral-700">
+                      Descuento (%)
+                    </Label>
+                    <span className="text-[10px] font-medium text-neutral-500 bg-neutral-100 rounded px-1.5 py-0.5 uppercase tracking-wide">
+                      Opcional
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="pf-discount"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={fields.discount}
+                      onChange={upd('discount')}
+                      placeholder="0"
+                      className="pr-9"
+                    />
+                    <span className="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-xs text-neutral-400 font-medium">
+                      %
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    Se aplica sobre el precio base. Dejá vacío o en 0 para ocultar la oferta.
+                  </p>
+                </div>
+
+                {/* Image upload — multi */}
                 <div className="space-y-2 pt-1">
-                  <Label className="text-xs font-medium text-neutral-700">
-                    Imagen del producto
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-neutral-700">
+                      Imágenes del producto
+                    </Label>
+                    <span className="text-[10px] text-neutral-400">
+                      {keptImages.length + newFiles.length} imagen{keptImages.length + newFiles.length !== 1 ? 'es' : ''}
+                    </span>
+                  </div>
 
                   <input
                     ref={fileRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
+                    multiple
                     className="hidden"
-                    onChange={handleFileChange}
+                    onChange={addImages}
                   />
 
-                  {imagePreview ? (
-                    <div className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-video">
-                      <img
-                        src={imagePreview}
-                        alt="Vista previa"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
-                      <button
-                        type="button"
-                        onClick={clearImage}
-                        className="absolute top-2 right-2 p-1.5 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
-                        aria-label="Quitar imagen"
-                      >
-                        <X className="h-3.5 w-3.5 text-neutral-700" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/95 text-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
-                      >
-                        <Upload className="h-3 w-3" /> Cambiar
-                      </button>
+                  {(keptImages.length > 0 || newFiles.length > 0) && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {keptImages.map((url) => (
+                        <div key={url} className="relative group rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 aspect-square">
+                          <img src={resolveImageUrl(url)} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeKeptImage(url)}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                            aria-label="Quitar imagen"
+                          >
+                            <X className="h-3 w-3 text-neutral-700" />
+                          </button>
+                        </div>
+                      ))}
+                      {newFiles.map(({ preview }) => (
+                        <div key={preview} className="relative group rounded-lg overflow-hidden border border-brand/30 bg-neutral-50 aspect-square">
+                          <img src={preview} alt="" className="w-full h-full object-cover" />
+                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-brand text-white">NUEVA</div>
+                          <button
+                            type="button"
+                            onClick={() => removeNewFile(preview)}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                            aria-label="Quitar imagen"
+                          >
+                            <X className="h-3 w-3 text-neutral-700" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      className="w-full aspect-video border-2 border-dashed border-neutral-300 rounded-lg flex flex-col items-center justify-center gap-1.5 text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all"
-                    >
-                      <ImageIcon className="h-7 w-7 opacity-50" />
-                      <span className="text-sm font-medium">Subir imagen</span>
-                      <span className="text-xs opacity-70">
-                        JPG, PNG o WebP · máx. 5 MB
-                      </span>
-                    </button>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="w-full h-10 border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center gap-2 text-sm text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Agregar imagen{keptImages.length + newFiles.length > 0 ? 's' : ''}
+                  </button>
                 </div>
               </section>
 
@@ -633,6 +715,65 @@ export function ProductFormModal({
                 <BrandAddButton onClick={addSpec} label="Agregar fila" />
               </section>
             </div>
+
+            {/* ──────────────────────────────────────────────────── */}
+            {/*  Cuadros destacados (main_specs) — fila full-width  */}
+            {/* ──────────────────────────────────────────────────── */}
+            <section className="px-6 pb-6 pt-2 space-y-3 border-t border-neutral-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <SectionLabel>Cuadros destacados</SectionLabel>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                    Se muestran en la ficha del producto. Máx. 6.
+                  </p>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-medium tracking-wide border-neutral-200 text-neutral-500"
+                >
+                  {mainSpecs.length}/6
+                </Badge>
+              </div>
+
+              {mainSpecs.length > 0 && (
+                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {mainSpecs.map((ms, idx) => (
+                    <li key={ms._key} className="flex items-center gap-2">
+                      <div className="flex-1 grid grid-cols-2 gap-1.5">
+                        <Input
+                          aria-label={`Valor cuadro ${idx + 1}`}
+                          className="h-8 text-sm font-semibold"
+                          placeholder="18W total"
+                          value={ms.value}
+                          onChange={updMainSpec(ms._key, 'value')}
+                        />
+                        <Input
+                          aria-label={`Etiqueta cuadro ${idx + 1}`}
+                          className="h-8 text-xs uppercase tracking-wide"
+                          placeholder="POTENCIA"
+                          value={ms.key}
+                          onChange={updMainSpec(ms._key, 'key')}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-neutral-400 hover:text-danger hover:bg-danger/10"
+                        onClick={() => removeMainSpec(ms._key)}
+                        aria-label={`Eliminar cuadro ${idx + 1}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {mainSpecs.length < 6 && (
+                <BrandAddButton onClick={addMainSpec} label="Agregar cuadro" />
+              )}
+            </section>
           </div>
 
           {/* Sticky footer */}

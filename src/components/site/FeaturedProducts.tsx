@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { ProductCard } from './ProductCard';
@@ -27,27 +28,59 @@ function SkeletonCard() {
 
 export function FeaturedProducts() {
   const { data, isLoading } = useProducts();
-  const products = data ?? [];
+  const rawProducts = data ?? [];
+
+  // Products with sort_order > 0 appear first (ascending), then the rest in backend order
+  const products = useMemo(() => {
+    return [...rawProducts].sort((a, b) => {
+      const oa = a.sort_order ?? 0;
+      const ob = b.sort_order ?? 0;
+      if (oa > 0 && ob > 0) return oa - ob;
+      if (oa > 0) return -1;
+      if (ob > 0) return 1;
+      return 0;
+    });
+  }, [rawProducts]);
 
   return (
-    <section id="tienda" className="py-16 md:py-24 bg-slate-50/60">
-      <div className="container">
+    <section
+      id="tienda"
+      className="relative overflow-hidden py-20 md:py-24 bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFFFF_55%,#F4F8FB_100%)]"
+    >
+      {/* Aqua sun glow — top-right (morning light on the pool deck) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-32 -right-24 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(0,163,214,0.16),transparent_65%)] blur-3xl"
+      />
+      {/* Counter-glow — bottom-left (cool reflection) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 -left-32 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle,rgba(46,107,255,0.08),transparent_60%)] blur-3xl"
+      />
+      {/* Caustic shimmer band — thin horizontal water-light streaks */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-[18%] h-32 opacity-60 [background-image:repeating-linear-gradient(90deg,transparent_0px,transparent_38px,rgba(0,163,214,0.05)_38px,rgba(0,163,214,0.05)_40px)] [mask-image:radial-gradient(ellipse_70%_100%_at_50%_50%,#000,transparent_75%)]"
+      />
+      {/* Bottom horizon hairline */}
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+      <div className="relative container">
         {/* Section header */}
         <div className="flex items-end justify-between mb-8 gap-4">
           <div>
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest">
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">
               Catálogo
             </span>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mt-1 text-slate-900">
               Productos destacados
             </h2>
             <p className="text-muted-foreground mt-1.5 text-sm max-w-md">
-              Lo mejor en luminarias, controladores y accesorios para que tu pileta brille.
+              Lo mejor en luminarias, controladores y accesorios para que tu piscina brille.
             </p>
           </div>
           <Link
             to="/tienda"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-secondary hover:text-secondary/80 transition-colors whitespace-nowrap"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
           >
             Ver todos
             <ArrowRight className="h-4 w-4" />

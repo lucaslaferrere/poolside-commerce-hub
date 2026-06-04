@@ -30,56 +30,24 @@ export function Hero() {
   return (
       <section
           id="inicio"
-          className="pooled-hero relative h-[100svh] min-h-[680px] w-full overflow-hidden bg-[#010810] text-white"
+          className="pooled-hero relative h-[90svh] min-h-[600px] w-full overflow-hidden bg-[#010810] text-white"
       >
-        {/* Deep aquatic background base */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#001226] via-[#011830] to-[#01060B]" />
-
-        {/* Ambient water volume (Simulates deep water movement) */}
-        <div className="pooled-hero__water-ambient absolute inset-0" aria-hidden="true" />
-
-        {/* Engineering grid — subtle aquatic tint */}
-        <div className="pooled-hero__grid absolute inset-0" aria-hidden="true" />
-
-        {/* Edge vignette to push the eye toward center */}
-        <div className="pooled-hero__vignette absolute inset-0" aria-hidden="true" />
-
-        {/* --- MULTIPLE LIGHT SOURCES (Luminarias) --- */}
-        {/* Left Luminaire */}
-        <div className="pooled-hero__halo absolute left-[20%] top-0 -translate-x-1/2 -translate-y-1/2" />
-        <div className="pooled-hero__beam pooled-hero__beam--left absolute inset-0" />
-
-        {/* Center Luminaire */}
-        <div className="pooled-hero__halo absolute left-[50%] top-0 -translate-x-1/2 -translate-y-1/2" />
-        <div className="pooled-hero__beam pooled-hero__beam--center absolute inset-0" />
-
-        {/* Right Luminaire */}
-        <div className="pooled-hero__halo absolute left-[80%] top-0 -translate-x-1/2 -translate-y-1/2" />
-        <div className="pooled-hero__beam pooled-hero__beam--right absolute inset-0" />
-
-        {/* Particles (Micro-bubbles) rising inside the water */}
-        <div className="pooled-hero__particles absolute inset-0" aria-hidden="true">
-          {PARTICLES.map((p, i) => (
-              <span
-                  key={i}
-                  className="pooled-hero__particle"
-                  style={{
-                    left: `${p.x}%`,
-                    width: `${p.size}px`,
-                    height: `${p.size}px`,
-                    animationDelay: `${p.delay}s`,
-                    animationDuration: `${p.duration}s`,
-                    ['--drift' as never]: `${p.drift}px`,
-                  }}
-              />
-          ))}
-        </div>
-
-        {/* Hairline horizon at bottom for technical/precise feel */}
-        <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#00A3D6]/25 to-transparent"
-            aria-hidden="true"
+        {/* Video background */}
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src="https://pub-6232b7116b2042bbb2308cbdd5eec1b1.r2.dev/hero.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          onEnded={(e) => { e.currentTarget.currentTime = 0; e.currentTarget.play(); }}
         />
+
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/50" />
+
+        {/* Bottom vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
         {/* --- CONTENT --- */}
         <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center">
@@ -89,15 +57,15 @@ export function Hero() {
               transition={{ duration: 0.9, ease: [0.2, 0, 0, 1] }}
               className="w-full flex flex-col items-center"
           >
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#00A3D6]/20 bg-[#005C8A]/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#E0F2FE] backdrop-blur-sm">
+          {/*<span className="inline-flex items-center gap-2 rounded-full border border-[#00A3D6]/20 bg-[#005C8A]/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#E0F2FE] backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-[#00A3D6] shadow-[0_0_10px_rgba(0,163,214,0.85)]" />
             Iluminación LED de precisión
-          </span>
+          </span> */}
 
             <h1 className="pooled-hero__headline mt-7 font-display text-5xl font-semibold leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.25rem]">
               La luz precisa
               <br />
-              <span className="text-[#B5D8F0]">para tu pileta.</span>
+              <span className="text-[#B5D8F0]">para tu piscina.</span>
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#94B8D1] sm:text-lg">
@@ -116,22 +84,38 @@ export function Hero() {
                 <ArrowRight className="h-4 w-4" />
               </a>
 
-              <a href="#asesoria" className="pooled-hero__cta-ghost">
+              <a href="#guia" className="pooled-hero__cta-ghost">
                 Asesoría técnica
               </a>
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Scroll cue */}
-        <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[#00A3D6]/60"
-        >
-          <span>Descubrí más</span>
-          <span className="h-6 w-px bg-[#00A3D6]/40" />
-        </motion.div>
+
+
+        {/* Water-surface wave — three layered paths for depth.
+            Path corners overhang the viewBox by 300 user units on each side
+            so the horizontal sway animation never exposes the dark hero. */}
+        <div className="pooled-hero__wave pointer-events-none absolute inset-x-0 bottom-[-1px] z-10" aria-hidden="true">
+          <svg
+            viewBox="0 0 1440 200"
+            preserveAspectRatio="none"
+            className="block w-full h-[110px] md:h-[150px]"
+          >
+            <path
+              d="M-300,70 C240,140 480,30 720,80 C960,130 1200,30 1740,80 L1740,260 L-300,260 Z"
+              fill="rgba(255,255,255,0.18)"
+            />
+            <path
+              d="M-300,100 C240,170 480,55 720,105 C960,155 1200,55 1740,105 L1740,260 L-300,260 Z"
+              fill="rgba(255,255,255,0.45)"
+            />
+            <path
+              d="M-300,130 C240,200 480,80 720,130 C960,180 1200,80 1740,130 L1740,260 L-300,260 Z"
+              fill="#ffffff"
+            />
+          </svg>
+        </div>
 
         <style>{styles}</style>
       </section>
@@ -185,10 +169,9 @@ const styles = `
   height: 450px;
   background:
     radial-gradient(circle at center, rgba(180, 240, 255, 0.40) 0%, rgba(0, 163, 214, 0.20) 20%, transparent 60%);
-  filter: blur(25px);
   mix-blend-mode: screen;
   pointer-events: none;
-  will-change: opacity;
+  will-change: opacity, transform;
   animation: pooled-halo-shimmer 6s ease-in-out infinite alternate;
 }
 
@@ -203,9 +186,9 @@ const styles = `
     rgba(0, 92, 138, 0.04) 65%,
     transparent 100%
   );
-  filter: blur(32px); /* Slightly increased blur for better water blending */
   mix-blend-mode: screen;
   pointer-events: none;
+  will-change: transform;
   animation: pooled-caustic-sway 8s ease-in-out infinite alternate;
 }
 
@@ -236,6 +219,35 @@ const styles = `
 @keyframes pooled-halo-shimmer {
   0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* Color light — capa de color que cubre todo el haz con clip-path */
+.pooled-hero__color-light {
+  filter: blur(40px);
+  mix-blend-mode: screen;
+  opacity: 0.08;
+  pointer-events: none;
+  animation: pooled-light-color 18s ease-in-out infinite;
+}
+
+.pooled-hero__color-light--left {
+  clip-path: polygon(15% 0%, 25% 0%, 55% 100%, -10% 100%);
+}
+
+.pooled-hero__color-light--center {
+  clip-path: polygon(45% 0%, 55% 0%, 80% 100%, 20% 100%);
+}
+
+.pooled-hero__color-light--right {
+  clip-path: polygon(75% 0%, 85% 0%, 110% 100%, 45% 100%);
+}
+
+@keyframes pooled-light-color {
+  0%,  12% { background: rgba(0,   163, 214, 0.9); }  /* Cyan aqua    */
+  25%, 37% { background: rgba(138,  43, 226, 0.9); }  /* Violeta      */
+  50%, 62% { background: rgba(0,   200, 120, 0.9); }  /* Verde esmeralda */
+  75%, 87% { background: rgba(200, 225, 255, 0.9); }  /* Blanco frío  */
+  100%     { background: rgba(0,   163, 214, 0.9); }  /* Cyan aqua    */
 }
 
 @keyframes pooled-caustic-sway {
@@ -332,10 +344,28 @@ const styles = `
   background: rgba(0, 92, 138, 0.2);
 }
 
+/* Water-surface wave — gentle horizontal sway for layered depth */
+.pooled-hero__wave svg path:nth-child(1) {
+  transform-origin: center bottom;
+  animation: pooled-wave-back 9s ease-in-out infinite alternate;
+}
+.pooled-hero__wave svg path:nth-child(2) {
+  transform-origin: center bottom;
+  animation: pooled-wave-mid  7s ease-in-out infinite alternate;
+}
+.pooled-hero__wave svg path:nth-child(3) {
+  transform-origin: center bottom;
+  animation: pooled-wave-front 5.5s ease-in-out infinite alternate;
+}
+@keyframes pooled-wave-back  { from { transform: translateX(-2%); } to { transform: translateX(2%);  } }
+@keyframes pooled-wave-mid   { from { transform: translateX(2%);  } to { transform: translateX(-2%); } }
+@keyframes pooled-wave-front { from { transform: translateX(-1%); } to { transform: translateX(1%);  } }
+
 @media (prefers-reduced-motion: reduce) {
   .pooled-hero__halo,
   .pooled-hero__beam,
   .pooled-hero__particle,
-  .pooled-hero__water-ambient { animation: none; }
+  .pooled-hero__water-ambient,
+  .pooled-hero__wave svg path { animation: none; }
 }
 `;

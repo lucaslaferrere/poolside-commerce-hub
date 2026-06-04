@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CartItem } from '@/types/shop';
+import { trackEvent } from '@/lib/analytics';
 
 interface CartState {
   items: CartItem[];
@@ -28,18 +29,18 @@ export const useCart = create<CartState>()(
       splashOrigin: null,
       triggerSplash: (origin) =>
         set((s) => ({ splashTick: s.splashTick + 1, splashOrigin: origin ?? null })),
-      add: (item, qty = 1) =>
+      add: (item, qty = 1) => {
+        if (!get().items.find((i) => i.id === item.id)) {
+          trackEvent('cart_add', { item_id: item.id, item_name: item.name, item_type: item.type, price: item.price });
+        }
         set((s) => {
           const existing = s.items.find((i) => i.id === item.id);
           if (existing) {
-            return {
-              items: s.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: i.quantity + qty } : i
-              ),
-            };
+            return { items: s.items.map((i) => i.id === item.id ? { ...i, quantity: i.quantity + qty } : i) };
           }
           return { items: [...s.items, { ...item, quantity: qty }] };
-        }),
+        });
+      },
       remove: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
       setQty: (id, qty) =>
         set((s) => ({

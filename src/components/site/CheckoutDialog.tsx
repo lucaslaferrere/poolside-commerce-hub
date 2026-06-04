@@ -10,6 +10,7 @@ import { CheckCircle2, CreditCard, Wallet, Truck, Loader2 } from 'lucide-react';
 import { useCart } from '@/store/cart';
 import { formatPrice } from '@/types/shop';
 import { apiPost } from '@/lib/api';
+import { trackEvent } from '@/lib/analytics';
 import { quoteShipping, type ShippingQuote } from '@/lib/shipping';
 import { toast } from 'sonner';
 
@@ -38,7 +39,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     shipping_address: '', shipping_city: '', shipping_zip: '', notes: '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  const [payment, setPayment] = useState<'mercadopago' | 'transferencia' | 'efectivo'>('mercadopago');
+  const [payment, setPayment] = useState<'mercadopago' | 'transferencia'>('mercadopago');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null);
@@ -84,6 +85,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
       return;
     }
     setErrors({});
+    trackEvent('checkout_start', { total, item_count: items.length });
     setLoading(true);
     try {
       const result = await apiPost<CheckoutResult>('/checkout', {
@@ -130,10 +132,10 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         {done ? (
           <div className="text-center py-8">
-            <CheckCircle2 className="h-16 w-16 text-secondary mx-auto mb-4" />
+            <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-4" />
             <DialogTitle className="font-display text-2xl">¡Pedido confirmado!</DialogTitle>
             <DialogDescription className="mt-3">
-              Te enviamos un email con los detalles. Si elegiste transferencia o efectivo, te contactamos a la brevedad.
+              Te enviamos un email con los detalles. Si elegiste transferencia, te contactamos a la brevedad.
             </DialogDescription>
             <Button onClick={close} className="mt-6 gradient-aqua text-primary-foreground">
               Cerrar
@@ -158,13 +160,12 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
 
               <div className="space-y-2">
                 <Label>Método de pago</Label>
-                <RadioGroup value={payment} onValueChange={(v) => setPayment(v as typeof payment)} className="grid sm:grid-cols-3 gap-2">
+                <RadioGroup value={payment} onValueChange={(v) => setPayment(v as typeof payment)} className="grid sm:grid-cols-2 gap-2">
                   <PayOption value="mercadopago" icon={<CreditCard className="h-4 w-4" />} label="MercadoPago" current={payment} />
                   <PayOption value="transferencia" icon={<Wallet className="h-4 w-4" />} label="Transferencia" current={payment} />
-                  <PayOption value="efectivo" icon={<Wallet className="h-4 w-4" />} label="Efectivo" current={payment} />
                 </RadioGroup>
                 {payment === 'transferencia' && (
-                  <p className="text-xs text-secondary">5% de descuento extra al confirmar.</p>
+                  <p className="text-xs text-primary">5% de descuento extra al confirmar.</p>
                 )}
               </div>
 
@@ -195,7 +196,10 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                   </span>
                 </div>
                 <div className="border-t pt-2 mt-2 flex justify-between font-display font-bold text-lg">
-                  <span>Total</span><span className="text-primary">{formatPrice(total)}</span>
+                  <span>Total</span>
+                  <span className="text-primary">
+                    {shippingQuote ? formatPrice(total) : <>{formatPrice(sub)}<span className="text-sm font-normal text-muted-foreground ml-1">+ envío</span></>}
+                  </span>
                 </div>
               </div>
 
@@ -231,7 +235,7 @@ function PayOption({ value, icon, label, current }: { value: string; icon: React
     <Label
       htmlFor={`pay-${value}`}
       className={`flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
-        selected ? 'border-secondary bg-secondary/5' : 'border-border hover:border-secondary/40'
+        selected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'
       }`}
     >
       <RadioGroupItem id={`pay-${value}`} value={value} />

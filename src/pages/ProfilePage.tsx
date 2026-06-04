@@ -11,12 +11,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-lg pt-24 pb-12">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" /> Volver al inicio
-        </Link>
+
 
         <h1 className="font-display text-3xl font-bold mb-6">Mi Perfil</h1>
 

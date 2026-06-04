@@ -1,5 +1,5 @@
 // WhatsApp helper — replace with real number when client provides it
-export const WHATSAPP_NUMBER = '5491100000000'; // Argentina format, sin "+" ni espacios
+export const WHATSAPP_NUMBER = '5491123427593'; // Argentina format, sin "+" ni espacios
 export const BUSINESS_NAME = 'Pooled';
 
 export function buildWhatsAppLink(message: string) {

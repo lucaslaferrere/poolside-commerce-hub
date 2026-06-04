@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { ArrowLeft, LayoutDashboard, Package } from 'lucide-react';
+import { ArrowLeft, ClipboardList, LayoutDashboard, Package, Layers } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,8 @@ interface TabDef {
 const TABS: TabDef[] = [
   { to: '/admin',          label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/products', label: 'Productos', icon: Package },
+  { to: '/admin/kits',     label: 'Kits',      icon: Layers },
+  { to: '/admin/orders',   label: 'Pedidos',   icon: ClipboardList },
 ];
 
 interface AdminPageHeaderProps {
@@ -47,13 +49,7 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-neutral-50">
       <div className="container max-w-6xl pt-24 pb-12">
         {/* Back link */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-brand mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver al inicio
-        </Link>
+
 
         {/* Admin identity strip */}
         <div className="flex items-center justify-between gap-4 mb-6">

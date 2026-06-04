@@ -4,14 +4,15 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Droplet, Waves, LogIn, UserPlus } from 'lucide-react';
-import { useAuth } from '@/store/auth';
+import { Waves, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 type Tab = 'login' | 'register';
@@ -24,7 +25,7 @@ const BUBBLES = Array.from({ length: 8 }, (_, i) => ({
   delay: Math.random() * 3,
 }));
 
-export function LoginDialog({ open, onClose }: Props) {
+export function LoginDialog({ open, onClose, onSuccess }: Props) {
   const [tab, setTab] = useState<Tab>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,6 +57,7 @@ export function LoginDialog({ open, onClose }: Props) {
         toast.success('¡Cuenta creada! Ya estás dentro.');
       }
       handleClose();
+      onSuccess?.();
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -102,13 +104,8 @@ export function LoginDialog({ open, onClose }: Props) {
           </svg>
 
           {/* Logo */}
-          <div className="relative z-10 flex flex-col items-center justify-center h-full gap-2 pb-4">
-            <div className="grid place-items-center h-12 w-12 rounded-full gradient-aqua shadow-aqua">
-              <Droplet className="h-6 w-6 text-white" fill="currentColor" />
-            </div>
-            <span className="font-display font-bold text-white text-lg tracking-wide drop-shadow">
-              AquaLed
-            </span>
+          <div className="relative z-10 flex items-center justify-center h-full pb-4">
+            <img src="/Pooled blanco.svg" alt="Pooled" className="h-12 md:h-[12.5rem] w-auto drop-shadow" />
           </div>
         </div>
 
@@ -185,12 +182,12 @@ export function LoginDialog({ open, onClose }: Props) {
               <p className="text-center text-xs text-muted-foreground">
                 {tab === 'login'
                   ? <>¿No tenés cuenta?{' '}
-                      <button type="button" onClick={() => setTab('register')} className="text-secondary underline-offset-2 hover:underline">
+                      <button type="button" onClick={() => setTab('register')} className="text-primary underline-offset-2 hover:underline">
                         Registrate
                       </button>
                     </>
                   : <>¿Ya tenés cuenta?{' '}
-                      <button type="button" onClick={() => setTab('login')} className="text-secondary underline-offset-2 hover:underline">
+                      <button type="button" onClick={() => setTab('login')} className="text-primary underline-offset-2 hover:underline">
                         Ingresá
                       </button>
                     </>

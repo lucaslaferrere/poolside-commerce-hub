@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, LogOut, ShoppingBag, LayoutDashboard, UserCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +22,14 @@ export function UserMenu({ scrolled }: Props) {
   const { user, isAuthenticated, logout } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if ((location.state as { openAuth?: boolean })?.openAuth) {
+      setLoginOpen(true);
+      window.history.replaceState({}, '', location.pathname);
+    }
+  }, [location]);
 
   const iconClass = cn(
     scrolled ? '' : 'text-white hover:bg-white/10 hover:text-white',

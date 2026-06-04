@@ -17,6 +17,7 @@ interface AuthContextValue {
   token: string | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   setSession: (token: string, user: User) => void;
 }
@@ -94,19 +95,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
   };
 
-  const login = async (email: string, password: string) => {
+  const loginWithToken = async (email: string, password: string) => {
     const res = await apiPost<any>('/auth/login', { email, password });
-
-    // Decodear el JWT para sacar el rol
     const payload = JSON.parse(atob(res.access_token.split('.')[1]));
-
-    const user: User = {
-      id: payload.user_id,
-      email: payload.email,
-      role: payload.role,
-    };
-
+    const user: User = { id: payload.user_id, email: payload.email, role: payload.role };
     setSession(res.access_token, user);
+  };
+
+  const login = loginWithToken;
+
+  const register = async (email: string, password: string) => {
+    await apiPost('/auth/register', { email, password });
+    await loginWithToken(email, password);
   };
 
   const logout = () => {
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, isAuthenticated: !!user, login, logout, setSession }}
+      value={{ user, token, isAuthenticated: !!user, login, register, logout, setSession }}
     >
       {children}
     </AuthContext.Provider>

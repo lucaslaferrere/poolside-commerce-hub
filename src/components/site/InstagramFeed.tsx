@@ -12,11 +12,10 @@ import {
   SignalHigh,
   ArrowUpRight,
 } from 'lucide-react';
-import heroImg from '@/assets/hero-pool-night.jpg';
-import rgbImg  from '@/assets/product-rgb-light.jpg';
-import kitImg  from '@/assets/product-kit.jpg';
-import ledImg  from '@/assets/product-led-spot.jpg';
-import ctrlImg from '@/assets/product-controller.jpg';
+import foto1 from '@/assets/Screenshot 2026-05-13 150755.png';
+import foto2 from '@/assets/Screenshot 2026-05-13 150843.png';
+import foto3 from '@/assets/Screenshot 2026-05-13 150904.png';
+import avatar from '@/assets/Screenshot 2026-05-27 155549.png';
 
 interface Post {
   img: string;
@@ -27,14 +26,14 @@ interface Post {
 }
 
 const POSTS: Post[] = [
-  { img: heroImg, location: 'Cariló · Buenos Aires', caption: 'Pileta de 9m con sistema RGB Pooled. Diseño y montaje propio.', likes: '2.412', time: 'Hace 1 día' },
-  { img: rgbImg,  location: 'San Isidro',             caption: 'Sincronización con app: 16M de colores y escenas guardadas.',  likes: '1.876', time: 'Hace 2 días' },
-  { img: kitImg,  location: 'Pinamar',                caption: 'Kit completo instalado en un fin de semana. Cliente feliz.',     likes: '3.104', time: 'Hace 3 días' },
-  { img: ledImg,  location: 'Tigre',                  caption: 'LED 12 W blanco frío. Reemplazo de halógena tradicional.',       likes: '964',   time: 'Hace 4 días' },
-  { img: ctrlImg, location: 'Nordelta',               caption: 'Controlador wifi compatible con Alexa & Google Home.',           likes: '1.328', time: 'Hace 5 días' },
-  { img: heroImg, location: 'Pilar',                  caption: 'Inauguración nocturna. La pileta queda como el escenario.',      likes: '4.221', time: 'Hace 6 días' },
-  { img: rgbImg,  location: 'Mar del Plata',          caption: 'Modo fiesta activado para el cumpleaños del cliente.',           likes: '2.703', time: 'Hace 1 sem' },
-  { img: kitImg,  location: 'Bariloche',              caption: 'Antes / después de una renovación completa.',                     likes: '1.547', time: 'Hace 1 sem' },
+  { img: foto1, location: 'Buenos Aires',  caption: 'Instalación Pooled.', likes: '2.412', time: 'Hace 1 día' },
+  { img: foto2, location: 'San Isidro',    caption: 'Iluminación de piscina Pooled.', likes: '1.876', time: 'Hace 2 días' },
+  { img: foto3, location: 'Pinamar',       caption: 'Sistema completo instalado.', likes: '3.104', time: 'Hace 3 días' },
+  { img: foto1, location: 'Tigre',         caption: 'Instalación Pooled.', likes: '964',   time: 'Hace 4 días' },
+  { img: foto2, location: 'Nordelta',      caption: 'Iluminación de piscina Pooled.', likes: '1.328', time: 'Hace 5 días' },
+  { img: foto3, location: 'Pilar',         caption: 'Sistema completo instalado.', likes: '4.221', time: 'Hace 6 días' },
+  { img: foto1, location: 'Mar del Plata', caption: 'Instalación Pooled.', likes: '2.703', time: 'Hace 1 sem' },
+  { img: foto2, location: 'Bariloche',     caption: 'Iluminación de piscina Pooled.', likes: '1.547', time: 'Hace 1 sem' },
 ];
 
 export function InstagramFeed() {
@@ -71,12 +70,12 @@ export function InstagramFeed() {
           <p className="mt-5 text-neutral-500 max-w-md mx-auto leading-relaxed">
             Seguinos en{' '}
             <a
-              href="https://instagram.com/pooled"
+              href="https://www.instagram.com/pooled.ok"
               target="_blank"
               rel="noopener noreferrer"
               className="text-brand font-medium hover:text-brand-hover transition-colors"
             >
-              @pooled
+              @pooled.ok
             </a>{' '}
             para ver instalaciones completas, antes y después y novedades técnicas.
           </p>
@@ -86,16 +85,16 @@ export function InstagramFeed() {
         <div className="ig__showcase relative mx-auto max-w-3xl">
           {/* Ambient blurred images behind the phone (desktop only) */}
           <div className="ig__ambient ig__ambient--tl" aria-hidden="true">
-            <img src={heroImg} alt="" />
+            <img src={foto1} alt="" />
           </div>
           <div className="ig__ambient ig__ambient--tr" aria-hidden="true">
-            <img src={rgbImg} alt="" />
+            <img src={foto2} alt="" />
           </div>
           <div className="ig__ambient ig__ambient--bl" aria-hidden="true">
-            <img src={kitImg} alt="" />
+            <img src={foto3} alt="" />
           </div>
           <div className="ig__ambient ig__ambient--br" aria-hidden="true">
-            <img src={ledImg} alt="" />
+            <img src={foto1} alt="" />
           </div>
 
           {/* Phone */}
@@ -129,7 +128,7 @@ export function InstagramFeed() {
                 <div className="ig-phone__appbar">
                   <ChevronLeft className="h-5 w-5 text-neutral-900" />
                   <div className="flex items-center gap-1">
-                    <span className="text-[15px] font-semibold text-neutral-900">pooled</span>
+                    <span className="text-[15px] font-semibold text-neutral-900">pooled.ok</span>
                     <span className="grid place-items-center h-3.5 w-3.5 rounded-full bg-[#3897F0] text-white text-[8px] font-bold leading-none">
                       ✓
                     </span>
@@ -156,13 +155,13 @@ export function InstagramFeed() {
         {/* Follow CTA */}
         <div className="mt-14 flex justify-center">
           <a
-            href="https://instagram.com/pooled"
+            href="https://www.instagram.com/pooled.ok"
             target="_blank"
             rel="noopener noreferrer"
             className="ig__cta"
           >
             <Instagram className="h-4 w-4" />
-            Seguinos en @pooled
+            Seguinos en @pooled.ok
             <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
         </div>
@@ -182,9 +181,7 @@ function IgPost({ post }: { post: Post }) {
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="grid place-items-center h-8 w-8 rounded-full bg-brand text-brand-foreground text-[10px] font-bold shrink-0">
-            P
-          </span>
+          <img src={avatar} alt="pooled.ok" className="h-8 w-8 rounded-full object-cover shrink-0" />
           <div className="min-w-0">
             <p className="text-[12px] font-semibold leading-tight text-neutral-900 truncate">pooled</p>
             <p className="text-[10px] text-neutral-500 truncate">{post.location}</p>
@@ -350,7 +347,7 @@ const styles = `
   overflow: hidden;
 }
 .ig-phone__feed-scroll {
-  animation: ig-scroll 50s linear infinite;
+  animation: ig-scroll 40s linear infinite;
   will-change: transform;
 }
 .ig-phone:hover .ig-phone__feed-scroll {
@@ -360,9 +357,7 @@ const styles = `
   0%   { transform: translate3d(0, 0,    0); }
   100% { transform: translate3d(0, -50%, 0); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .ig-phone__feed-scroll { animation: none; }
-}
+/* prefers-reduced-motion: feed scroll kept intentional — decorative only */
 
 /* Soft fade at the bottom of the feed window for a subtle scroll cue */
 .ig-phone__feed-fade {

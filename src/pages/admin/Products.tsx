@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +29,7 @@ export default function AdminProducts() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useAdminProductsPage({ page, limit });
 
-  const { create, update, remove } = useAdminProductMutations();
+  const { create, update, remove, toggleVisibility, reorderPage } = useAdminProductMutations();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<AdminProduct | null>(null);
@@ -38,6 +38,18 @@ export default function AdminProducts() {
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  // Sort current page: sort_order > 0 first (ascending), then 0s in backend order
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const oa = a.sort_order ?? 0;
+      const ob = b.sort_order ?? 0;
+      if (oa > 0 && ob > 0) return oa - ob;
+      if (oa > 0) return -1;
+      if (ob > 0) return 1;
+      return 0;
+    });
+  }, [items]);
 
   const openCreate = () => {
     setEditing(null);
@@ -75,6 +87,13 @@ export default function AdminProducts() {
     setPage(1);
   };
 
+  const handleReorder = useCallback(
+    (reordered: AdminProduct[]) => {
+      reorderPage.mutate(reordered.map((p, i) => ({ id: p.id, sort_order: i + 1 })));
+    },
+    [reorderPage],
+  );
+
   return (
     <>
       <AdminPageHeader
@@ -101,11 +120,15 @@ export default function AdminProducts() {
       )}
 
       <ProductTable
-        products={items}
+        products={sortedItems}
         isLoading={isLoading}
         error={isError ? (error as Error) : null}
         onEdit={openEdit}
         onDelete={setDeleting}
+        onToggleVisibility={(p) =>
+          toggleVisibility.mutate({ id: p.id, visible: p.visible === false })
+        }
+        onReorder={handleReorder}
       />
 
       {/* Pagination footer */}

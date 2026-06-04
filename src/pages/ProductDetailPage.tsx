@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
+  ChevronRight,
   Droplet,
   ShoppingCart,
   AlertCircle,
@@ -29,9 +30,11 @@ import {
 import { useProductById } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { useCart } from '@/store/cart';
-import { formatPrice, CATEGORY_LABELS } from '@/types/shop';
+import { applyDiscount, formatPrice, hasDiscount, CATEGORY_LABELS } from '@/types/shop';
+import { resolveImageUrl } from '@/lib/api';
 import type { ShopVariant } from '@/types/shop';
 import { cn } from '@/lib/utils';
+import { Flame } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -89,10 +92,15 @@ export default function ProductDetailPage() {
     return product.stock ?? variants.reduce((s, v) => s + v.stock, 0);
   }, [product, selectedVariant, selectedColor]);
 
-  const effectivePrice = useMemo(
+  const variantPrice = useMemo(
     () => (product?.base_price ?? 0) + (selectedVariant?.price_adjustment ?? 0),
     [product, selectedVariant],
   );
+
+  const onSale = hasDiscount(product?.discount_percent);
+  const effectivePrice = onSale
+    ? applyDiscount(variantPrice, product?.discount_percent)
+    : variantPrice;
 
   useEffect(() => {
     if (effectiveStock > 0) setQty((q) => Math.min(q, effectiveStock));
@@ -114,8 +122,9 @@ export default function ProductDetailPage() {
         id: cartId,
         name: `${product.name}${variantLabel}`,
         price: effectivePrice,
-        image_url: product.images[0] ?? null,
+        image_url: resolveImageUrl(product.images[0]) || null,
         type: 'product',
+        variant_sku: selectedVariant?.sku ?? product.variants?.[0]?.sku ?? '',
       },
       qty,
     );
@@ -203,13 +212,7 @@ export default function ProductDetailPage() {
   const categoryLabel =
     (CATEGORY_LABELS as Record<string, string>)[product.category] ?? product.category;
 
-  const specRows = [
-    product.brand ? { label: 'Marca', value: product.brand } : null,
-    { label: 'Categoría', value: categoryLabel },
-    product.variants?.length
-      ? { label: 'Variantes', value: `${product.variants.length} opciones` }
-      : null,
-  ].filter(Boolean) as { label: string; value: string }[];
+  const specRows = (product.specs ?? []).map((s) => ({ label: s.key, value: s.value }));
 
   const accordionSections: AccordionSection[] = [
     ...(product.description
@@ -218,6 +221,24 @@ export default function ProductDetailPage() {
             id: 'description',
             title: 'Descripción',
             content: <p>{product.description}</p>,
+          } satisfies AccordionSection,
+        ]
+      : []),
+    ...(product.benefits?.length
+      ? [
+          {
+            id: 'benefits',
+            title: 'Por qué elegirlo',
+            content: (
+              <ul className="space-y-3">
+                {product.benefits!.map((b) => (
+                  <li key={b.title} className="flex flex-col gap-0.5">
+                    <span className="font-semibold text-primary text-[13px]">{b.title}</span>
+                    <span>{b.description}</span>
+                  </li>
+                ))}
+              </ul>
+            ),
           } satisfies AccordionSection,
         ]
       : []),
@@ -257,7 +278,7 @@ export default function ProductDetailPage() {
                   <BreadcrumbLink asChild>
                     <Link
                       to="/"
-                      className="text-muted-foreground hover:text-secondary transition-colors text-xs"
+                      className="text-muted-foreground hover:text-primary transition-colors text-xs"
                     >
                       Inicio
                     </Link>
@@ -268,7 +289,7 @@ export default function ProductDetailPage() {
                   <BreadcrumbLink asChild>
                     <Link
                       to="/tienda"
-                      className="text-muted-foreground hover:text-secondary transition-colors text-xs"
+                      className="text-muted-foreground hover:text-primary transition-colors text-xs"
                     >
                       Tienda
                     </Link>
@@ -285,7 +306,7 @@ export default function ProductDetailPage() {
 
             <Link
               to="/tienda"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-secondary transition-colors shrink-0"
+              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors shrink-0"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
               Seguir comprando
@@ -304,7 +325,7 @@ export default function ProductDetailPage() {
                 {(product.images?.length ?? 0) > 0 ? (
                   <img
                     key={activeImage}
-                    src={product.images[activeImage]}
+                    src={resolveImageUrl(product.images[activeImage])}
                     alt={product.name}
                     className="h-full w-full object-cover animate-fade-in"
                   />
@@ -322,25 +343,44 @@ export default function ProductDetailPage() {
                 )}
                 {/* Vignette for depth */}
                 <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_0_40px_rgba(0,0,0,0.04)]" />
+                {/* Arrow navigation */}
+                {(product.images?.length ?? 0) > 1 && (
+                  <>
+                    <button
+                      onClick={() => setActiveImage((i) => (i - 1 + product.images!.length) % product.images!.length)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
+                      aria-label="Imagen anterior"
+                    >
+                      <ChevronLeft className="h-5 w-5 text-slate-700" />
+                    </button>
+                    <button
+                      onClick={() => setActiveImage((i) => (i + 1) % product.images!.length)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
+                      aria-label="Imagen siguiente"
+                    >
+                      <ChevronRight className="h-5 w-5 text-slate-700" />
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Thumbnails */}
               {(product.images?.length ?? 0) > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-1">
-                  {product.images!.map((src, i) => (
+                  {product.images!.map((rawSrc, i) => (
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
                       aria-label={`Ver imagen ${i + 1}`}
                       className={cn(
-                        'shrink-0 h-[72px] w-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                        'shrink-0 h-[72px] w-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                         activeImage === i
-                          ? 'border-secondary shadow-aqua scale-[1.04]'
+                          ? 'border-primary shadow-md scale-[1.04]'
                           : 'border-slate-200 opacity-55 hover:opacity-100 hover:border-slate-300',
                       )}
                     >
                       <img
-                        src={src}
+                        src={resolveImageUrl(rawSrc)}
                         alt={`${product.name} — vista ${i + 1}`}
                         className="h-full w-full object-cover"
                       />
@@ -353,13 +393,19 @@ export default function ProductDetailPage() {
             {/* ── RIGHT: product info (2/5) — sticky on desktop ────────── */}
             <div className="lg:col-span-2 lg:sticky lg:top-24 lg:self-start space-y-6">
 
-              {/* Category + brand */}
+              {/* Category + brand + discount */}
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge className="rounded-full px-4 py-1 text-xs font-semibold capitalize bg-secondary/10 text-secondary border border-secondary/25 hover:bg-secondary/10 transition-none">
+                <Badge className="rounded-full px-4 py-1 text-xs font-semibold capitalize bg-primary text-white border-0 hover:bg-primary transition-none">
                   {categoryLabel}
                 </Badge>
+                {onSale && (
+                  <Badge className="rounded-full px-3 py-1 text-xs font-bold bg-red-500 text-white border-0 hover:bg-red-500 transition-none gap-1 shadow-sm">
+                    <Flame className="h-3 w-3" />
+                    -{Math.round(product.discount_percent!)}% OFF
+                  </Badge>
+                )}
                 {product.brand && (
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground/70 font-medium">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
                     {product.brand}
                   </span>
                 )}
@@ -370,10 +416,50 @@ export default function ProductDetailPage() {
                 {product.name}
               </h1>
 
+              {/* Subtitle */}
+              {product.subtitle && (
+                <p className="text-sm text-muted-foreground leading-relaxed -mt-2">
+                  {product.subtitle}
+                </p>
+              )}
+
+              {/* Main specs — at-a-glance grid */}
+              {(product.main_specs?.length ?? 0) > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {product.main_specs!.slice(0, 6).map((spec) => (
+                    <div
+                      key={spec.key}
+                      className="rounded-xl border border-slate-100 bg-slate-50/70 px-2 py-3 text-center"
+                      title={spec.meaning}
+                    >
+                      <div className="font-display font-bold text-primary text-base leading-none">
+                        {spec.value}
+                      </div>
+                      <div className="text-[9.5px] text-muted-foreground uppercase tracking-wide mt-1.5">
+                        {spec.key}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Price block */}
               <div className="py-5 border-y border-slate-100/80 space-y-1.5">
+                {onSale && (
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-lg text-gray-400 line-through tabular-nums">
+                      {formatPrice(variantPrice)}
+                    </span>
+                    <span className="text-xs font-bold text-red-600 bg-red-50 rounded-full px-2 py-0.5 ring-1 ring-red-200">
+                      Ahorrás {formatPrice(variantPrice - effectivePrice)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="font-display text-4xl lg:text-5xl font-bold text-secondary tabular-nums leading-none">
+                  <span className={cn(
+                    'font-display text-4xl lg:text-5xl font-bold tabular-nums leading-none',
+                    onSale ? 'text-red-600' : 'text-[#1a1a2e]',
+                  )}>
                     {formatPrice(effectivePrice)}
                   </span>
                   {selectedVariant && selectedVariant.price_adjustment !== 0 && (
@@ -405,7 +491,7 @@ export default function ProductDetailPage() {
                   )}
                 >
                   {inStock
-                    ? `En stock · ${effectiveStock} unidades disponibles`
+                    ? 'En stock'
                     : 'Sin stock — consultá disponibilidad'}
                 </span>
               </div>
@@ -440,10 +526,10 @@ export default function ProductDetailPage() {
                               disabled={colorStock === 0}
                               className={cn(
                                 'px-4 py-2 text-sm rounded-full border-2 font-medium capitalize transition-all duration-150',
-                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                                 isSelected
-                                  ? 'border-secondary bg-secondary text-white shadow-[0_4px_12px_hsl(187_73%_46%/0.35)]'
-                                  : 'border-slate-200 text-slate-700 bg-white hover:border-secondary/50 hover:text-secondary',
+                                  ? 'border-primary bg-primary text-white shadow-[0_4px_12px_hsl(220_100%_59%/0.35)]'
+                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-primary',
                                 colorStock === 0 && 'opacity-35 cursor-not-allowed line-through',
                               )}
                             >
@@ -481,10 +567,10 @@ export default function ProductDetailPage() {
                               disabled={!hasStock}
                               className={cn(
                                 'px-4 py-2 text-sm rounded-lg border-2 font-medium transition-all duration-150',
-                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                                 isSelected
-                                  ? 'border-secondary bg-secondary text-white shadow-[0_4px_12px_hsl(187_73%_46%/0.35)]'
-                                  : 'border-slate-200 text-slate-700 bg-white hover:border-secondary/50 hover:text-secondary',
+                                  ? 'border-primary bg-primary text-white shadow-[0_4px_12px_hsl(220_100%_59%/0.35)]'
+                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-primary',
                                 !hasStock && 'opacity-35 cursor-not-allowed line-through',
                               )}
                             >
@@ -535,7 +621,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Trust badges */}
-              <div className="grid grid-cols-3 gap-2 py-4 border-t border-slate-100">
+              <div className="grid grid-cols-3 gap-2 py-4 border-t border-slate-300">
                 {(
                   [
                     { Icon: Truck, label: 'Envío a todo el país' },
@@ -544,10 +630,10 @@ export default function ProductDetailPage() {
                   ] as const
                 ).map(({ Icon, label }) => (
                   <div key={label} className="flex flex-col items-center gap-1.5 text-center">
-                    <div className="h-8 w-8 rounded-full bg-secondary/8 border border-secondary/15 grid place-items-center">
-                      <Icon className="h-4 w-4 text-secondary" strokeWidth={1.75} />
+                    <div className="h-9 w-9 rounded-full bg-[#1a1a2e] grid place-items-center shadow-sm">
+                      <Icon className="h-4 w-4 text-white" strokeWidth={2} />
                     </div>
-                    <p className="text-[10.5px] text-slate-500 leading-snug">{label}</p>
+                    <p className="text-[10.5px] text-slate-700 font-semibold leading-snug">{label}</p>
                   </div>
                 ))}
               </div>

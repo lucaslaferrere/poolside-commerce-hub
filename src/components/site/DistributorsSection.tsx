@@ -26,7 +26,7 @@ const schema = z.object({
 type Form = z.infer<typeof schema>;
 
 const BENEFITS: { icon: typeof Tag; title: string; desc: string }[] = [
-  { icon: Tag,           title: 'Hasta 35% de descuento',  desc: 'En toda la línea de productos.' },
+  { icon: Tag,           title: 'Hasta 20% de descuento',  desc: 'En toda la línea de productos.' },
   { icon: GraduationCap, title: 'Capacitaciones técnicas', desc: 'Workshops y certificaciones LED.' },
   { icon: Sparkles,      title: 'Material POP',            desc: 'Catálogos, displays y muestras incluidas.' },
   { icon: Truck,         title: 'Entregas prioritarias',   desc: 'Despachos 24/48 hs a todo el país.' },
@@ -83,10 +83,22 @@ export function DistributorsSection() {
   return (
     <section
       id="distribuidores"
-      className="distributors relative overflow-hidden py-20 md:py-28 bg-neutral-50"
+      className="distributors relative overflow-hidden py-20 md:py-28 bg-[hsl(var(--surface-dark))] text-white"
     >
-      {/* Unified ambient background — pool-light radials + dot pattern */}
-      <div className="distributors__dots absolute inset-0" aria-hidden="true" />
+      {/* Underwater ambience — drifting current lines + light shafts + corner glows */}
+      <svg
+        className="distributors__currents absolute inset-0 h-full w-full"
+        viewBox="0 0 1440 800"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path className="dw-line dw-line--1" d="M-80,170 Q360,130 720,170 T1520,170" />
+        <path className="dw-line dw-line--2" d="M-80,330 Q360,370 720,330 T1520,330" />
+        <path className="dw-line dw-line--3" d="M-80,500 Q360,460 720,500 T1520,500" />
+        <path className="dw-line dw-line--4" d="M-80,660 Q360,700 720,660 T1520,660" />
+      </svg>
+      <div className="distributors__shaft distributors__shaft--left absolute" aria-hidden="true" />
+      <div className="distributors__shaft distributors__shaft--right absolute" aria-hidden="true" />
       <div className="distributors__glow-tr absolute" aria-hidden="true" />
       <div className="distributors__glow-bl absolute" aria-hidden="true" />
 
@@ -109,7 +121,7 @@ export function DistributorsSection() {
               <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.1] tracking-tight text-neutral-900 mt-5">
                 ¿Sos instalador
                 <br className="hidden sm:block" />{' '}
-                o tenés tienda?
+                o tenés comercio?
               </h2>
 
               <p className="mt-4 text-neutral-600 text-base leading-relaxed max-w-md">
@@ -304,12 +316,48 @@ function autoCompleteFor(id: string): string | undefined {
    Scoped styles — glass panel, ambient background, CTA glow.
    ──────────────────────────────────────────────────────────────────────── */
 const styles = `
-.distributors__dots {
-  background-image: radial-gradient(circle at 1px 1px, rgba(2, 8, 23, 0.06) 1px, transparent 0);
-  background-size: 22px 22px;
-  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, #000 30%, transparent 100%);
-          mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, #000 30%, transparent 100%);
+/* Underwater current — softly drifting wave lines that suggest moving water */
+.distributors__currents {
   pointer-events: none;
+  opacity: 0.85;
+  -webkit-mask-image: radial-gradient(ellipse 95% 80% at 50% 50%, #000 40%, transparent 100%);
+          mask-image: radial-gradient(ellipse 95% 80% at 50% 50%, #000 40%, transparent 100%);
+}
+.dw-line {
+  fill: none;
+  stroke: hsl(var(--brand-on-dark) / 0.22);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  transform-origin: center;
+  animation: dw-drift 18s ease-in-out infinite alternate;
+}
+.dw-line--1 { animation-duration: 20s; }
+.dw-line--2 { animation-duration: 16s; animation-direction: alternate-reverse; stroke: hsl(var(--brand-on-dark) / 0.16); }
+.dw-line--3 { animation-duration: 18s; stroke: hsl(var(--brand-on-dark) / 0.20); }
+.dw-line--4 { animation-duration: 22s; animation-direction: alternate-reverse; stroke: hsl(var(--brand-on-dark) / 0.14); }
+@keyframes dw-drift {
+  from { transform: translateX(-2.5%); }
+  to   { transform: translateX(2.5%);  }
+}
+
+/* Light shafts — water column lit from the surface, like LED beams penetrating */
+.distributors__shaft {
+  top: -10%;
+  width: 280px;
+  height: 110%;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.03) 35%,
+    transparent 75%);
+  filter: blur(14px);
+  mix-blend-mode: screen;
+}
+.distributors__shaft--left  { left: 8%;  transform: rotate(-7deg); }
+.distributors__shaft--right { right: 8%; transform: rotate(8deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dw-line { animation: none; }
 }
 
 .distributors__glow-tr {
@@ -317,7 +365,7 @@ const styles = `
   right: -180px;
   width: 560px;
   height: 560px;
-  background: radial-gradient(circle, hsl(var(--brand) / 0.18), transparent 60%);
+  background: radial-gradient(circle, hsl(215 60% 30% / 0.55), transparent 60%);
   filter: blur(40px);
   pointer-events: none;
 }
@@ -327,7 +375,7 @@ const styles = `
   left: -240px;
   width: 700px;
   height: 700px;
-  background: radial-gradient(circle, hsl(var(--brand) / 0.10), transparent 60%);
+  background: radial-gradient(circle, hsl(215 60% 30% / 0.40), transparent 60%);
   filter: blur(50px);
   pointer-events: none;
 }
