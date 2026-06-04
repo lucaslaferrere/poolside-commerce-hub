@@ -22,16 +22,21 @@ export const useAuth = create<AuthState>()(
 
       login: async (email, password) => {
         const tokens = await apiLogin(email, password);
+        localStorage.setItem('auth_token', tokens.access_token);
         set({ token: tokens.access_token, user: { email } });
       },
 
       register: async (email, password) => {
         await apiRegister(email, password);
         const tokens = await apiLogin(email, password);
+        localStorage.setItem('auth_token', tokens.access_token);
         set({ token: tokens.access_token, user: { email } });
       },
 
-      logout: () => set({ user: null, token: null }),
+      logout: () => {
+        localStorage.removeItem('auth_token');
+        set({ user: null, token: null });
+      },
     }),
     { name: 'aqualed-auth' }
   )

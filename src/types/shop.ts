@@ -11,6 +11,7 @@ export interface Product {
   description: string | null;
   featured: boolean;
   stock: number;
+  variant_sku?: string;
 }
 
 export interface Kit {
@@ -142,4 +143,35 @@ export interface ShopProduct {
   sort_order?: number;
   created_at: string;
   updated_at: string;
+}
+
+// ── Orders ────────────────────────────────────────────────────────────────────
+
+export interface ShippingDetails {
+  courier_name: string;
+  tracking_number: string;
+  label_url: string;
+  estimated_delivery: string | null;
+}
+
+export interface OrderItem {
+  product_id: string;
+  name: string;
+  sku: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+}
+
+export interface Order {
+  id: string;
+  status: string;
+  total: number;
+  created_at: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  shipping_address: string;
+  items: OrderItem[];
+  shipping: ShippingDetails | null;
 }
