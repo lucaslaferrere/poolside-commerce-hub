@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -52,6 +53,7 @@ interface Props {
 
 export function LoginModal({ open, onOpenChange, defaultTab = 'login', onSuccess }: Props) {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [tab, setTab] = useState<Tab>(defaultTab);
   const [email, setEmail] = useState('');
@@ -217,6 +219,17 @@ export function LoginModal({ open, onOpenChange, defaultTab = 'login', onSuccess
                   </button>
                 </div>
                 {fieldErrors.password && <p className="text-xs text-destructive">{fieldErrors.password}</p>}
+                {tab === 'login' && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => { onOpenChange(false); navigate('/forgot-password'); }}
+                      className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
+                )}
               </div>
 
               <AnimatePresence>

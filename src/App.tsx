@@ -23,6 +23,7 @@ import AdminOrdersPage from './pages/admin/OrdersPage.tsx';
 import AdminKitsPage from './pages/admin/Kits.tsx';
 import WarrantyPage from './pages/WarrantyPage.tsx';
 import KitDetailPage from './pages/KitDetailPage.tsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 
 function PageViewTracker() {
   const { pathname } = useLocation();
@@ -94,6 +95,7 @@ const App = () => (
               />
 
               <Route path="/garantia" element={<WarrantyPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
