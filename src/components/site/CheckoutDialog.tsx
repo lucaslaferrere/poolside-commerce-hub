@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,16 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CheckCircle2, CreditCard, Wallet, Truck, ExternalLink } from 'lucide-react';
+import { CheckCircle2, CreditCard, Wallet, Truck, Loader2 } from 'lucide-react';
 import { useCart } from '@/store/cart';
 import { formatPrice } from '@/types/shop';
 import { apiPost } from '@/lib/api';
 import { trackEvent } from '@/lib/analytics';
+import { quoteShipping, type ShippingQuote } from '@/lib/shipping';
 import { toast } from 'sonner';
 
 interface CheckoutResult {
-  order_id?: string;
-  mercadopago_url?: string;
+  order?: { id: string };
+  init_point?: string;
+  sandbox_init_point?: string;
 }
 
 const schema = z.object({
@@ -30,16 +32,6 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-// Mock zone calculation
-function calcShipping(zip: string, subtotal: number): number {
-  if (subtotal >= 200000) return 0; // free shipping
-  if (!zip || zip.length < 4) return 0;
-  const n = parseInt(zip.slice(0, 1), 10);
-  if (n <= 1) return 4500; // CABA / GBA
-  if (n <= 5) return 7800; // Provincia BA / Centro
-  return 12500; // Resto del país
-}
-
 export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { items, subtotal, clear } = useCart();
   const [form, setForm] = useState<FormData>({
@@ -51,7 +43,34 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null);
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const quoteTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const sub = subtotal();
+  const shippingCost = shippingQuote?.price ?? 0;
+  const total = sub + shippingCost;
+
+  useEffect(() => {
+    const zip = form.shipping_zip.trim();
+    if (zip.length < 4) {
+      setShippingQuote(null);
+      return;
+    }
+    if (quoteTimeout.current) clearTimeout(quoteTimeout.current);
+    quoteTimeout.current = setTimeout(async () => {
+      setQuoteLoading(true);
+      try {
+        const q = await quoteShipping(zip);
+        setShippingQuote(q);
+      } catch {
+        setShippingQuote(null);
+      } finally {
+        setQuoteLoading(false);
+      }
+    }, 600);
+    return () => { if (quoteTimeout.current) clearTimeout(quoteTimeout.current); };
+  }, [form.shipping_zip]);
 
   const upd = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -66,7 +85,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
       return;
     }
     setErrors({});
-    trackEvent('checkout_start', { total: sub, item_count: items.length });
+    trackEvent('checkout_start', { total, item_count: items.length });
     setLoading(true);
     try {
       const result = await apiPost<CheckoutResult>('/checkout', {
@@ -77,15 +96,22 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         shipping_city: parsed.data.shipping_city,
         shipping_zip: parsed.data.shipping_zip,
         notes: parsed.data.notes || undefined,
-        items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, type: i.type })),
-        subtotal: sub,
-        shipping_cost: shipping,
-        total,
         payment_method: payment,
+        items: items.map((i) => ({
+          product_id: i.id,
+          variant_sku: i.variant_sku ?? '',
+          quantity: i.quantity,
+        })),
       });
       setCheckoutResult(result);
-      setDone(true);
       clear();
+
+      if (payment === 'mercadopago' && result.init_point) {
+        window.location.href = result.init_point;
+        return;
+      }
+
+      setDone(true);
       toast.success('¡Pedido confirmado!');
     } catch (err) {
       toast.error('Error al crear el pedido', {
@@ -111,14 +137,7 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <DialogDescription className="mt-3">
               Te enviamos un email con los detalles. Si elegiste transferencia, te contactamos a la brevedad.
             </DialogDescription>
-            {checkoutResult?.mercadopago_url && (
-              <Button asChild size="lg" className="mt-6 gradient-aqua text-primary-foreground">
-                <a href={checkoutResult.mercadopago_url} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4" /> Pagar con MercadoPago
-                </a>
-              </Button>
-            )}
-            <Button onClick={close} variant={checkoutResult?.mercadopago_url ? 'outline' : 'default'} className={checkoutResult?.mercadopago_url ? 'mt-3' : 'mt-6 gradient-aqua text-primary-foreground'}>
+            <Button onClick={close} className="mt-6 gradient-aqua text-primary-foreground">
               Cerrar
             </Button>
           </div>
@@ -157,19 +176,30 @@ export function CheckoutDialog({ open, onOpenChange }: { open: boolean; onOpenCh
 
               <div className="bg-muted rounded-lg p-4 space-y-1.5 text-sm">
                 <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(sub)}</span></div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" /> Envío</span>
-                  <a
-                    href={`https://www.andreani.com/personas/enviar-un-paquete${form.shipping_zip ? `?cpDestino=${form.shipping_zip}` : ''}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-primary hover:underline"
-                  >
-                    Calcular con Andreani <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <span>
+                    {quoteLoading ? (
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Calculando...
+                      </span>
+                    ) : shippingQuote ? (
+                      <span className="text-right">
+                        <span className="font-semibold">{formatPrice(shippingQuote.price)}</span>
+                        <span className="text-muted-foreground ml-1">({shippingQuote.estimated_days} días hábiles)</span>
+                      </span>
+                    ) : form.shipping_zip.length >= 4 ? (
+                      <span className="text-muted-foreground">No disponible</span>
+                    ) : (
+                      <span className="text-muted-foreground">Ingresá el CP</span>
+                    )}
+                  </span>
                 </div>
                 <div className="border-t pt-2 mt-2 flex justify-between font-display font-bold text-lg">
-                  <span>Total</span><span className="text-primary">{formatPrice(sub)}<span className="text-sm font-normal text-muted-foreground ml-1">+ envío</span></span>
+                  <span>Total</span>
+                  <span className="text-primary">
+                    {shippingQuote ? formatPrice(total) : <>{formatPrice(sub)}<span className="text-sm font-normal text-muted-foreground ml-1">+ envío</span></>}
+                  </span>
                 </div>
               </div>
 
