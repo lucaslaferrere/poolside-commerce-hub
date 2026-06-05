@@ -70,7 +70,7 @@ export function CartDrawer() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium leading-tight line-clamp-2">{item.name}</p>
-                      <p className="text-sm font-semibold text-secondary mt-1">
+                      <p className="text-sm font-semibold text-primary mt-1">
                         {formatPrice(item.price * item.quantity)}
                       </p>
                       <div className="mt-2 flex items-center gap-1">
