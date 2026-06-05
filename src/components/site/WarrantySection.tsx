@@ -48,14 +48,12 @@ export function WarrantySection() {
               Garantía Pooled
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-white mt-2 leading-tight">
-              Calidad respaldada,
+              Calidad certificada,
               <br className="hidden md:block" />
-              instalación tranquila.
+              respaldo real.
             </h2>
             <p className="mt-4 text-white/70 leading-relaxed max-w-xl mx-auto md:mx-0">
-              Todas nuestras luminarias LED y kits cuentan con garantía oficial,
-              componentes certificados IP68 y soporte técnico directo. Comprá con
-              la confianza de un producto pensado para durar.
+              Todas las luminarias POOLED cuentan con garantía oficial, certificación IP68 y soporte técnico directo. Fabricadas para durar.
             </p>
 
             <ul className="mt-6 flex flex-wrap justify-center md:justify-start gap-x-5 gap-y-2 text-sm text-white/60">

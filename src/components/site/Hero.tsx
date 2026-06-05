@@ -69,8 +69,7 @@ export function Hero() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#94B8D1] sm:text-lg">
-              Luminarias LED, controladores inteligentes y kits completos.
-              Diseñados para ingenieros, instaladores y dueños exigentes.
+              Luminarias LED subacuáticas de fabricación nacional. Para profesionales y clientes que no negocian calidad.
             </p>
 
             <motion.div
@@ -85,7 +84,7 @@ export function Hero() {
               </a>
 
               <a href="#guia" className="pooled-hero__cta-ghost">
-                Asesoría técnica
+                Consultá tu proyecto
               </a>
             </motion.div>
           </motion.div>

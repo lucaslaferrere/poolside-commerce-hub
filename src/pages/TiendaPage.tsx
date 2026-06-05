@@ -105,6 +105,7 @@ const KIT_LINES = [
 export default function TiendaPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [brandFilter, setBrandFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
   const [kitSizeFilter, setKitSizeFilter] = useState<string>('all');
   const [kitLineFilter, setKitLineFilter] = useState<string>(() => searchParams.get('line') ?? 'all');
@@ -147,11 +148,20 @@ export default function TiendaPage() {
     [categories, allKits],
   );
 
+  const handleCategorySelect = (id: string) => {
+    setCategoryFilter(id);
+    setBrandFilter('all');
+  };
+
   const filtered = useMemo(() => {
-    const base =
+    let base =
       categoryFilter === 'all'
         ? [...products]
         : products.filter((p) => p.category === categoryFilter);
+
+    if (categoryFilter === 'luminarias' && brandFilter !== 'all') {
+      base = base.filter((p) => p.brand?.toUpperCase().includes(brandFilter.toUpperCase()));
+    }
 
     switch (sortBy) {
       case 'name-asc':
@@ -190,9 +200,11 @@ export default function TiendaPage() {
             <FilterSidebar
               categories={augmentedCategories}
               selected={categoryFilter}
-              onSelect={setCategoryFilter}
+              onSelect={handleCategorySelect}
               totalCount={products.length + allKits.length}
               loading={isLoading}
+              brandFilter={brandFilter}
+              onBrandSelect={setBrandFilter}
             />
 
             {/* Main content */}
@@ -203,9 +215,11 @@ export default function TiendaPage() {
                   <MobileFilterTrigger
                     categories={augmentedCategories}
                     selected={categoryFilter}
-                    onSelect={setCategoryFilter}
+                    onSelect={handleCategorySelect}
                     totalCount={products.length + allKits.length}
                     loading={isLoading}
+                    brandFilter={brandFilter}
+                    onBrandSelect={setBrandFilter}
                   />
 
                   {!isLoading && (
@@ -288,7 +302,7 @@ export default function TiendaPage() {
                 <div className={categoryFilter === 'all' && filtered.length > 0 ? 'mt-10' : ''}>
                   {categoryFilter === 'all' && (
                     <h2 className="font-display font-semibold text-base text-neutral-700 mb-4 pb-2 border-b border-neutral-200">
-                      Kits prearmados
+                      Kits de instalación completos
                     </h2>
                   )}
 

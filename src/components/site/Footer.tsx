@@ -9,9 +9,9 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-12">
           {/* Brand */}
           <div className="md:col-span-4">
-            <img src="/Pooled blanco.svg" alt="Pooled" className="h-[50px] w-auto" />
-            <p className="text-sm leading-relaxed text-primary-foreground/70 mt-4 max-w-xs">
-              Iluminación LED y accesorios para piscina. Calidad pro y asesoría experta.
+            <img src="/Pooled blanco.svg" alt="Pooled" className="h-[200px] w-auto" />
+            <p className="text-sm leading-relaxed text-primary-foreground/70 mt-1 max-w-xs">
+              Luminarias LED subacuáticas de fabricación nacional. Tecnología propia, respaldo técnico real.
             </p>
           </div>
 
@@ -22,7 +22,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-3 text-sm text-primary-foreground/70">
               <li><Link to="/tienda" className="hover:text-white transition-colors">Catálogo</Link></li>
-              <li><Link to={{ pathname: '/', hash: '#kits' }} className="hover:text-white transition-colors">Kits prearmados</Link></li>
+              <li><Link to={{ pathname: '/', hash: '#kits' }} className="hover:text-white transition-colors">Kits de instalación completos</Link></li>
               <li><Link to={{ pathname: '/', hash: '#guia' }} className="hover:text-white transition-colors">Guía de compra</Link></li>
               <li><Link to={{ pathname: '/', hash: '#faq' }} className="hover:text-white transition-colors">Preguntas frecuentes</Link></li>
               <li><Link to="/garantia" className="hover:text-white transition-colors">Garantía</Link></li>

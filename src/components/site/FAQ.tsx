@@ -6,19 +6,19 @@ const FAQS = [
     a: 'Despachamos en 24-48hs hábiles. La entrega varía entre 2 y 7 días según tu ubicación. Trabajamos con Andreani, OCA y Correo Argentino.',
   },
   {
-    q: '¿Las luminarias son aptas para piscinas con cloro o sal?',
+    q: '¿Las luminarias resisten el cloro y la sal?',
     a: 'Sí, todas nuestras luminarias tienen certificación IP68 y materiales resistentes al cloro y al agua salada.',
   },
   {
     q: '¿Tienen garantía?',
-    a: 'Todas las luminarias tienen garantía oficial de 1 año. La línea Osire incluye garantía extendida de 3 años.',
+    a: 'Las luminarias Nazar y Horus tienen garantía oficial de 1 año. La línea Osire incluye garantía extendida de 3 años. Productos Poolight hasta 6 meses de garantía oficial. El resto de productos tienen garantía por defecto de fabricación.',
   },
   {
-    q: '¿Necesito un electricista para instalar?',
+    q: '¿Necesito un instalador profesional?',
     a: 'Recomendamos instalación profesional. Igualmente, en cada producto incluimos manual con diagrama y videos paso a paso.',
   },
   {
-    q: '¿Puedo elegir colores y escenas?',
+    q: '¿Puedo controlar colores y programar escenas?',
     a: 'Sí, las luminarias RGB tienen 16 colores y múltiples escenas preprogramadas. Con el control Smart WiFi podés crear las propias.',
   },
   {
@@ -26,7 +26,7 @@ const FAQS = [
     a: 'Sí, aceptamos MercadoPago (todos los medios) y transferencia bancaria con 5% de descuento.',
   },
   {
-    q: '¿Trabajan con instaladores y tiendas?',
+    q: '¿Tienen condiciones para instaladores y distribuidores?',
     a: 'Sí, tenemos un programa de distribuidores con precios mayoristas. Completá el formulario en la sección "Distribuidores".',
   },
 ];

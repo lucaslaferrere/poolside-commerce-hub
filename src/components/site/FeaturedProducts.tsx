@@ -72,10 +72,10 @@ export function FeaturedProducts() {
               Catálogo
             </span>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mt-1 text-slate-900">
-              Productos destacados
+              Catálogo técnico
             </h2>
             <p className="text-muted-foreground mt-1.5 text-sm max-w-md">
-              Lo mejor en luminarias, controladores y accesorios para que tu piscina brille.
+              Luminarias, controladores y accesorios de fabricación nacional.
             </p>
           </div>
           <Link

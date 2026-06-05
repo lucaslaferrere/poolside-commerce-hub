@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
 import {
@@ -13,7 +13,12 @@ import {
   User,
   MapPin,
   StickyNote,
+  Package,
+  FileText,
+  ChevronDown,
+  Clock,
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +27,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCart } from '@/store/cart';
 import { formatPrice, type CartItem } from '@/types/shop';
 import { apiPost } from '@/lib/api';
+import { calcShipping, PROVINCES } from '@/lib/shipping';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -31,17 +37,23 @@ interface CheckoutResult {
   sandbox_init_point?: string;
 }
 
-type Payment = 'mercadopago' | 'transferencia';
+type Payment  = 'mercadopago' | 'transferencia';
+type Delivery = 'envio' | 'retirar';
 
-// All fields are required — including notes — per the brief.
+const TRANSFER_DISCOUNT = 0.035; // 3.5%
+
 const schema = z.object({
   customer_name:    z.string().trim().min(3, 'Ingresá tu nombre completo').max(200),
   customer_email:   z.string().trim().email('Email inválido').max(255),
   customer_phone:   z.string().trim().min(8, 'Teléfono incompleto').max(30),
-  shipping_address: z.string().trim().min(5, 'Dirección requerida').max(300),
-  shipping_city:    z.string().trim().min(2, 'Ciudad requerida').max(100),
-  shipping_zip:     z.string().trim().min(4, 'Código postal inválido').max(15),
-  notes:            z.string().trim().min(1, 'Escribí alguna aclaración para la entrega').max(1000),
+  dni_cuit:         z.string().trim().min(7, 'Ingresá tu DNI o CUIT').max(30),
+  shipping_address:  z.string().trim().max(300).optional().or(z.literal('')),
+  shipping_province: z.string().trim().max(100).optional().or(z.literal('')),
+  shipping_city:     z.string().trim().max(100).optional().or(z.literal('')),
+  shipping_zip:      z.string().trim().max(15).optional().or(z.literal('')),
+  notes:            z.string().trim().max(1000).optional().or(z.literal('')),
+  razon_social:     z.string().trim().max(200).optional().or(z.literal('')),
+  cuit_factura:     z.string().trim().max(30).optional().or(z.literal('')),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -50,34 +62,35 @@ const BLANK: FormValues = {
   customer_name: '',
   customer_email: '',
   customer_phone: '',
+  dni_cuit: '',
   shipping_address: '',
+  shipping_province: '',
   shipping_city: '',
   shipping_zip: '',
   notes: '',
+  razon_social: '',
+  cuit_factura: '',
 };
 
-function calcShipping(zip: string, sub: number): number {
-  if (sub >= 200000) return 0;
-  if (!zip || zip.length < 4) return 0;
-  const n = parseInt(zip.slice(0, 1), 10);
-  if (n <= 1) return 4500;
-  if (n <= 5) return 7800;
-  return 12500;
-}
 
 export default function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState<FormValues>(BLANK);
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
-  const [payment, setPayment] = useState<Payment>('mercadopago');
+  const [payment,      setPayment]      = useState<Payment>('mercadopago');
+  const [delivery,     setDelivery]     = useState<Delivery>('envio');
+  const [wantsFactura, setWantsFactura] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [result, setResult] = useState<CheckoutResult | null>(null);
 
-  const sub = subtotal();
-  const shipping = calcShipping(form.shipping_zip, sub);
-  const total = sub + shipping;
+  const sub          = subtotal();
+  const shippingQuote = delivery === 'retirar' ? null : calcShipping(form.shipping_province ?? '', 1);
+  const shippingCost  = shippingQuote?.price ?? 0;
+  const discount      = payment === 'transferencia' ? Math.round(sub * TRANSFER_DISCOUNT) : 0;
+  const total         = sub + shippingCost - discount;
 
   // Empty cart guard — only when not in success state (clear() empties items
   // after a successful submit, but we still want to show the success panel).
@@ -103,6 +116,24 @@ export default function CheckoutPage() {
       if (first) document.getElementById(`co-${first}`)?.focus();
       return;
     }
+    // Validate Factura A fields when requested
+    if (wantsFactura) {
+      const extra: Partial<Record<keyof FormValues, string>> = {};
+      if (!form.razon_social?.trim()) extra.razon_social = 'Razón social requerida';
+      if (!form.cuit_factura?.trim()) extra.cuit_factura = 'CUIT requerido';
+      if (Object.keys(extra).length) { setErrors(extra); return; }
+    }
+
+    // Validate shipping fields only when delivery = envio
+    if (delivery === 'envio') {
+      const extra: Partial<Record<keyof FormValues, string>> = {};
+      if (!form.shipping_address?.trim())  extra.shipping_address  = 'Dirección requerida';
+      if (!form.shipping_province?.trim()) extra.shipping_province = 'Provincia requerida';
+      if (!form.shipping_city?.trim())     extra.shipping_city     = 'Ciudad requerida';
+      if (!form.shipping_zip?.trim() || form.shipping_zip.trim().length < 4) extra.shipping_zip = 'Código postal inválido';
+      if (Object.keys(extra).length) { setErrors(extra); return; }
+    }
+
     setErrors({});
     setLoading(true);
     try {
@@ -110,19 +141,27 @@ export default function CheckoutPage() {
         customer_name:    parsed.data.customer_name,
         customer_email:   parsed.data.customer_email,
         customer_phone:   parsed.data.customer_phone,
-        shipping_address: parsed.data.shipping_address,
-        shipping_city:    parsed.data.shipping_city,
-        shipping_zip:     parsed.data.shipping_zip,
+        shipping_address:  delivery === 'retirar' ? 'RETIRO EN LOCAL' : (parsed.data.shipping_address  ?? ''),
+        shipping_province: delivery === 'retirar' ? '' : (parsed.data.shipping_province ?? ''),
+        shipping_city:     delivery === 'retirar' ? '' : (parsed.data.shipping_city     ?? ''),
+        shipping_zip:      delivery === 'retirar' ? '' : (parsed.data.shipping_zip      ?? ''),
         notes:            parsed.data.notes,
         items: items.map((i) => ({
           product_id: i.id.split('|')[0],
           variant_sku: i.variant_sku ?? '',
           quantity: i.quantity,
         })),
+        dni_cuit:        parsed.data.dni_cuit,
         subtotal: sub,
-        shipping_cost: shipping,
+        shipping_cost: shippingCost,
+        discount,
         total,
-        payment_method: payment,
+        payment_method:  payment,
+        delivery_method: delivery,
+        factura_a: wantsFactura ? {
+          razon_social: parsed.data.razon_social ?? '',
+          cuit:         parsed.data.cuit_factura ?? '',
+        } : undefined,
       });
       setResult(r);
       setDone(true);
@@ -131,6 +170,21 @@ export default function CheckoutPage() {
       const mpUrl = r.init_point || r.sandbox_init_point;
       if (mpUrl && payment === 'mercadopago') {
         window.location.href = mpUrl;
+      } else if (payment === 'transferencia' && r.order?.id) {
+        navigate(`/transferencia/${r.order.id}`, {
+          state: {
+            total,
+            orderId: r.order.id,
+            items: items.map((i) => ({
+              name:       i.name,
+              variant_sku: i.variant_sku ?? '',
+              quantity:   i.quantity,
+              unit_price: i.price,
+            })),
+            shippingCost,
+            discount,
+          },
+        });
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -169,7 +223,7 @@ export default function CheckoutPage() {
 
             {/* Mobile-only summary at top */}
             <div className="lg:hidden mb-8">
-              <OrderSummary items={items} sub={sub} shipping={shipping} total={total} />
+              <OrderSummary items={items} sub={sub} shippingQuote={shippingQuote} discount={discount} total={total} delivery={delivery} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10">
@@ -193,49 +247,100 @@ export default function CheckoutPage() {
                       error={errors.customer_email}
                       autoComplete="email"
                     />
-                  </div>
-                  <Field
-                    id="co-customer_phone"
-                    label="Teléfono"
-                    type="tel"
-                    value={form.customer_phone}
-                    onChange={upd('customer_phone')}
-                    error={errors.customer_phone}
-                    autoComplete="tel"
-                    placeholder="11 1234-5678"
-                  />
-                </FormSection>
-
-                <FormSection icon={MapPin} title="Dirección de envío">
-                  <Field
-                    id="co-shipping_address"
-                    label="Dirección"
-                    value={form.shipping_address}
-                    onChange={upd('shipping_address')}
-                    error={errors.shipping_address}
-                    placeholder="Av. Siempre Viva 1234, depto 5B"
-                    autoComplete="street-address"
-                  />
-                  <div className="grid sm:grid-cols-[1fr_140px] gap-4">
                     <Field
-                      id="co-shipping_city"
-                      label="Ciudad"
-                      value={form.shipping_city}
-                      onChange={upd('shipping_city')}
-                      error={errors.shipping_city}
-                      autoComplete="address-level2"
+                      id="co-customer_phone"
+                      label="Teléfono"
+                      type="tel"
+                      value={form.customer_phone}
+                      onChange={upd('customer_phone')}
+                      error={errors.customer_phone}
+                      autoComplete="tel"
+                      placeholder="11 1234-5678"
                     />
                     <Field
-                      id="co-shipping_zip"
-                      label="Código postal"
-                      value={form.shipping_zip}
-                      onChange={upd('shipping_zip')}
-                      error={errors.shipping_zip}
-                      autoComplete="postal-code"
+                      id="co-dni_cuit"
+                      label="DNI / CUIT"
+                      value={form.dni_cuit ?? ''}
+                      onChange={upd('dni_cuit')}
+                      error={errors.dni_cuit}
+                      placeholder="Ej: 20-12345678-9"
                       inputMode="numeric"
                     />
                   </div>
                 </FormSection>
+
+                <FormSection icon={Truck} title="Método de entrega">
+                  <RadioGroup
+                    value={delivery}
+                    onValueChange={(v) => setDelivery(v as Delivery)}
+                    className="grid sm:grid-cols-2 gap-2"
+                  >
+                    <PayOption value="envio"   icon={<Truck   className="h-4 w-4" />} label="Envío a domicilio" current={delivery} />
+                    <PayOption value="retirar" icon={<Package className="h-4 w-4" />} label="Retirar"           current={delivery} />
+                  </RadioGroup>
+                  {delivery === 'retirar' && (
+                    <p className="text-xs text-neutral-500 mt-1">
+                      Te contactamos para coordinar el retiro.
+                    </p>
+                  )}
+                </FormSection>
+
+                {delivery === 'envio' && (
+                  <FormSection icon={MapPin} title="Dirección de envío">
+                    <Field
+                      id="co-shipping_address"
+                      label="Dirección"
+                      value={form.shipping_address ?? ''}
+                      onChange={upd('shipping_address')}
+                      error={errors.shipping_address}
+                      placeholder="Av. Siempre Viva 1234, depto 5B"
+                      autoComplete="street-address"
+                    />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="co-shipping_province" className="text-xs font-medium text-neutral-700">
+                        Provincia <span className="text-danger">*</span>
+                      </Label>
+                      <Select
+                        value={form.shipping_province ?? ''}
+                        onValueChange={(v) => setForm((f) => ({ ...f, shipping_province: v }))}
+                      >
+                        <SelectTrigger
+                          id="co-shipping_province"
+                          className={cn(errors.shipping_province && 'border-danger focus-visible:ring-danger/30')}
+                        >
+                          <SelectValue placeholder="Seleccioná tu provincia" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROVINCES.map((p) => (
+                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.shipping_province && (
+                        <p className="text-xs text-danger">{errors.shipping_province}</p>
+                      )}
+                    </div>
+                    <div className="grid sm:grid-cols-[1fr_140px] gap-4">
+                      <Field
+                        id="co-shipping_city"
+                        label="Ciudad"
+                        value={form.shipping_city ?? ''}
+                        onChange={upd('shipping_city')}
+                        error={errors.shipping_city}
+                        autoComplete="address-level2"
+                      />
+                      <Field
+                        id="co-shipping_zip"
+                        label="Código postal"
+                        value={form.shipping_zip ?? ''}
+                        onChange={upd('shipping_zip')}
+                        error={errors.shipping_zip}
+                        autoComplete="postal-code"
+                        inputMode="numeric"
+                      />
+                    </div>
+                  </FormSection>
+                )}
 
                 <FormSection icon={CreditCard} title="Método de pago">
                   <RadioGroup
@@ -248,15 +353,55 @@ export default function CheckoutPage() {
                   </RadioGroup>
                   {payment === 'transferencia' && (
                     <p className="text-xs text-success font-medium mt-1">
-                      5% de descuento extra al confirmar.
+                      3.5% de descuento extra al confirmar.
                     </p>
                   )}
                 </FormSection>
 
+                {/* Factura A */}
+                <div className="rounded-lg border border-neutral-200 bg-white shadow-xs overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setWantsFactura((v) => !v)}
+                    className="w-full flex items-center justify-between p-5 sm:p-6 text-left hover:bg-neutral-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="grid place-items-center h-7 w-7 rounded-md bg-brand/10 text-brand">
+                        <FileText className="h-4 w-4" />
+                      </span>
+                      <span className="font-display text-base font-semibold text-neutral-900">Factura A</span>
+                      <span className="text-xs text-neutral-400 font-normal">(opcional)</span>
+                    </div>
+                    <ChevronDown className={cn('h-4 w-4 text-neutral-400 transition-transform', wantsFactura && 'rotate-180')} />
+                  </button>
+                  {wantsFactura && (
+                    <div className="px-5 pb-5 sm:px-6 sm:pb-6 space-y-4 border-t border-neutral-100 pt-4">
+                      <Field
+                        id="co-razon_social"
+                        label="Razón social"
+                        value={form.razon_social ?? ''}
+                        onChange={upd('razon_social')}
+                        error={errors.razon_social}
+                        placeholder="Nombre de la empresa o persona jurídica"
+                        autoComplete="organization"
+                      />
+                      <Field
+                        id="co-cuit_factura"
+                        label="CUIT"
+                        value={form.cuit_factura ?? ''}
+                        onChange={upd('cuit_factura')}
+                        error={errors.cuit_factura}
+                        placeholder="20-12345678-9"
+                        inputMode="numeric"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <FormSection icon={StickyNote} title="Notas del pedido">
                   <div className="space-y-1.5">
                     <Label htmlFor="co-notes" className="text-xs font-medium text-neutral-700">
-                      Aclaraciones <span className="text-danger">*</span>
+                      Aclaraciones <span className="text-neutral-400 font-normal">(opcional)</span>
                     </Label>
                     <Textarea
                       id="co-notes"
@@ -290,7 +435,7 @@ export default function CheckoutPage() {
               {/* Desktop sticky summary */}
               <aside className="hidden lg:block">
                 <div className="lg:sticky lg:top-24">
-                  <OrderSummary items={items} sub={sub} shipping={shipping} total={total} />
+                  <OrderSummary items={items} sub={sub} shippingQuote={shippingQuote} discount={discount} total={total} delivery={delivery} />
                 </div>
               </aside>
             </div>
@@ -454,13 +599,17 @@ function PayOption({
 function OrderSummary({
   items,
   sub,
-  shipping,
+  shippingQuote,
+  discount,
   total,
+  delivery,
 }: {
   items: CartItem[];
   sub: number;
-  shipping: number;
+  shippingQuote: { price: number; days: string; zone: string } | null;
+  discount: number;
   total: number;
+  delivery: Delivery;
 }) {
   return (
     <section className="rounded-lg border border-neutral-200 bg-white p-5 shadow-xs">
@@ -503,15 +652,31 @@ function OrderSummary({
           <span className="flex items-center gap-1.5">
             <Truck className="h-3.5 w-3.5" /> Envío
           </span>
-          <span
-            className={cn(
-              'tabular-nums',
-              shipping === 0 ? 'text-success font-semibold' : 'text-neutral-900',
-            )}
-          >
-            {shipping === 0 ? 'Gratis' : formatPrice(shipping)}
+          <span className={cn('tabular-nums text-right', delivery === 'retirar' ? 'text-neutral-900' : (!shippingQuote ? 'text-neutral-400 italic' : 'text-neutral-900'))}>
+            {delivery === 'retirar'
+              ? 'Zona Pilar'
+              : shippingQuote
+                ? formatPrice(shippingQuote.price)
+                : 'Seleccioná provincia'}
           </span>
         </div>
+        {delivery === 'retirar' && (
+          <p className="text-xs text-neutral-400">
+            Nos contactamos para coordinar el envío.
+          </p>
+        )}
+        {delivery === 'envio' && shippingQuote && (
+          <div className="flex items-center gap-1 text-xs text-neutral-400">
+            <Clock className="h-3 w-3" />
+            {shippingQuote.days} · Zona {shippingQuote.zone}
+          </div>
+        )}
+        {discount > 0 && (
+          <div className="flex items-center justify-between text-success">
+            <span>Descuento transferencia (3.5%)</span>
+            <span className="tabular-nums font-medium">− {formatPrice(discount)}</span>
+          </div>
+        )}
         <div className="pt-3 border-t border-neutral-200 flex items-baseline justify-between">
           <span className="font-display font-semibold text-neutral-900">Total</span>
           <span className="font-display text-lg font-semibold text-brand tabular-nums">

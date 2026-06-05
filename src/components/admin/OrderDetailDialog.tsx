@@ -13,6 +13,7 @@ export function OrderDetailDialog({ order, onClose }: Props) {
 
   const sd = order.shipping_details;
 
+
   return (
     <Dialog open={!!order} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -23,6 +24,7 @@ export function OrderDetailDialog({ order, onClose }: Props) {
         </DialogHeader>
 
         <div className="space-y-5 text-sm">
+
           {/* Estado + fecha */}
           <div className="flex items-center justify-between">
             <StatusBadge status={order.status} />
@@ -38,15 +40,43 @@ export function OrderDetailDialog({ order, onClose }: Props) {
               <p className="font-medium">{order.customer_name}</p>
               <p>{order.customer_email}</p>
               <p>{order.customer_phone}</p>
+              <p className="text-xs text-neutral-500">
+                DNI/CUIT: <span className="text-neutral-700">{order.dni_cuit || '—'}</span>
+              </p>
             </div>
           </section>
 
-          {/* Envío */}
+          {/* Entrega */}
           <section>
-            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 mb-2">Envío</h3>
-            <p className="text-neutral-700">{sd.address}, {sd.city} ({sd.postal_code})</p>
-            {order.payment_method && (
-              <p className="text-xs text-neutral-500 mt-1 capitalize">Pago: {order.payment_method}</p>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 mb-2">Entrega</h3>
+            {order.delivery_method === 'retirar' ? (
+              <p className="text-neutral-700 font-medium">Retiro en local — Zona Pilar</p>
+            ) : (
+              <div className="space-y-0.5 text-neutral-700">
+                {sd.address && <p>{sd.address}</p>}
+                <p>{[sd.city, sd.province].filter(Boolean).join(', ')}{sd.postal_code ? ` (${sd.postal_code})` : ''}</p>
+              </div>
+            )}
+            <div className="flex gap-3 mt-1.5 text-xs text-neutral-500">
+              {order.payment_method && (
+                <span>Pago: {order.payment_method.replace('mercadopago', 'MercadoPago')}</span>
+              )}
+              {order.delivery_method && (
+                <span>Entrega: {order.delivery_method === 'retirar' ? 'Retiro' : 'Envío'}</span>
+              )}
+            </div>
+          </section>
+
+          {/* Factura A */}
+          <section>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 mb-2">Factura A</h3>
+            {order.factura_a ? (
+              <div className="space-y-1 text-neutral-700">
+                <p className="font-medium">{order.factura_a.razon_social}</p>
+                <p className="text-xs text-neutral-500">CUIT: {order.factura_a.cuit}</p>
+              </div>
+            ) : (
+              <p className="text-neutral-400">No</p>
             )}
           </section>
 
@@ -57,9 +87,10 @@ export function OrderDetailDialog({ order, onClose }: Props) {
               {order.items.map((item, i) => (
                 <li key={i} className="flex items-center justify-between gap-2 px-3 py-2.5">
                   <div className="min-w-0">
-                    <p className="font-mono text-xs text-neutral-500 truncate">
-                      {item.variant_sku || item.product_id.slice(-8).toUpperCase()}
-                    </p>
+                    <p className="font-medium truncate">{item.name || item.variant_sku || item.product_id.slice(-8).toUpperCase()}</p>
+                    {item.name && item.variant_sku && (
+                      <p className="font-mono text-xs text-neutral-500 truncate">{item.variant_sku}</p>
+                    )}
                     <p className="text-xs text-neutral-500">× {item.quantity}</p>
                   </div>
                   <div className="text-right shrink-0">
@@ -71,11 +102,31 @@ export function OrderDetailDialog({ order, onClose }: Props) {
             </ul>
           </section>
 
-          {/* Total */}
-          <div className="flex items-center justify-between border-t border-neutral-200 pt-3 font-semibold">
-            <span>Total</span>
-            <span className="tabular-nums text-base">{formatPrice(order.total)}</span>
-          </div>
+          {/* Totales */}
+          <section className="border-t border-neutral-200 pt-3 space-y-2 text-sm">
+            <div className="flex justify-between text-neutral-500">
+              <span>Subtotal productos</span>
+              <span className="tabular-nums text-neutral-700">
+                {formatPrice(order.items.reduce((s, i) => s + i.unit_price * i.quantity, 0))}
+              </span>
+            </div>
+            {order.shipping_cost != null && order.shipping_cost > 0 && (
+              <div className="flex justify-between text-neutral-500">
+                <span>Envío</span>
+                <span className="tabular-nums text-neutral-700">{formatPrice(order.shipping_cost)}</span>
+              </div>
+            )}
+            {order.discount != null && order.discount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Descuento transferencia</span>
+                <span className="tabular-nums">− {formatPrice(order.discount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-semibold pt-1 border-t border-neutral-200">
+              <span>Total</span>
+              <span className="tabular-nums text-base">{formatPrice(order.total)}</span>
+            </div>
+          </section>
 
           {/* Notas */}
           {order.notes && (
@@ -96,6 +147,7 @@ export function OrderDetailDialog({ order, onClose }: Props) {
               )}
             </section>
           )}
+
         </div>
       </DialogContent>
     </Dialog>

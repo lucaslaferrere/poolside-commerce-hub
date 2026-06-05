@@ -77,9 +77,9 @@ const COLOR_OPTIONS = [
 const LINES = ['osire', 'profesional', 'poolight'] as const;
 
 const LINE_META_WIZARD: Record<string, { label: string; badgeClass: string }> = {
-  osire:       { label: 'Premium',     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200' },
-  profesional: { label: 'Profesional', badgeClass: 'bg-sky-100 text-sky-700 border-sky-200' },
-  poolight:    { label: 'Esencial',    badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  osire:       { label: 'Ultimate',     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200' },
+  profesional: { label: 'Premium', badgeClass: 'bg-sky-100 text-sky-700 border-sky-200' },
+  poolight:    { label: 'Standard',    badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
 };
 
 const STAGE_PROGRESS: Record<Stage, number> = {

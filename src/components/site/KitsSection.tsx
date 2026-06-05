@@ -60,19 +60,19 @@ interface LineMeta {
 const LINE_META: Record<string, LineMeta> = {
   osire: {
     title: 'Línea OSIRE',
-    badge: 'Premium',
-    description: 'Máxima potencia para proyectos de alta exigencia.',
+    badge: 'Ultimate',
+    description: 'Alta potencia y protección térmica activa para proyectos premium.',
     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
   },
   profesional: {
-    title: 'Línea Profesional',
-    badge: 'Profesional',
+    title: 'Línea HORUS y NAZAR',
+    badge: 'Premium',
     description: 'Alto rendimiento para piscinas residenciales, con opciones de mayor potencia o formato compacto según el proyecto.',
     badgeClass: 'bg-sky-100 text-sky-700 border-sky-200',
   },
   poolight: {
-    title: 'Línea Esencial',
-    badge: 'Esencial',
+    title: 'Línea Poolight',
+    badge: 'Standard',
     description: 'Instalación simple para renovar o sumar luz.',
     badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   },
@@ -363,9 +363,9 @@ export function KitsSection() {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
           <span className="text-sm font-semibold text-primary uppercase tracking-wider">Combos</span>
-          <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance">Kits prearmados</h2>
+          <h2 className="font-display text-3xl md:text-5xl font-bold mt-2 text-balance">Kits de instalación completos</h2>
           <p className="text-muted-foreground mt-3 text-balance">
-            Todo lo que necesitás en un solo paquete — instalación más rápida y mejor precio que comprando suelto.
+            Todo lo necesario para una instalación profesional. Precio optimizado y menor tiempo de puesta en marcha
           </p>
         </div>
 

@@ -17,7 +17,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -268,32 +267,22 @@ export default function ProductDetailPage() {
   // ── Product page ───────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-background">
-      <div className="pt-16">
+      <div className="pt-20">
         {/* ── Breadcrumb strip ────────────────────────────────────────────── */}
         <div className="border-b bg-slate-50/70">
           <div className="container py-3 flex items-center justify-between gap-4">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link
-                      to="/"
-                      className="text-muted-foreground hover:text-primary transition-colors text-xs"
-                    >
-                      Inicio
-                    </Link>
-                  </BreadcrumbLink>
+                  <Link to="/" className="text-muted-foreground hover:text-primary transition-colors text-xs">
+                    Inicio
+                  </Link>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link
-                      to="/tienda"
-                      className="text-muted-foreground hover:text-primary transition-colors text-xs"
-                    >
-                      Tienda
-                    </Link>
-                  </BreadcrumbLink>
+                  <Link to="/tienda" className="text-muted-foreground hover:text-primary transition-colors text-xs">
+                    Tienda
+                  </Link>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>

@@ -44,6 +44,9 @@ const LINE_META: Record<string, { label: string; badgeClass: string }> = {
   poolight:    { label: 'Esencial',     badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
 };
 
+const ADAPTADOR_ID = '6a033ba83005b0f5d1857695'; // Adaptador de pared
+const TUERCA_ID    = '6a033b883005b0f5d1857694'; // Tuerca con sello de goma
+
 const GENERIC_ITEMS: Record<string, string[]> = {
   chica:   ['1 luminaria LED RGB', 'Control inalámbrico', 'Cable y accesorios'],
   mediana: ['2 luminarias LED RGB', 'Control inalámbrico', 'Cable y conexiones'],
@@ -66,6 +69,22 @@ export default function KitDetailPage() {
     for (const p of productsData ?? []) map.set(p.id, p.name);
     return map;
   }, [productsData]);
+
+  const adaptador = useMemo(() => (productsData ?? []).find((p) => p.id === ADAPTADOR_ID), [productsData]);
+  const tuerca    = useMemo(() => (productsData ?? []).find((p) => p.id === TUERCA_ID),    [productsData]);
+
+  const addAccessory = (product: typeof adaptador) => {
+    if (!product) return;
+    add({
+      id: product.id,
+      name: product.name,
+      price: Number(product.base_price),
+      image_url: resolveImageUrl(product.images?.[0]) || null,
+    });
+    triggerSplash();
+    toast.success('Agregado al carrito', { description: product.name });
+    setTimeout(() => openCart(), 650);
+  };
 
   const items = useMemo(() => {
     if (!kit) return [];
@@ -281,6 +300,55 @@ export default function KitDetailPage() {
                   </ul>
                 </div>
               )}
+
+              {/* Compatibilidad según tipo de piscina */}
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 space-y-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700 flex items-center gap-1.5">
+                  ⚠️ Verificá tu tipo de piscina
+                </p>
+                <ul className="space-y-2.5 text-sm text-slate-700">
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 mt-0.5">🏗️</span>
+                    <span>
+                      <strong>Hormigón en construcción:</strong> No necesitás nada extra — la virola para empotrar ya viene incluida.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 mt-0.5">🔧</span>
+                    <span>
+                      <strong>Hormigón ya construida (o recambio):</strong> Sumá el{' '}
+                      {adaptador ? (
+                        <button
+                          onClick={() => addAccessory(adaptador)}
+                          className="inline-flex items-center gap-1 text-primary font-semibold underline underline-offset-2 cursor-pointer hover:text-primary/70"
+                        >
+                          adaptador de pared →
+                        </button>
+                      ) : (
+                        <span className="text-primary font-semibold">adaptador de pared</span>
+                      )}{' '}
+                      para instalar sin romper la pared.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 mt-0.5">🌊</span>
+                    <span>
+                      <strong>Fibra de vidrio (PRFV):</strong> Agregá la{' '}
+                      {tuerca ? (
+                        <button
+                          onClick={() => addAccessory(tuerca)}
+                          className="inline-flex items-center gap-1 text-primary font-semibold underline underline-offset-2 cursor-pointer hover:text-primary/70"
+                        >
+                          tuerca con sello de goma →
+                        </button>
+                      ) : (
+                        <span className="text-primary font-semibold">tuerca con sello de goma</span>
+                      )}{' '}
+                      obligatoria para garantizar la estanqueidad.
+                    </span>
+                  </li>
+                </ul>
+              </div>
 
               {/* CTA */}
               <Button

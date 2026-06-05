@@ -15,7 +15,7 @@ import {
 import foto1 from '@/assets/Screenshot 2026-05-13 150755.png';
 import foto2 from '@/assets/Screenshot 2026-05-13 150843.png';
 import foto3 from '@/assets/Screenshot 2026-05-13 150904.png';
-import avatar from '@/assets/Screenshot 2026-05-27 155549.png';
+import avatar from '@/assets/Gemini_Generated_Image_7ywj3h7ywj3h7ywj.png';
 
 interface Post {
   img: string;
@@ -63,9 +63,9 @@ export function InstagramFeed() {
             Comunidad
           </span>
           <h2 className="font-display text-3xl md:text-5xl font-semibold tracking-tight text-neutral-900 leading-[1.05] mt-5">
-            Inspiración real,
+            Proyectos reales.
             <br />
-            <span className="text-neutral-500">desde la comunidad.</span>
+            <span className="text-neutral-500">Instalaciones reales.</span>
           </h2>
           <p className="mt-5 text-neutral-500 max-w-md mx-auto leading-relaxed">
             Seguinos en{' '}
@@ -75,9 +75,9 @@ export function InstagramFeed() {
               rel="noopener noreferrer"
               className="text-brand font-medium hover:text-brand-hover transition-colors"
             >
-              @pooled.ok
+              @pooled.ok:
             </a>{' '}
-            para ver instalaciones completas, antes y después y novedades técnicas.
+            instalaciones reales, novedades técnicas y casos de proyecto.
           </p>
         </motion.div>
 

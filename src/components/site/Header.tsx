@@ -41,7 +41,7 @@ const EMPRESA_URL = 'https://empresa.pooled.com.ar';
 
 const ADMIN_NAV: { label: string; to: string; icon: typeof LayoutDashboard }[] = [
   { label: 'Dashboard', to: '/admin',  icon: LayoutDashboard },
-  { label: 'Pedidos',   to: '/orders', icon: ClipboardList },
+  { label: 'Pedidos',   to: '/admin/orders', icon: ClipboardList },
 ];
 
 export function Header() {
@@ -141,7 +141,7 @@ export function Header() {
           <img
             src={solid ? LOGO_DARK : LOGO_LIGHT}
             alt="Pooled"
-            className="h-10 sm:h-14 md:h-[200px] w-auto"
+            className="h-10 sm:h-14 md:h-[120px] w-auto"
           />
         </Link>
 

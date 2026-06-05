@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { RefreshCw, ShoppingBag, TrendingUp, Truck } from 'lucide-react';
+import { RefreshCw, ShoppingBag, TrendingUp, Truck, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { OrdersTable } from '@/components/admin/OrdersTable';
 import { OrderDetailDialog } from '@/components/admin/OrderDetailDialog';
@@ -15,8 +16,19 @@ export default function AdminOrdersPage() {
 
   const [viewing, setViewing] = useState<Order | null>(null);
   const [editing, setEditing] = useState<Order | null>(null);
+  const [search, setSearch] = useState('');
 
   const orders = data?.orders ?? [];
+
+  const filtered = search.trim() === '' ? orders : orders.filter((o) => {
+    const q = search.toLowerCase();
+    return (
+      o.id.slice(-8).toLowerCase().includes(q) ||
+      o.customer_name.toLowerCase().includes(q) ||
+      o.customer_email.toLowerCase().includes(q) ||
+      (o.customer_phone ?? '').includes(q)
+    );
+  });
 
   const stats = {
     total: orders.length,
@@ -59,8 +71,19 @@ export default function AdminOrdersPage() {
         <StatCard label="Ingresos" value={formatPrice(stats.revenue)} icon={TrendingUp} tone="success" />
       </div>
 
+      {/* Buscador */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+        <Input
+          placeholder="Buscar por N° pedido, nombre, email o teléfono..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <OrdersTable
-        orders={orders}
+        orders={filtered}
         isLoading={isLoading}
         onView={setViewing}
         onChangeStatus={setEditing}

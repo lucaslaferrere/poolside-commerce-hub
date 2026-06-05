@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+
+const toSlug = (name: string) =>
+  name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 import { ShoppingCart, Droplet, Flame } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

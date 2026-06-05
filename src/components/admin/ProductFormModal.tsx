@@ -232,6 +232,8 @@ export function ProductFormModal({
     const e: Partial<Record<keyof FormFields, string>> = {};
     if (!fields.name.trim()) e.name = 'El nombre es requerido';
     if (!fields.category) e.category = 'Seleccioná una categoría';
+    if (fields.category === 'luminarias' && !fields.brand.trim())
+      e.brand = 'La marca es obligatoria para luminarias';
     if (!fields.price || isNaN(Number(fields.price)) || Number(fields.price) < 0)
       e.price = 'Precio inválido';
     setErrors(e);
@@ -421,13 +423,36 @@ export function ProductFormModal({
                     )}
                   </div>
 
-                  <Field
-                    id="pf-brand"
-                    label="Marca"
-                    value={fields.brand}
-                    onChange={upd('brand')}
-                    placeholder="Pooled..."
-                  />
+                  {fields.category === 'luminarias' ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="pf-brand" className="text-xs font-medium">Marca *</Label>
+                      <Select
+                        value={fields.brand}
+                        onValueChange={(v) => setFields((f) => ({ ...f, brand: v }))}
+                      >
+                        <SelectTrigger
+                          id="pf-brand"
+                          className={cn(errors.brand && 'border-danger')}
+                        >
+                          <SelectValue placeholder="Seleccioná la marca" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['OSIRE', 'HORUS', 'NAZAR', 'POOLIGHT'].map((b) => (
+                            <SelectItem key={b} value={b}>{b}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.brand && <p className="text-xs text-danger">{errors.brand}</p>}
+                    </div>
+                  ) : (
+                    <Field
+                      id="pf-brand"
+                      label="Marca"
+                      value={fields.brand}
+                      onChange={upd('brand')}
+                      placeholder="Pooled..."
+                    />
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

@@ -58,6 +58,7 @@ export function OrdersTable({ orders, isLoading, onView, onChangeStatus }: Props
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-200 bg-neutral-50">
+              <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">N°</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Fecha</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Cliente</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Items</th>
@@ -70,6 +71,9 @@ export function OrdersTable({ orders, isLoading, onView, onChangeStatus }: Props
           <tbody className="divide-y divide-neutral-100">
             {orders.map((order) => (
               <tr key={order.id} className="hover:bg-neutral-50 transition-colors">
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className="font-mono text-xs text-neutral-500">#{order.id.slice(-8).toUpperCase()}</span>
+                </td>
                 <td className="px-4 py-3 text-neutral-500 whitespace-nowrap text-xs">
                   {new Date(order.created_at).toLocaleDateString('es-AR')}
                 </td>

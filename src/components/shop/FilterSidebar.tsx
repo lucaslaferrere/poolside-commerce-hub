@@ -1,4 +1,4 @@
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,12 +13,21 @@ import type { CategoryOption } from '@/hooks/useProducts';
 
 export type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
+const LUMINARIA_BRANDS = [
+  { id: 'OSIRE',    label: 'OSIRE' },
+  { id: 'HORUS',    label: 'HORUS' },
+  { id: 'NAZAR',    label: 'NAZAR' },
+  { id: 'POOLIGHT', label: 'POOLIGHT' },
+];
+
 interface FilterSidebarProps {
   categories: CategoryOption[];
   selected: string;
   onSelect: (id: string) => void;
   totalCount: number;
   loading?: boolean;
+  brandFilter?: string;
+  onBrandSelect?: (brand: string) => void;
 }
 
 function FilterPanel({
@@ -27,6 +36,8 @@ function FilterPanel({
   onSelect,
   totalCount,
   loading,
+  brandFilter = 'all',
+  onBrandSelect,
 }: FilterSidebarProps) {
   return (
     <div className="space-y-6">
@@ -61,6 +72,8 @@ function FilterPanel({
             : categories.map((cat) => {
                 const isActive = selected === cat.id;
                 const disabled = cat.count === 0;
+                const isLuminarias = cat.id === 'luminarias';
+                const showBrands = isActive && isLuminarias && onBrandSelect;
                 return (
                   <li key={cat.id}>
                     <button
@@ -76,9 +89,50 @@ function FilterPanel({
                         disabled && 'opacity-40 cursor-not-allowed hover:bg-transparent',
                       )}
                     >
-                      <span className="capitalize">{cat.label}</span>
+                      <span className="capitalize flex items-center gap-1.5">
+                        {cat.label}
+                        {isLuminarias && (
+                          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', isActive && 'rotate-180')} />
+                        )}
+                      </span>
                       <span className="text-xs tabular-nums opacity-70">{cat.count}</span>
                     </button>
+
+                    {/* Sub-filtro de marcas para Luminarias */}
+                    {showBrands && (
+                      <ul className="mt-1 ml-3 space-y-0.5 border-l-2 border-primary/20 pl-3">
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => onBrandSelect('all')}
+                            className={cn(
+                              'w-full text-left px-2 py-1.5 rounded-md text-xs transition-colors',
+                              brandFilter === 'all'
+                                ? 'text-primary font-semibold'
+                                : 'text-muted-foreground hover:text-primary',
+                            )}
+                          >
+                            Todas
+                          </button>
+                        </li>
+                        {LUMINARIA_BRANDS.map((b) => (
+                          <li key={b.id}>
+                            <button
+                              type="button"
+                              onClick={() => onBrandSelect(b.id)}
+                              className={cn(
+                                'w-full text-left px-2 py-1.5 rounded-md text-xs transition-colors',
+                                brandFilter === b.id
+                                  ? 'text-primary font-semibold'
+                                  : 'text-muted-foreground hover:text-primary',
+                              )}
+                            >
+                              {b.label}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 );
               })}

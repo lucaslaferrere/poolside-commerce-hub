@@ -56,6 +56,7 @@ export type OrderStatus =
 
 export interface OrderItem {
   product_id: string;
+  name?: string;
   variant_sku: string;
   quantity: number;
   unit_price: number;
@@ -70,9 +71,14 @@ export interface Order {
   customer_name: string;
   customer_email: string;
   customer_phone: string;
+  dni_cuit?: string;
   notes?: string;
   payment_method?: string;
-  shipping_details: { address: string; city: string; postal_code: string };
+  delivery_method?: string;
+  shipping_details: { address: string; city: string; province?: string; postal_code: string };
+  shipping_cost?: number;
+  discount?: number;
+  factura_a?: { razon_social: string; cuit: string };
   preference_id?: string;
   payment_id?: string;
   created_at: string;
