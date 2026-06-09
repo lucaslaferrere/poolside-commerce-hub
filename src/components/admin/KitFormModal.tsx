@@ -45,9 +45,10 @@ const POOL_SIZE_OPTIONS = [
 ];
 
 const LINE_OPTIONS = [
-  { value: 'osire',       label: 'OSIRE' },
-  { value: 'profesional', label: 'Profesional' },
-  { value: 'poolight',    label: 'Poolight' },
+  { value: 'osire',    label: 'OSIRE' },
+  { value: 'nazar',   label: 'NAZAR' },
+  { value: 'horus',   label: 'HORUS' },
+  { value: 'poolight', label: 'Poolight' },
 ];
 
 const MATERIAL_OPTIONS = [

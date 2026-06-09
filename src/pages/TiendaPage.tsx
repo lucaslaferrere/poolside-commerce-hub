@@ -96,10 +96,11 @@ const KIT_POOL_SIZES = [
 ];
 
 const KIT_LINES = [
-  { value: 'all',         label: 'Todas las líneas' },
-  { value: 'osire',       label: 'OSIRE' },
-  { value: 'profesional', label: 'Profesional' },
-  { value: 'poolight',    label: 'Poolight' },
+  { value: 'all',      label: 'Todas las líneas' },
+  { value: 'osire',    label: 'OSIRE' },
+  { value: 'nazar',    label: 'NAZAR' },
+  { value: 'horus',    label: 'HORUS' },
+  { value: 'poolight', label: 'Poolight' },
 ];
 
 export default function TiendaPage() {
