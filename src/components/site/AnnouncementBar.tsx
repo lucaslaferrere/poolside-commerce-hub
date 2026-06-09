@@ -6,7 +6,7 @@ const ITEMS = [
   { icon: ShieldCheck, text: 'Garantía oficial en todos los productos' },
 ];
 
-const TRACK = [...ITEMS, ...ITEMS];
+const TRACK = [...ITEMS, ...ITEMS, ...ITEMS, ...ITEMS];
 
 export function AnnouncementBar() {
   return (
@@ -14,7 +14,7 @@ export function AnnouncementBar() {
       <style>{`
         @keyframes marquee {
           0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          100% { transform: translateX(-25%); }
         }
         .marquee-track {
           animation: marquee 22s linear infinite;
