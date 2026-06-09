@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from '@/components/site/Header';
+import { AnnouncementBar } from '@/components/site/AnnouncementBar';
 import { CartDrawer } from '@/components/site/CartDrawer';
 import { WhatsAppFAB } from '@/components/site/WhatsAppFAB';
 import { WaterSplash } from '@/components/site/WaterSplash';
@@ -39,6 +40,7 @@ export function RootLayout({ children }: RootLayoutProps) {
   return (
     <>
       <ScrollToHash />
+      <AnnouncementBar />
       <Header />
       <main>{children}</main>
       <CartDrawer />

@@ -129,7 +129,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-50 transition-all duration-300',
+        'fixed inset-x-0 top-[34px] z-50 transition-all duration-300',
         solid
           ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-xs'
           : 'bg-transparent',
