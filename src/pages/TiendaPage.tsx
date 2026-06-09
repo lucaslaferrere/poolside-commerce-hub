@@ -178,7 +178,7 @@ export default function TiendaPage() {
         break;
     }
     return base;
-  }, [products, categoryFilter, sortBy]);
+  }, [products, categoryFilter, brandFilter, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
