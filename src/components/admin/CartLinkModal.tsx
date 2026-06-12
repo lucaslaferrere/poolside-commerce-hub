@@ -246,7 +246,7 @@ export function CartLinkModal({ open, onOpenChange }: Props) {
                     <input
                       readOnly
                       value={generatedUrl}
-                      className="flex-1 text-xs bg-muted rounded px-2 py-1.5 font-mono truncate border border-border"
+                      className="flex-1 text-xs bg-muted rounded px-2 py-1.5 font-mono border border-border overflow-x-auto"
                     />
                     <Button size="sm" variant="outline" onClick={copy} className={cn('shrink-0', copied && 'text-emerald-600')}>
                       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
