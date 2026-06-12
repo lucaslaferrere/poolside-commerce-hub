@@ -241,7 +241,7 @@ export function CartLinkModal({ open, onOpenChange }: Props) {
               {generatedUrl ? (
                 <div className="space-y-2">
                   <Separator />
-                  <p className="text-xs text-muted-foreground">Link generado (válido 72hs):</p>
+                  <p className="text-xs text-muted-foreground">Link generado (válido 30 días):</p>
                   <div className="flex gap-2">
                     <input
                       readOnly
