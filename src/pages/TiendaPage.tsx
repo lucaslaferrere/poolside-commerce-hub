@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { AlertCircle, Plus, Package, Sparkles } from 'lucide-react';
 import { Footer } from '@/components/site/Footer';
 import { Button } from '@/components/ui/button';
@@ -79,9 +79,14 @@ function KitStoreCard({ kit }: { kit: Kit }) {
             )}
             <span className="font-display font-semibold text-lg text-brand">{formatPrice(price)}</span>
           </div>
-          <Button onClick={handleAdd} size="sm" className="w-full h-9 text-xs font-medium bg-brand text-brand-foreground hover:bg-brand-hover">
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Agregar al carrito
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm" className="flex-1 h-9 text-xs border-primary/30 text-primary hover:bg-primary/5">
+              <Link to={`/kits/${kit.id}`}>Ver detalle</Link>
+            </Button>
+            <Button onClick={handleAdd} size="sm" className="flex-1 h-9 text-xs font-medium bg-brand text-brand-foreground hover:bg-brand-hover">
+              <Plus className="h-3.5 w-3.5 mr-1" /> Agregar
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -143,9 +148,11 @@ export default function TiendaPage() {
   }, [allKits, kitSizeFilter, kitLineFilter]);
   const { categories } = useCategories();
 
-  // Inject real kit count into the 'kits' category slot
+  // Inject real kit count into the 'kits' category slot; hide unknown legacy categories
   const augmentedCategories = useMemo(
-    () => categories.map((c) => (c.id === 'kits' ? { ...c, count: allKits.length } : c)),
+    () => categories
+      .filter((c) => !c.id.toLowerCase().includes('osire'))
+      .map((c) => (c.id === 'kits' ? { ...c, count: allKits.length } : c)),
     [categories, allKits],
   );
 

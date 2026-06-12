@@ -1,8 +1,5 @@
 import { motion } from 'framer-motion';
-
-const toSlug = (name: string) =>
-  name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +17,6 @@ interface Props {
 }
 
 export function ProductCard({ product, index = 0 }: Props) {
-  const navigate = useNavigate();
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
@@ -51,7 +47,8 @@ export function ProductCard({ product, index = 0 }: Props) {
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
     >
-      <Card className="group h-full overflow-hidden bg-card border border-neutral-200 rounded-lg shadow-xs hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5 transition-all duration-base ease-standard">
+      <Link to={`/tienda/${product.id}`} className="block h-full">
+      <Card className="group h-full overflow-hidden bg-card border border-neutral-200 rounded-lg shadow-xs hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5 transition-all duration-base ease-standard cursor-pointer">
         <div className="relative aspect-square overflow-hidden bg-neutral-50">
           {product.images?.[0] ? (
             <img
@@ -110,16 +107,10 @@ export function ProductCard({ product, index = 0 }: Props) {
               ) : (
                 <span className="font-display font-semibold text-xl text-brand">{formatPrice(product.base_price)}</span>
               )}
-              <button
-                onClick={() => navigate(`/tienda/${product.id}`)}
-                className="text-[11px] text-neutral-500 hover:text-brand underline-offset-2 hover:underline transition-colors duration-fast mt-0.5"
-              >
-                Ver detalles
-              </button>
             </div>
             <Button
               size="sm"
-              onClick={(e) => handleAdd(e)}
+              onClick={(e) => { e.preventDefault(); handleAdd(e); }}
               disabled={(product.stock ?? 0) === 0}
               className="bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed shadow-none"
             >
@@ -129,6 +120,7 @@ export function ProductCard({ product, index = 0 }: Props) {
           </div>
         </CardContent>
       </Card>
+      </Link>
     </motion.div>
     </>
   );
