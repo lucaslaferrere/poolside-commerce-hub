@@ -25,6 +25,7 @@ import WarrantyPage from './pages/WarrantyPage.tsx';
 import KitDetailPage from './pages/KitDetailPage.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import TransferInstructionsPage from './pages/TransferInstructionsPage.tsx';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage.tsx';
 
 function PageViewTracker() {
   const { pathname } = useLocation();
@@ -98,6 +99,7 @@ const App = () => (
               <Route path="/garantia" element={<WarrantyPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/transferencia/:orderId" element={<TransferInstructionsPage />} />
+              <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

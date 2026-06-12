@@ -136,7 +136,7 @@ export default function ProductDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="pt-16">
+        <div className="pt-24">
           <div className="border-b bg-slate-50/60">
             <div className="container py-3.5">
               <Skeleton className="h-4 w-52" />
@@ -267,7 +267,7 @@ export default function ProductDetailPage() {
   // ── Product page ───────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-background">
-      <div className="pt-20">
+      <div className="pt-24">
         {/* ── Breadcrumb strip ────────────────────────────────────────────── */}
         <div className="border-b bg-slate-50/70">
           <div className="container py-3 flex items-center justify-between gap-4">

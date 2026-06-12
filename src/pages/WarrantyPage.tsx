@@ -70,7 +70,7 @@ export default function WarrantyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pt-16">
+      <div className="pt-24">
 
 
         <div className="container max-w-3xl py-10 pb-20 space-y-10">

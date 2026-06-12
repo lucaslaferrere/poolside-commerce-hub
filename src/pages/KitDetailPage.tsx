@@ -121,7 +121,7 @@ export default function KitDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="pt-16">
+        <div className="pt-24">
           <div className="border-b bg-slate-50/60">
             <div className="container py-3.5">
               <Skeleton className="h-4 w-52" />
@@ -177,7 +177,7 @@ export default function KitDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pt-16">
+      <div className="pt-24">
 
         {/* Breadcrumb */}
         <div className="border-b bg-slate-50/70">
