@@ -80,27 +80,32 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const cartToken = searchParams.get('cart');
+  const [cartLinkLoading, setCartLinkLoading] = useState(!!cartToken);
+
   // Carga items desde un cart link si viene ?cart=TOKEN
   useEffect(() => {
-    const token = searchParams.get('cart');
-    if (!token || items.length > 0) return;
+    if (!cartToken || items.length > 0) {
+      setCartLinkLoading(false);
+      return;
+    }
     apiGet<{ items: Array<{ product_id: string; variant_sku: string; name: string; image_url: string; unit_price: number; quantity: number; type: string }> }>(
-      `/cart-links/${token}`
+      `/cart-links/${cartToken}`
     ).then((res) => {
       res.items.forEach((item) => {
-        for (let i = 0; i < item.quantity; i++) {
-          add({
-            id: item.product_id,
-            name: item.name,
-            price: item.unit_price,
-            image_url: item.image_url || null,
-            type: item.type as 'product' | 'kit',
-            variant_sku: item.variant_sku || undefined,
-          });
-        }
+        add({
+          id: item.product_id,
+          name: item.name,
+          price: item.unit_price,
+          image_url: item.image_url || null,
+          type: item.type as 'product' | 'kit',
+          variant_sku: item.variant_sku || undefined,
+        }, item.quantity);
       });
-    }).catch(() => {/* link expirado o inválido — el carrito queda vacío */});
-  }, [searchParams]);
+    }).catch(() => {/* link expirado o inválido */}).finally(() => {
+      setCartLinkLoading(false);
+    });
+  }, [cartToken]);
 
   const [form, setForm] = useState<FormValues>(BLANK);
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
@@ -117,9 +122,8 @@ export default function CheckoutPage() {
   const discount      = payment === 'transferencia' ? Math.round(sub * TRANSFER_DISCOUNT) : 0;
   const total         = sub + shippingCost - discount;
 
-  // Empty cart guard — only when not in success state (clear() empties items
-  // after a successful submit, but we still want to show the success panel).
-  if (items.length === 0 && !done) {
+  // Empty cart guard — espera a que se carguen items desde cart link antes de mostrar vacío
+  if (items.length === 0 && !done && !cartLinkLoading) {
     return <EmptyCartView />;
   }
 
