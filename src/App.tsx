@@ -88,14 +88,7 @@ const App = () => (
               <Route path="/tienda" element={<TiendaPage />} />
               <Route path="/tienda/:id" element={<ProductDetailPage />} />
               <Route path="/kits/:id" element={<KitDetailPage />} />
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <CheckoutPage />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/checkout" element={<CheckoutPage />} />
 
               <Route path="/garantia" element={<WarrantyPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
