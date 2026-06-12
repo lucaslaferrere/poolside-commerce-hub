@@ -40,10 +40,10 @@ const POOL_SIZE_LABEL: Record<string, string> = {
 
 const LINE_META: Record<string, { label: string; badgeClass: string }> = {
   osire:       { label: 'OSIRE',       badgeClass: 'bg-amber-100 text-amber-700 border-amber-200' },
-  nazar:       { label: 'NAZAR',       badgeClass: 'bg-sky-100 text-sky-700 border-sky-200' },
-  horus:       { label: 'HORUS',       badgeClass: 'bg-violet-100 text-violet-700 border-violet-200' },
-  profesional: { label: 'Profesional', badgeClass: 'bg-sky-100 text-sky-700 border-sky-200' },
-  poolight:    { label: 'Poolight',    badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  nazar:       { label: 'NAZAR',       badgeClass: 'bg-slate-200 text-slate-600 border-slate-300' },
+  horus:       { label: 'HORUS',       badgeClass: 'bg-slate-200 text-slate-600 border-slate-300' },
+  profesional: { label: 'Profesional', badgeClass: 'bg-slate-200 text-slate-600 border-slate-300' },
+  poolight:    { label: 'Poolight',    badgeClass: 'bg-sky-100 text-sky-700 border-sky-200' },
 };
 
 const ADAPTADOR_ID = '6a033ba83005b0f5d1857695'; // Adaptador de pared

@@ -64,27 +64,40 @@ const LINE_META: Record<string, LineMeta> = {
     description: 'Alta potencia y protección térmica activa para proyectos premium.',
     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
   },
+  nazar: {
+    title: 'Línea NAZAR',
+    badge: 'Premium',
+    description: 'Alto rendimiento para piscinas residenciales con formato compacto.',
+    badgeClass: 'bg-slate-200 text-slate-600 border-slate-300',
+  },
+  horus: {
+    title: 'Línea HORUS',
+    badge: 'Premium',
+    description: 'Alta potencia para instalaciones residenciales exigentes.',
+    badgeClass: 'bg-slate-200 text-slate-600 border-slate-300',
+  },
   profesional: {
     title: 'Línea HORUS y NAZAR',
     badge: 'Premium',
-    description: 'Alto rendimiento para piscinas residenciales, con opciones de mayor potencia o formato compacto según el proyecto.',
-    badgeClass: 'bg-sky-100 text-sky-700 border-sky-200',
+    description: 'Alto rendimiento para piscinas residenciales.',
+    badgeClass: 'bg-slate-200 text-slate-600 border-slate-300',
   },
   poolight: {
     title: 'Línea Poolight',
     badge: 'Standard',
     description: 'Instalación simple para renovar o sumar luz.',
-    badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    badgeClass: 'bg-sky-100 text-sky-700 border-sky-200',
   },
 };
 
-const LINE_ORDER = ['osire', 'profesional', 'poolight'];
+const LINE_ORDER = ['osire', 'nazar', 'horus', 'profesional', 'poolight'];
 
 /** Infers the line from the kit name when the `line` field hasn't been set yet. */
 function inferLine(kit: Kit): string {
   const n = kit.name.toLowerCase();
   if (n.includes('osire')) return 'osire';
-  if (n.includes('horus') || n.includes('nazar')) return 'profesional';
+  if (n.includes('nazar')) return 'nazar';
+  if (n.includes('horus')) return 'horus';
   if (n.includes('poolight')) return 'poolight';
   return '';
 }
