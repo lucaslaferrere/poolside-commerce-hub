@@ -116,6 +116,11 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                 {deliveryLabel}
               </span>
             </div>
+            {order.tracking_number && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                N° de seguimiento: <span className="font-mono text-foreground">{order.tracking_number}</span>
+              </p>
+            )}
           </section>
 
           {/* Factura A */}

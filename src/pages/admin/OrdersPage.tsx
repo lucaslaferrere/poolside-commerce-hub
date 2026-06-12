@@ -26,7 +26,8 @@ export default function AdminOrdersPage() {
       o.id.slice(-8).toLowerCase().includes(q) ||
       o.customer_name.toLowerCase().includes(q) ||
       o.customer_email.toLowerCase().includes(q) ||
-      (o.customer_phone ?? '').includes(q)
+      (o.customer_phone ?? '').includes(q) ||
+      (o.tracking_number ?? '').toLowerCase().includes(q)
     );
   });
 

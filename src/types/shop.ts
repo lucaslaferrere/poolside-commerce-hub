@@ -79,6 +79,7 @@ export interface Order {
   shipping_cost?: number;
   discount?: number;
   factura_a?: { razon_social: string; cuit: string };
+  tracking_number?: string;
   preference_id?: string;
   payment_id?: string;
   created_at: string;

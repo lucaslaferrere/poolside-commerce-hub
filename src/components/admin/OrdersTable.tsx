@@ -65,6 +65,7 @@ export function OrdersTable({ orders, isLoading, onView, onChangeStatus }: Props
               <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Total</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Estado</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Pago</th>
+              <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Tracking</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -92,6 +93,13 @@ export function OrdersTable({ orders, isLoading, onView, onChangeStatus }: Props
                 </td>
                 <td className="px-4 py-3 text-xs text-neutral-500 capitalize whitespace-nowrap">
                   {order.payment_method || '—'}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {order.tracking_number ? (
+                    <span className="font-mono text-xs text-neutral-700">{order.tracking_number}</span>
+                  ) : (
+                    <span className="text-xs text-neutral-300">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1 justify-end">

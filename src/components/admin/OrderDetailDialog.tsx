@@ -108,6 +108,11 @@ export function OrderDetailDialog({ order, onClose }: Props) {
                     {deliveryLabel}
                   </span>
                 </div>
+                {order.tracking_number && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Tracking: <span className="font-mono text-foreground">{order.tracking_number}</span>
+                  </p>
+                )}
               </section>
 
               {/* Factura A */}

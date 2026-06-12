@@ -20,8 +20,11 @@ export function useAdminOrders() {
 export function useUpdateOrderStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      apiPatch<{ message: string }>(`/admin/orders/${id}/status`, { status }),
+    mutationFn: ({ id, status, trackingNumber }: { id: string; status: string; trackingNumber?: string }) =>
+      apiPatch<{ message: string }>(`/admin/orders/${id}/status`, {
+        status,
+        ...(trackingNumber ? { tracking_number: trackingNumber } : {}),
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK });
       toast.success('Estado actualizado');
