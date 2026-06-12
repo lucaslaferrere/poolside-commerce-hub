@@ -24,7 +24,7 @@ export function CartDrawer() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(o) => !o && close()}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col top-[34px] h-[calc(100vh-34px)]">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 font-display">
             <ShoppingBag className="h-5 w-5 text-secondary" />
