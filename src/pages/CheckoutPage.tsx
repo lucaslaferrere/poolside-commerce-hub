@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
 import {
@@ -25,8 +25,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCart } from '@/store/cart';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice, type CartItem } from '@/types/shop';
-import { apiPost } from '@/lib/api';
+import { apiPost, apiGet } from '@/lib/api';
 import { calcShipping, PROVINCES } from '@/lib/shipping';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -74,8 +75,32 @@ const BLANK: FormValues = {
 
 
 export default function CheckoutPage() {
-  const { items, subtotal, clear } = useCart();
+  const { items, subtotal, clear, add } = useCart();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Carga items desde un cart link si viene ?cart=TOKEN
+  useEffect(() => {
+    const token = searchParams.get('cart');
+    if (!token || items.length > 0) return;
+    apiGet<{ items: Array<{ product_id: string; variant_sku: string; name: string; image_url: string; unit_price: number; quantity: number; type: string }> }>(
+      `/cart-links/${token}`
+    ).then((res) => {
+      res.items.forEach((item) => {
+        for (let i = 0; i < item.quantity; i++) {
+          add({
+            id: item.product_id,
+            name: item.name,
+            price: item.unit_price,
+            image_url: item.image_url || null,
+            type: item.type as 'product' | 'kit',
+            variant_sku: item.variant_sku || undefined,
+          });
+        }
+      });
+    }).catch(() => {/* link expirado o inválido — el carrito queda vacío */});
+  }, [searchParams]);
 
   const [form, setForm] = useState<FormValues>(BLANK);
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
@@ -105,6 +130,14 @@ export default function CheckoutPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Si no está logueado, redirige a login y vuelve al checkout con los mismos params
+    if (!isAuthenticated) {
+      const returnTo = '/checkout' + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+      navigate(`/login?redirect=${encodeURIComponent(returnTo)}`);
+      return;
+    }
+
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
       const errs: Partial<Record<keyof FormValues, string>> = {};

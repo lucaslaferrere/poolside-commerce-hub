@@ -26,6 +26,7 @@ import KitDetailPage from './pages/KitDetailPage.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import TransferInstructionsPage from './pages/TransferInstructionsPage.tsx';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage.tsx';
+import LoginPage from './pages/LoginPage.tsx';
 
 function PageViewTracker() {
   const { pathname } = useLocation();
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/transferencia/:orderId" element={<TransferInstructionsPage />} />
               <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+              <Route path="/login" element={<LoginPage />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { RefreshCw, ShoppingBag, TrendingUp, Truck, Search } from 'lucide-react';
+import { RefreshCw, ShoppingBag, TrendingUp, Truck, Search, Link2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { OrdersTable } from '@/components/admin/OrdersTable';
 import { OrderDetailDialog } from '@/components/admin/OrderDetailDialog';
 import { OrderStatusDialog } from '@/components/admin/OrderStatusDialog';
+import { CartLinkModal } from '@/components/admin/CartLinkModal';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { AdminPageHeader } from './AdminLayout';
 import { formatPrice } from '@/types/shop';
@@ -17,6 +18,7 @@ export default function AdminOrdersPage() {
   const [viewing, setViewing] = useState<Order | null>(null);
   const [editing, setEditing] = useState<Order | null>(null);
   const [search, setSearch] = useState('');
+  const [cartLinkOpen, setCartLinkOpen] = useState(false);
 
   const orders = data?.orders ?? [];
 
@@ -46,14 +48,20 @@ export default function AdminOrdersPage() {
         title="Pedidos"
         description="Todos los pedidos recibidos."
         actions={
-          <Button
-            variant="outline" size="sm"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RefreshCw className={cn('h-3.5 w-3.5 mr-1', isFetching && 'animate-spin')} />
-            Actualizar
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCartLinkOpen(true)}>
+              <Link2 className="h-3.5 w-3.5 mr-1" />
+              Link de carrito
+            </Button>
+            <Button
+              variant="outline" size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+            >
+              <RefreshCw className={cn('h-3.5 w-3.5 mr-1', isFetching && 'animate-spin')} />
+              Actualizar
+            </Button>
+          </div>
         }
       />
 
@@ -92,6 +100,7 @@ export default function AdminOrdersPage() {
 
       <OrderDetailDialog order={viewing} onClose={() => setViewing(null)} />
       <OrderStatusDialog order={editing} onClose={() => setEditing(null)} />
+      <CartLinkModal open={cartLinkOpen} onOpenChange={setCartLinkOpen} />
     </>
   );
 }
