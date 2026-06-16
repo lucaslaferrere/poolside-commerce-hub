@@ -592,7 +592,7 @@ export default function ProductDetailPage() {
                 <Button
                   size="lg"
                   onClick={handleAddToCart}
-                  disabled={!inStock}
+                  disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize)}
                   className={cn(
                     'hidden md:flex w-full h-14 gap-3 rounded-xl',
                     'font-display font-semibold text-[15px] tracking-tight',
@@ -645,7 +645,7 @@ export default function ProductDetailPage() {
         <Button
           size="lg"
           onClick={handleAddToCart}
-          disabled={!inStock}
+          disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize)}
           className={cn(
             'w-full h-14 gap-3 rounded-xl',
             'font-display font-semibold text-base tracking-tight',
