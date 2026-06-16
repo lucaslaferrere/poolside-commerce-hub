@@ -48,7 +48,7 @@ export function ProductCard({ product, index = 0 }: Props) {
       transition={{ duration: 0.4, delay: index * 0.05 }}
     >
       <Link to={`/tienda/${product.id}`} className="block h-full">
-      <Card className="group h-full overflow-hidden bg-card border border-neutral-200 rounded-lg shadow-xs hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5 transition-all duration-base ease-standard cursor-pointer">
+      <Card className="group h-full flex flex-col overflow-hidden bg-card border border-neutral-200 rounded-lg shadow-xs hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5 transition-all duration-base ease-standard cursor-pointer">
         <div className="relative aspect-square overflow-hidden bg-neutral-50">
           {product.images?.[0] ? (
             <img
@@ -84,16 +84,14 @@ export function ProductCard({ product, index = 0 }: Props) {
             </Badge>
           ) : null}
         </div>
-        <CardContent className="p-5">
+        <CardContent className="p-5 flex flex-col flex-1">
           <h3 className="font-display font-semibold text-base leading-snug line-clamp-2 min-h-[2.5rem] text-neutral-900">
             {product.name}
           </h3>
-          {product.description && (
-            <p className="text-xs text-neutral-500 mt-1 line-clamp-2 min-h-[2rem]">
-              {product.description}
-            </p>
-          )}
-          <div className="mt-4 flex items-end justify-between gap-2">
+          <p className="text-xs text-neutral-500 mt-1 line-clamp-2 min-h-[2rem]">
+            {product.description ?? ''}
+          </p>
+          <div className="mt-4 flex items-end justify-between gap-2 mt-auto">
             <div className="flex flex-col">
               {onSale ? (
                 <>
