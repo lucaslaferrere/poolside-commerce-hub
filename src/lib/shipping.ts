@@ -57,16 +57,23 @@ export interface ShippingQuote {
   zone: string;
 }
 
+export const FREE_SHIPPING_THRESHOLD = 1_000_000;
+
 export function calcShipping(
   province: string,
   weightKg = 1,
   mode: 'domicilio' | 'sucursal' = 'domicilio',
+  subtotal = 0,
 ): ShippingQuote | null {
   const zoneKey = PROVINCE_ZONES[province];
   if (!zoneKey) return null;
 
+  if (subtotal >= FREE_SHIPPING_THRESHOLD) {
+    return { price: 0, days: ZONES[zoneKey].days, zone: zoneKey };
+  }
+
   const zone = ZONES[zoneKey];
-  const baseWeight = Math.ceil(Math.max(weightKg, 1)); // mínimo 1 kg
+  const baseWeight = Math.ceil(Math.max(weightKg, 1));
   const extraKg    = Math.max(baseWeight - 1, 0);
   const base       = (BASE_AMBA + extraKg * EXTRA_KG) * zone.multiplier;
   const price      = Math.round(mode === 'sucursal' ? base * BRANCH_FACTOR : base);

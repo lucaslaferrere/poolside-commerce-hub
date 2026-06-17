@@ -117,7 +117,7 @@ export default function CheckoutPage() {
   const [result, setResult] = useState<CheckoutResult | null>(null);
 
   const sub          = subtotal();
-  const shippingQuote = delivery === 'retirar' ? null : calcShipping(form.shipping_province ?? '', 1);
+  const shippingQuote = delivery === 'retirar' ? null : calcShipping(form.shipping_province ?? '', 1, 'domicilio', sub);
   const shippingCost  = shippingQuote?.price ?? 0;
   const discount      = payment === 'transferencia' ? Math.round(sub * TRANSFER_DISCOUNT) : 0;
   const total         = sub + shippingCost - discount;
@@ -693,7 +693,7 @@ function OrderSummary({
             {delivery === 'retirar'
               ? 'Zona Pilar'
               : shippingQuote
-                ? formatPrice(shippingQuote.price)
+                ? shippingQuote.price === 0 ? 'Gratis' : formatPrice(shippingQuote.price)
                 : 'Seleccioná provincia'}
           </span>
         </div>
