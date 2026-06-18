@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
@@ -28,6 +28,7 @@ import { useCart } from '@/store/cart';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice, type CartItem } from '@/types/shop';
 import { apiPost, apiGet } from '@/lib/api';
+import { trackEvent } from '@/lib/analytics';
 import { calcShipping, PROVINCES } from '@/lib/shipping';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -82,6 +83,7 @@ export default function CheckoutPage() {
 
   const cartToken = searchParams.get('cart');
   const [cartLinkLoading, setCartLinkLoading] = useState(!!cartToken);
+  const trackedCheckout = useRef(false);
 
   // Carga items desde un cart link si viene ?cart=TOKEN
   useEffect(() => {
@@ -106,6 +108,13 @@ export default function CheckoutPage() {
       setCartLinkLoading(false);
     });
   }, [cartToken]);
+
+  useEffect(() => {
+    if (!cartLinkLoading && items.length > 0 && !trackedCheckout.current) {
+      trackedCheckout.current = true;
+      trackEvent('checkout_start', { item_count: items.length });
+    }
+  }, [cartLinkLoading, items.length]);
 
   const [form, setForm] = useState<FormValues>(BLANK);
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});

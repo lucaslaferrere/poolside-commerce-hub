@@ -27,6 +27,7 @@ import {
   type AccordionSection,
 } from '@/components/shop/TechnicalAccordion';
 import { useProductById } from '@/hooks/useProducts';
+import { trackEvent } from '@/lib/analytics';
 import { toast } from 'sonner';
 import { useCart } from '@/store/cart';
 import { applyDiscount, formatPrice, hasDiscount, CATEGORY_LABELS } from '@/types/shop';
@@ -100,6 +101,10 @@ export default function ProductDetailPage() {
   const effectivePrice = onSale
     ? applyDiscount(variantPrice, product?.discount_percent)
     : variantPrice;
+
+  useEffect(() => {
+    if (product) trackEvent('product_view', { product_id: product.id, name: product.name });
+  }, [product?.id]);
 
   useEffect(() => {
     if (effectiveStock > 0) setQty((q) => Math.min(q, effectiveStock));
