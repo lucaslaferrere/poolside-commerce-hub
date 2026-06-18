@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,11 +20,18 @@ export function ProductCard({ product, index = 0 }: Props) {
   const add = useCart((s) => s.add);
   const open = useCart((s) => s.open);
   const triggerSplash = useCart((s) => s.triggerSplash);
+  const navigate = useNavigate();
 
   const onSale = hasDiscount(product.discount_percent);
   const finalPrice = applyDiscount(product.base_price, product.discount_percent);
+  const hasVariants = (product.variants?.length ?? 0) > 0;
 
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (hasVariants) {
+      navigate(`/tienda/${product.id}`);
+      return;
+    }
     const r = e.currentTarget.getBoundingClientRect();
     add({
       id: product.id,
@@ -32,7 +39,7 @@ export function ProductCard({ product, index = 0 }: Props) {
       price: finalPrice,
       image_url: resolveImageUrl(product.images?.[0]) || null,
       type: 'product',
-      variant_sku: product.variants?.[0]?.sku ?? '',
+      variant_sku: '',
     });
     triggerSplash({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
     toast.success('Agregado al carrito', { description: product.name });
@@ -113,7 +120,7 @@ export function ProductCard({ product, index = 0 }: Props) {
               className="bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed shadow-none"
             >
               <Plus className="h-4 w-4" />
-              {product.stock === 0 ? 'Sin stock' : 'Agregar'}
+              {product.stock === 0 ? 'Sin stock' : hasVariants ? 'Ver opciones' : 'Agregar'}
             </Button>
           </div>
         </CardContent>
