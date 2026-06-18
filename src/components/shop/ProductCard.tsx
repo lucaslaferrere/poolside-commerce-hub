@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const toSlug = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -21,6 +21,7 @@ export function ProductCard({ product }: Props) {
   const add = useCart((s) => s.add);
   const triggerSplash = useCart((s) => s.triggerSplash);
   const openCart = useCart((s) => s.open);
+  const navigate = useNavigate();
 
   const inStock = product.stock > 0;
   const imageUrl = resolveImageUrl(product.images?.[0]) || null;
@@ -28,17 +29,22 @@ export function ProductCard({ product }: Props) {
 
   const onSale = hasDiscount(product.discount_percent);
   const finalPrice = applyDiscount(product.base_price, product.discount_percent);
+  const hasVariants = (product.variants?.length ?? 0) > 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (hasVariants) {
+      navigate(`/tienda/${product.id}`);
+      return;
+    }
     add({
       id: product.id,
       name: product.name,
       price: finalPrice,
       image_url: imageUrl,
       type: 'product',
-      variant_sku: product.variants?.[0]?.sku ?? '',
+      variant_sku: '',
     });
     triggerSplash();
     toast.success('Producto agregado al carrito', { description: product.name });
@@ -135,7 +141,7 @@ export function ProductCard({ product }: Props) {
               )}
             >
               <ShoppingCart className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-              {inStock ? 'Agregar al carrito' : 'Sin stock'}
+              {inStock ? (hasVariants ? 'Ver opciones' : 'Agregar al carrito') : 'Sin stock'}
             </Button>
           </div>
         </div>
