@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useProducts } from '@/hooks/useProducts';
 import { useKits } from '@/hooks/useKits';
-import { apiPost } from '@/lib/api';
+import { apiPost, ApiError } from '@/lib/api';
 import { formatPrice, applyDiscount, hasDiscount } from '@/types/shop';
 import { resolveImageUrl } from '@/lib/api';
 import { toast } from 'sonner';
@@ -99,8 +99,9 @@ export function CartLinkModal({ open, onOpenChange }: Props) {
     try {
       const res = await apiPost<{ url: string }>('/admin/cart-links', { items });
       setGeneratedUrl(res.url);
-    } catch {
-      toast.error('No se pudo generar el link');
+    } catch (err) {
+      const detail = err instanceof ApiError ? err.detail : String(err);
+      toast.error('No se pudo generar el link', { description: detail });
     } finally {
       setLoading(false);
     }
