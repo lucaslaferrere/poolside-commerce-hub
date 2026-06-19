@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, ShoppingBag, TrendingUp, Truck, Search, Link2 } from 'lucide-react';
+import { RefreshCw, ShoppingBag, TrendingUp, Truck, Search, Link2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { OrdersTable } from '@/components/admin/OrdersTable';
@@ -12,15 +12,31 @@ import { formatPrice } from '@/types/shop';
 import type { Order } from '@/types/shop';
 import { cn } from '@/lib/utils';
 
-export default function AdminOrdersPage() {
-  const { data, isLoading, isError, refetch, isFetching } = useAdminOrders();
+const STATUS_TABS = [
+  { value: '',            label: 'Todos' },
+  { value: 'pending',     label: 'Pendiente' },
+  { value: 'paid',        label: 'Pagado' },
+  { value: 'processing',  label: 'En proceso' },
+  { value: 'shipped',     label: 'Enviado' },
+  { value: 'delivered',   label: 'Entregado' },
+  { value: 'cancelled',   label: 'Cancelado' },
+] as const;
 
-  const [viewing, setViewing] = useState<Order | null>(null);
-  const [editing, setEditing] = useState<Order | null>(null);
-  const [search, setSearch] = useState('');
+const LIMIT = 20;
+
+export default function AdminOrdersPage() {
+  const [page, setPage]               = useState(1);
+  const [status, setStatus]           = useState('');
+  const [search, setSearch]           = useState('');
+  const [viewing, setViewing]         = useState<Order | null>(null);
+  const [editing, setEditing]         = useState<Order | null>(null);
   const [cartLinkOpen, setCartLinkOpen] = useState(false);
 
-  const orders = data?.orders ?? [];
+  const { data, isLoading, isError, refetch, isFetching } = useAdminOrders({ page, limit: LIMIT, status });
+
+  const orders    = data?.orders ?? [];
+  const total     = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
   const filtered = search.trim() === '' ? orders : orders.filter((o) => {
     const q = search.toLowerCase();
@@ -33,13 +49,10 @@ export default function AdminOrdersPage() {
     );
   });
 
-  const stats = {
-    total: orders.length,
-    paid: orders.filter((o) => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).length,
-    shipped: orders.filter((o) => o.status === 'shipped').length,
-    revenue: orders
-      .filter((o) => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status))
-      .reduce((s, o) => s + o.total, 0),
+  const handleStatusChange = (s: string) => {
+    setStatus(s);
+    setPage(1);
+    setSearch('');
   };
 
   return (
@@ -53,11 +66,7 @@ export default function AdminOrdersPage() {
               <Link2 className="h-3.5 w-3.5 mr-1" />
               Link de carrito
             </Button>
-            <Button
-              variant="outline" size="sm"
-              onClick={() => refetch()}
-              disabled={isFetching}
-            >
+            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
               <RefreshCw className={cn('h-3.5 w-3.5 mr-1', isFetching && 'animate-spin')} />
               Actualizar
             </Button>
@@ -72,12 +81,45 @@ export default function AdminOrdersPage() {
         </div>
       )}
 
-      {/* KPIs */}
+      {/* KPIs — sobre los pedidos de la página actual */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Pedidos totales" value={String(stats.total)} icon={ShoppingBag} />
-        <StatCard label="Confirmados" value={String(stats.paid)} icon={TrendingUp} tone="brand" />
-        <StatCard label="En tránsito" value={String(stats.shipped)} icon={Truck} tone="warn" />
-        <StatCard label="Ingresos" value={formatPrice(stats.revenue)} icon={TrendingUp} tone="success" />
+        <StatCard label="Pedidos totales" value={String(total)} icon={ShoppingBag} />
+        <StatCard
+          label="Confirmados"
+          value={String(orders.filter((o) => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).length)}
+          icon={TrendingUp}
+          tone="brand"
+        />
+        <StatCard
+          label="En tránsito"
+          value={String(orders.filter((o) => o.status === 'shipped').length)}
+          icon={Truck}
+          tone="warn"
+        />
+        <StatCard
+          label="Ingresos (página)"
+          value={formatPrice(orders.filter((o) => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.total, 0))}
+          icon={TrendingUp}
+          tone="success"
+        />
+      </div>
+
+      {/* Tabs de estado */}
+      <div className="flex gap-1 flex-wrap mb-4 border-b border-neutral-200 pb-3">
+        {STATUS_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => handleStatusChange(tab.value)}
+            className={cn(
+              'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+              status === tab.value
+                ? 'bg-brand text-white'
+                : 'text-neutral-600 hover:bg-neutral-100',
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Buscador */}
@@ -97,6 +139,32 @@ export default function AdminOrdersPage() {
         onView={setViewing}
         onChangeStatus={setEditing}
       />
+
+      {/* Paginación */}
+      <div className="flex items-center justify-between mt-4">
+        <p className="text-sm text-neutral-500">
+          {total} pedido{total !== 1 ? 's' : ''} en total
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline" size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1 || isFetching}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium tabular-nums">
+            {page} / {totalPages}
+          </span>
+          <Button
+            variant="outline" size="sm"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages || isFetching}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
       <OrderDetailDialog order={viewing} onClose={() => setViewing(null)} />
       <OrderStatusDialog order={editing} onClose={() => setEditing(null)} />
