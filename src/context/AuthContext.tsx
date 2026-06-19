@@ -53,6 +53,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(readStoredUser);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
 
+  // Handle token expiry detected by api.ts during a live request.
+  useEffect(() => {
+    const handle = () => {
+      setToken(null);
+      setUser(null);
+      window.location.href = '/login';
+    };
+    window.addEventListener('auth:expired', handle);
+    return () => window.removeEventListener('auth:expired', handle);
+  }, []);
+
   // Mount-time consistency check: if token XOR user is missing, the pair is invalid.
   // Also clears sessions with expired JWTs so the user is prompted to log in again
   // instead of receiving silent 401s from the backend.

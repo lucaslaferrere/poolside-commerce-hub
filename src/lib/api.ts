@@ -77,6 +77,12 @@ function extractErrorMessage(body: string): string {
 
 async function parseResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
+    if (res.status === 401) {
+      // Token expired or missing — clear session and force re-login.
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      window.dispatchEvent(new Event('auth:expired'));
+    }
     const raw = await res.text().catch(() => '');
     const detail = extractErrorMessage(raw);
     throw new ApiError(detail || `HTTP ${res.status}`, res.status, detail);
