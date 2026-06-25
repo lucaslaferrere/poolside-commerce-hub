@@ -427,12 +427,7 @@ export default function CheckoutPage() {
                     onValueChange={(v) => setPayment(v as Payment)}
                     className="grid sm:grid-cols-2 gap-2"
                   >
-                    <div className="relative">
-                      <PayOption value="mercadopago" icon={<CreditCard className="h-4 w-4" />} label="MercadoPago" current="__disabled__" />
-                      <div className="absolute inset-0 rounded-lg bg-neutral-100/80 backdrop-blur-[1px] flex items-center justify-center cursor-not-allowed">
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400 bg-neutral-200 px-2 py-0.5 rounded-full">No disponible</span>
-                      </div>
-                    </div>
+                    <PayOption value="mercadopago" icon={<CreditCard className="h-4 w-4" />} label="MercadoPago" current={payment} />
                     <PayOption value="transferencia" icon={<Wallet className="h-4 w-4" />} label="Transferencia" current={payment} />
                   </RadioGroup>
                   {payment === 'transferencia' && (
