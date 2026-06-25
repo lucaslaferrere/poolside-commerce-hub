@@ -17,6 +17,8 @@ import {
   FileText,
   ChevronDown,
   Clock,
+  Tag,
+  X,
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -118,18 +120,48 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState<FormValues>(BLANK);
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
-  const [payment,      setPayment]      = useState<Payment>('mercadopago');
+  const [payment,      setPayment]      = useState<Payment>('transferencia');
   const [delivery,     setDelivery]     = useState<Delivery>('envio');
   const [wantsFactura, setWantsFactura] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [result, setResult] = useState<CheckoutResult | null>(null);
 
+  const [couponInput, setCouponInput]     = useState('');
+  const [couponCode, setCouponCode]       = useState('');
+  const [couponPercent, setCouponPercent] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError]     = useState('');
+
   const sub          = subtotal();
   const shippingQuote = delivery === 'retirar' ? null : calcShipping(form.shipping_province ?? '', 1, 'domicilio', sub);
   const shippingCost  = shippingQuote?.price ?? 0;
   const discount      = payment === 'transferencia' ? Math.round(sub * TRANSFER_DISCOUNT) : 0;
-  const total         = sub + shippingCost - discount;
+  const couponDiscount = couponPercent > 0 ? Math.round(sub * couponPercent / 100) : 0;
+  const total         = sub + shippingCost - discount - couponDiscount;
+
+  const applyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const res = await apiPost<{ code: string; discount_percent: number }>('/coupons/validate', { code: couponInput.trim() });
+      setCouponCode(res.code);
+      setCouponPercent(res.discount_percent);
+      setCouponInput('');
+    } catch (err) {
+      setCouponError(err instanceof Error ? err.message : 'Cupón inválido');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode('');
+    setCouponPercent(0);
+    setCouponError('');
+    setCouponInput('');
+  };
 
   // Empty cart guard — espera a que se carguen items desde cart link antes de mostrar vacío
   if (items.length === 0 && !done && !cartLinkLoading) {
@@ -204,6 +236,7 @@ export default function CheckoutPage() {
         total,
         payment_method:  payment,
         delivery_method: delivery,
+        coupon_code:     couponCode || undefined,
         factura_a: wantsFactura ? {
           razon_social: parsed.data.razon_social ?? '',
           cuit:         parsed.data.cuit_factura ?? '',
@@ -269,7 +302,7 @@ export default function CheckoutPage() {
 
             {/* Mobile-only summary at top */}
             <div className="lg:hidden mb-8">
-              <OrderSummary items={items} sub={sub} shippingQuote={shippingQuote} discount={discount} total={total} delivery={delivery} />
+              <OrderSummary items={items} sub={sub} shippingQuote={shippingQuote} discount={discount} couponDiscount={couponDiscount} couponCode={couponCode} total={total} delivery={delivery} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10">
@@ -394,8 +427,13 @@ export default function CheckoutPage() {
                     onValueChange={(v) => setPayment(v as Payment)}
                     className="grid sm:grid-cols-2 gap-2"
                   >
-                    <PayOption value="mercadopago"   icon={<CreditCard className="h-4 w-4" />} label="MercadoPago"   current={payment} />
-                    <PayOption value="transferencia" icon={<Wallet     className="h-4 w-4" />} label="Transferencia" current={payment} />
+                    <div className="relative">
+                      <PayOption value="mercadopago" icon={<CreditCard className="h-4 w-4" />} label="MercadoPago" current="__disabled__" />
+                      <div className="absolute inset-0 rounded-lg bg-neutral-100/80 backdrop-blur-[1px] flex items-center justify-center cursor-not-allowed">
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400 bg-neutral-200 px-2 py-0.5 rounded-full">No disponible</span>
+                      </div>
+                    </div>
+                    <PayOption value="transferencia" icon={<Wallet className="h-4 w-4" />} label="Transferencia" current={payment} />
                   </RadioGroup>
                   {payment === 'transferencia' && (
                     <p className="text-xs text-success font-medium mt-1">
@@ -403,6 +441,50 @@ export default function CheckoutPage() {
                     </p>
                   )}
                 </FormSection>
+
+                {/* Cupón de descuento */}
+                <div className="rounded-lg border border-neutral-200 bg-white shadow-xs p-5 sm:p-6 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="grid place-items-center h-7 w-7 rounded-md bg-brand/10 text-brand">
+                      <Tag className="h-4 w-4" />
+                    </span>
+                    <h2 className="font-display text-base font-semibold text-neutral-900">Cupón de descuento</h2>
+                    <span className="text-xs text-neutral-400 font-normal">(opcional)</span>
+                  </div>
+
+                  {couponCode ? (
+                    <div className="flex items-center justify-between bg-success/8 border border-success/20 rounded-lg px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-success" />
+                        <span className="text-sm font-semibold text-success">{couponCode}</span>
+                        <span className="text-xs text-success/70">— {couponPercent}% de descuento aplicado</span>
+                      </div>
+                      <button type="button" onClick={removeCoupon} className="text-neutral-400 hover:text-danger transition-colors">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Ingresá tu código"
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
+                        className={cn('uppercase', couponError && 'border-danger focus-visible:ring-danger/30')}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={applyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="shrink-0"
+                      >
+                        {couponLoading ? 'Validando...' : 'Aplicar'}
+                      </Button>
+                    </div>
+                  )}
+                  {couponError && <p className="text-xs text-danger">{couponError}</p>}
+                </div>
 
                 {/* Factura A */}
                 <div className="rounded-lg border border-neutral-200 bg-white shadow-xs overflow-hidden">
@@ -481,7 +563,7 @@ export default function CheckoutPage() {
               {/* Desktop sticky summary */}
               <aside className="hidden lg:block">
                 <div className="lg:sticky lg:top-24">
-                  <OrderSummary items={items} sub={sub} shippingQuote={shippingQuote} discount={discount} total={total} delivery={delivery} />
+                  <OrderSummary items={items} sub={sub} shippingQuote={shippingQuote} discount={discount} couponDiscount={couponDiscount} couponCode={couponCode} total={total} delivery={delivery} />
                 </div>
               </aside>
             </div>
@@ -647,6 +729,8 @@ function OrderSummary({
   sub,
   shippingQuote,
   discount,
+  couponDiscount,
+  couponCode,
   total,
   delivery,
 }: {
@@ -654,6 +738,8 @@ function OrderSummary({
   sub: number;
   shippingQuote: { price: number; days: string; zone: string } | null;
   discount: number;
+  couponDiscount: number;
+  couponCode: string;
   total: number;
   delivery: Delivery;
 }) {
@@ -715,6 +801,12 @@ function OrderSummary({
           <div className="flex items-center gap-1 text-xs text-neutral-400">
             <Clock className="h-3 w-3" />
             {shippingQuote.days} · Zona {shippingQuote.zone}
+          </div>
+        )}
+        {couponDiscount > 0 && (
+          <div className="flex items-center justify-between text-success">
+            <span>Cupón {couponCode}</span>
+            <span className="tabular-nums font-medium">− {formatPrice(couponDiscount)}</span>
           </div>
         )}
         {discount > 0 && (
