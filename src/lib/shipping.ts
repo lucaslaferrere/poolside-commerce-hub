@@ -68,9 +68,6 @@ export function calcShipping(
   const zoneKey = PROVINCE_ZONES[province];
   if (!zoneKey) return null;
 
-  if (subtotal >= FREE_SHIPPING_THRESHOLD) {
-    return { price: 0, days: ZONES[zoneKey].days, zone: zoneKey };
-  }
 
   const zone = ZONES[zoneKey];
   const baseWeight = Math.ceil(Math.max(weightKg, 1));
