@@ -22,6 +22,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { QuantitySelector } from '@/components/shop/QuantitySelector';
+import { ControllerRecommendation } from '@/components/shop/ControllerRecommendation';
 import {
   TechnicalAccordion,
   type AccordionSection,
@@ -613,6 +614,9 @@ export default function ProductDetailPage() {
                     : 'Sin stock'}
                 </Button>
               </div>
+
+              {/* Controller recommendation */}
+              <ControllerRecommendation product={product} pendingQty={qty} />
 
               {/* Trust badges */}
               <div className="grid grid-cols-3 gap-2 py-4 border-t border-slate-300">
