@@ -7,11 +7,11 @@ const FAQS = [
   },
   {
     q: '¿Las luminarias resisten el cloro y la sal?',
-    a: 'Sí, todas nuestras luminarias tienen certificación IP68 y materiales resistentes al cloro y al agua salada.',
+    a: 'Todas nuestras luminarias cuentan con protección IP68 y son resistentes al agua con cloro. Para piscinas con sistema de agua salada, recomendamos la línea OSIRE Ultimate, diseñada específicamente para resistir este tipo de condiciones..',
   },
   {
     q: '¿Tienen garantía?',
-    a: 'Las luminarias Nazar y Horus tienen garantía oficial de 1 año. La línea Osire incluye garantía extendida de 3 años. Productos Poolight hasta 6 meses de garantía oficial. El resto de productos tienen garantía por defecto de fabricación.',
+    a: 'Las luminarias Nazar y Horus cuentan con 1 año de garantía oficial, mientras que la línea OSIRE incluye una garantía extendida de 3 años. Los productos de la línea Poolight tienen 6 meses de garantía oficial y todos nuestros controladores cuentan con 1 año de garantía. El resto de los productos está cubierto ante posibles defectos de fabricación.',
   },
   {
     q: '¿Necesito un instalador profesional?',
@@ -19,7 +19,7 @@ const FAQS = [
   },
   {
     q: '¿Puedo controlar colores y programar escenas?',
-    a: 'Sí, las luminarias RGB tienen 16 colores y múltiples escenas preprogramadas. Con el control Smart WiFi podés crear las propias.',
+    a: 'Sí, las luminarias RGBW tienen 16 colores y múltiples escenas preprogramadas. Con el control Smart WiFi podés crear las propias.',
   },
   {
     q: '¿Aceptan transferencia bancaria?',

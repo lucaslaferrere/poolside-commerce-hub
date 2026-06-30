@@ -204,8 +204,10 @@ export default function WarrantyPage() {
             <h2 className="font-display font-semibold text-xl text-primary">Cobertura de garantía</h2>
             <div className="grid sm:grid-cols-2 gap-3">
               {[
-                { period: '1 año (12 meses)', products: 'Controladores, HORUS, NAZAR, POOLIGHT' },
-                { period: '3 años', products: 'OSIRE — línea premium' },
+                { period: '1 año (12 meses)', products: 'HORUS y NAZAR — línea premium' },
+                { period: '6 meses', products: 'POOLIGHT — línea estandar' },
+                { period: '3 años', products: 'OSIRE — línea ultimate' },
+                { period: '1 año (12 meses)', products: 'Controladores' },
               ].map((c) => (
                 <div key={c.period} className="flex gap-3 p-4 rounded-xl border border-emerald-100 bg-emerald-50">
                   <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />

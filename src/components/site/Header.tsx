@@ -34,7 +34,7 @@ const PUBLIC_NAV: NavLink[] = [
   { kind: 'hash',  label: 'Guía',           hash: 'guia' },
   { kind: 'hash',  label: 'Distribuidores', hash: 'distribuidores' },
   { kind: 'hash',  label: 'Preguntas Frecuentes', hash: 'faq' },
-  { kind: 'route', label: 'Garantía',       to: '/garantia' },
+  { kind: 'route', label: 'Soporte',       to: '/garantia' },
 ];
 
 const EMPRESA_URL = 'https://empresa.pooled.com.ar';
