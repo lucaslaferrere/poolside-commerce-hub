@@ -16,6 +16,7 @@ interface Coupon {
   active: boolean;
   max_uses: number;
   max_uses_per_user: number;
+  used_count: number;
   expires_at?: string;
   created_at: string;
 }
@@ -203,7 +204,7 @@ export default function CouponsPage() {
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Código</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Descuento</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Límites</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Usos</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Vencimiento</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -218,9 +219,13 @@ export default function CouponsPage() {
                       {c.active ? 'Activo' : 'Inactivo'}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">
-                    <div>Total: {c.max_uses ? c.max_uses : 'Ilimitado'}</div>
-                    <div>Por cliente: {c.max_uses_per_user ? c.max_uses_per_user : 'Ilimitado'}</div>
+                  <td className="px-4 py-3 text-xs">
+                    <div className={cn('font-semibold', c.max_uses > 0 && c.used_count >= c.max_uses ? 'text-red-500' : 'text-foreground')}>
+                      {c.used_count} / {c.max_uses ? c.max_uses : '∞'}
+                    </div>
+                    <div className="text-muted-foreground">
+                      Por cliente: {c.max_uses_per_user ? c.max_uses_per_user : '∞'}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {c.expires_at ? new Date(c.expires_at).toLocaleDateString('es-AR') : '—'}
