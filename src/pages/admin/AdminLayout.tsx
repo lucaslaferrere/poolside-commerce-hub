@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { ArrowLeft, ClipboardList, LayoutDashboard, Package, Layers, Tag } from 'lucide-react';
+import { ArrowLeft, ClipboardList, LayoutDashboard, Package, Layers, Tag, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ const TABS: TabDef[] = [
   { to: '/admin/kits',     label: 'Kits',      icon: Layers },
   { to: '/admin/orders',   label: 'Pedidos',   icon: ClipboardList },
   { to: '/admin/coupons',  label: 'Cupones',   icon: Tag },
+  { to: '/admin/users',    label: 'Usuarios',  icon: Users },
 ];
 
 interface AdminPageHeaderProps {

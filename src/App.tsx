@@ -22,6 +22,7 @@ import AdminProducts from './pages/admin/Products.tsx';
 import AdminOrdersPage from './pages/admin/OrdersPage.tsx';
 import AdminKitsPage from './pages/admin/Kits.tsx';
 import AdminCouponsPage from './pages/admin/CouponsPage.tsx';
+import AdminUsersPage from './pages/admin/UsersPage.tsx';
 import WarrantyPage from './pages/WarrantyPage.tsx';
 import KitDetailPage from './pages/KitDetailPage.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
@@ -85,6 +86,7 @@ const App = () => (
                 <Route path="kits" element={<AdminKitsPage />} />
                 <Route path="orders" element={<AdminOrdersPage />} />
                 <Route path="coupons" element={<AdminCouponsPage />} />
+                <Route path="users" element={<AdminUsersPage />} />
               </Route>
 
               <Route path="/tienda" element={<TiendaPage />} />
