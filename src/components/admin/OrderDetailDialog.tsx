@@ -200,6 +200,14 @@ export function OrderDetailDialog({ order, onClose }: Props) {
                 <span className="text-sm font-medium text-emerald-600">− {formatPrice(order.discount)}</span>
               </div>
             )}
+            {order.coupon_discount != null && order.coupon_discount > 0 && (
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-sm text-emerald-600">
+                  Cupón {order.coupon_code && <span className="font-mono font-semibold">{order.coupon_code}</span>}
+                </span>
+                <span className="text-sm font-medium text-emerald-600">− {formatPrice(order.coupon_discount)}</span>
+              </div>
+            )}
             <Separator className="my-3" />
             <div className="flex items-center justify-between">
               <span className="text-base font-semibold text-foreground">Total</span>

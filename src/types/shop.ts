@@ -78,6 +78,8 @@ export interface Order {
   shipping_details: { address: string; city: string; province?: string; postal_code: string };
   shipping_cost?: number;
   discount?: number;
+  coupon_code?: string;
+  coupon_discount?: number;
   factura_a?: { razon_social: string; cuit: string };
   tracking_number?: string;
   preference_id?: string;
