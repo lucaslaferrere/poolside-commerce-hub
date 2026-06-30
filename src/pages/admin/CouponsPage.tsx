@@ -14,11 +14,13 @@ interface Coupon {
   code: string;
   discount_percent: number;
   active: boolean;
+  max_uses: number;
+  max_uses_per_user: number;
   expires_at?: string;
   created_at: string;
 }
 
-const BLANK = { code: '', discount_percent: '', active: true, expires_at: '' };
+const BLANK = { code: '', discount_percent: '', active: true, max_uses: '', max_uses_per_user: '', expires_at: '' };
 
 export default function CouponsPage() {
   const qc = useQueryClient();
@@ -57,6 +59,8 @@ export default function CouponsPage() {
       code: c.code,
       discount_percent: String(c.discount_percent),
       active: c.active,
+      max_uses: c.max_uses ? String(c.max_uses) : '',
+      max_uses_per_user: c.max_uses_per_user ? String(c.max_uses_per_user) : '',
       expires_at: c.expires_at ? c.expires_at.split('T')[0] : '',
     });
     setShowForm(true);
@@ -71,6 +75,8 @@ export default function CouponsPage() {
       code: form.code.trim().toUpperCase(),
       discount_percent: pct,
       active: form.active,
+      max_uses: form.max_uses ? parseInt(form.max_uses as string, 10) : 0,
+      max_uses_per_user: form.max_uses_per_user ? parseInt(form.max_uses_per_user as string, 10) : 0,
       expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
     };
 
@@ -129,6 +135,26 @@ export default function CouponsPage() {
               />
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs">Límite de usos totales</Label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="0 = ilimitado"
+                value={form.max_uses}
+                onChange={(e) => setForm((f) => ({ ...f, max_uses: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Límite de usos por cliente</Label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="0 = ilimitado"
+                value={form.max_uses_per_user}
+                onChange={(e) => setForm((f) => ({ ...f, max_uses_per_user: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs">Estado</Label>
               <div className="flex gap-2 pt-1">
                 {[true, false].map((val) => (
@@ -177,6 +203,7 @@ export default function CouponsPage() {
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Código</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Descuento</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Límites</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Vencimiento</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -190,6 +217,10 @@ export default function CouponsPage() {
                     <Badge variant={c.active ? 'default' : 'secondary'} className={cn(c.active ? 'bg-emerald-500' : '')}>
                       {c.active ? 'Activo' : 'Inactivo'}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs">
+                    <div>Total: {c.max_uses ? c.max_uses : 'Ilimitado'}</div>
+                    <div>Por cliente: {c.max_uses_per_user ? c.max_uses_per_user : 'Ilimitado'}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {c.expires_at ? new Date(c.expires_at).toLocaleDateString('es-AR') : '—'}
