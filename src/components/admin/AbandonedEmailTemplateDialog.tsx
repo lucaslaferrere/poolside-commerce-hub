@@ -18,6 +18,7 @@ export function AbandonedEmailTemplateDialog({ open, onClose }: { open: boolean;
     queryKey: ['admin', 'abandoned-template-full'],
     queryFn: () => apiGet<{ body: string; default_body: string }>('/admin/settings/abandoned-cart-email'),
     enabled: open,
+    staleTime: Infinity,
   });
 
   useEffect(() => {
