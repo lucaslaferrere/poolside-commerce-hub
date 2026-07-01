@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,10 @@ interface Coupon {
 export function SendCouponDialog({ cart, onClose }: { cart: AdminCart | null; onClose: () => void }) {
   const [couponId, setCouponId] = useState('');
 
+  useEffect(() => {
+    setCouponId('');
+  }, [cart?.user_id]);
+
   const { data: coupons } = useQuery({
     queryKey: ['admin', 'coupons'],
     queryFn: () => apiGet<{ coupons: Coupon[] }>('/admin/coupons').then((r) => r.coupons ?? []),
@@ -36,9 +40,11 @@ export function SendCouponDialog({ cart, onClose }: { cart: AdminCart | null; on
     const productos = cart.items
       .map((i) => `- ${i.name || i.variant_sku} x${i.quantity}`)
       .join('\n');
-    const vencimiento = selected?.expires_at
-      ? new Date(selected.expires_at).toLocaleDateString('es-AR')
-      : 'sin vencimiento';
+    const vencimiento = !selected
+      ? '{{vencimiento}}'
+      : selected.expires_at
+        ? new Date(selected.expires_at).toLocaleDateString('es-AR')
+        : 'sin vencimiento';
     return template
       .replaceAll('{{codigo}}', selected?.code ?? '{{codigo}}')
       .replaceAll('{{descuento}}', selected ? `${selected.discount_percent}%` : '{{descuento}}')
