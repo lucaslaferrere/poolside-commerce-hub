@@ -3,6 +3,7 @@ import type { CartItem } from '@/types/shop';
 
 // Convierte los items del store al formato del backend (CartItem de Go).
 function toServerItems(items: CartItem[]) {
+  // El id del item en el store tiene formato `productHex|variant...` — product_id es el hex antes del primer '|'.
   return items.map((i) => ({
     product_id: i.id.split('|')[0],
     variant_sku: i.variant_sku ?? '',
