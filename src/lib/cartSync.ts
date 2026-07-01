@@ -33,6 +33,7 @@ export function syncCartToServer(items: CartItem[]) {
 // Sube el carrito inmediatamente (ej: al iniciar sesión).
 export function pushCartNow(items: CartItem[]) {
   if (!isLoggedIn()) return;
+  if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
   apiPut('/cart', { items: toServerItems(items) }).catch(() => {});
 }
 
