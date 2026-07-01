@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingCart, Eye } from 'lucide-react';
+import { ShoppingCart, Eye, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiGet } from '@/lib/api';
 import { formatPrice } from '@/types/shop';
 import { CartDetailDialog, type AdminCart } from '@/components/admin/CartDetailDialog';
+import { SendCouponDialog } from '@/components/admin/SendCouponDialog';
 
 export default function CartsPage() {
   const [viewing, setViewing] = useState<AdminCart | null>(null);
+  const [sending, setSending] = useState<AdminCart | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'carts'],
@@ -61,6 +63,9 @@ export default function CartsPage() {
                       <Button variant="outline" size="sm" onClick={() => setViewing(cart)}>
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
+                      <Button variant="outline" size="sm" onClick={() => setSending(cart)}>
+                        <Mail className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -71,6 +76,7 @@ export default function CartsPage() {
       )}
 
       <CartDetailDialog cart={viewing} onClose={() => setViewing(null)} />
+      <SendCouponDialog cart={sending} onClose={() => setSending(null)} />
     </div>
   );
 }
