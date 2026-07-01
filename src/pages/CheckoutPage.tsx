@@ -30,6 +30,7 @@ import { useCart } from '@/store/cart';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice, type CartItem } from '@/types/shop';
 import { apiPost, apiGet } from '@/lib/api';
+import { clearServerCart } from '@/lib/cartSync';
 import { trackEvent } from '@/lib/analytics';
 import { calcShipping, PROVINCES } from '@/lib/shipping';
 import { toast } from 'sonner';
@@ -245,6 +246,7 @@ export default function CheckoutPage() {
       setResult(r);
       setDone(true);
       clear();
+      clearServerCart();
       toast.success('¡Pedido confirmado!');
       const mpUrl = r.init_point || r.sandbox_init_point;
       if (mpUrl && payment === 'mercadopago') {

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CartItem } from '@/types/shop';
 import { trackEvent } from '@/lib/analytics';
+import { syncCartToServer } from '@/lib/cartSync';
 
 interface CartState {
   items: CartItem[];
@@ -58,3 +59,10 @@ export const useCart = create<CartState>()(
     { name: 'pooled-cart' }
   )
 );
+
+// Sincroniza el carrito con el backend cuando cambian los items (usuarios logueados).
+useCart.subscribe((state, prev) => {
+  if (state.items !== prev.items) {
+    syncCartToServer(state.items);
+  }
+});

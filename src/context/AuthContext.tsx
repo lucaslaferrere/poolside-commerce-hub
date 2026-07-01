@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { apiPost } from '@/lib/api';
+import { pushCartNow } from '@/lib/cartSync';
+import { useCart } from '@/store/cart';
 
 export interface User {
   id: string;
@@ -111,6 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const payload = JSON.parse(atob(res.access_token.split('.')[1]));
     const user: User = { id: payload.user_id, email: payload.email, role: payload.role };
     setSession(res.access_token, user);
+    // Subir el carrito local al backend al iniciar sesión.
+    pushCartNow(useCart.getState().items);
   };
 
   const login = loginWithToken;
