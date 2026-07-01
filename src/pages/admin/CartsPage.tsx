@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingCart, Eye, Mail } from 'lucide-react';
+import { ShoppingCart, Eye, Mail, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiGet } from '@/lib/api';
 import { formatPrice } from '@/types/shop';
 import { CartDetailDialog, type AdminCart } from '@/components/admin/CartDetailDialog';
 import { SendCouponDialog } from '@/components/admin/SendCouponDialog';
+import { AbandonedEmailTemplateDialog } from '@/components/admin/AbandonedEmailTemplateDialog';
 
 export default function CartsPage() {
   const [viewing, setViewing] = useState<AdminCart | null>(null);
   const [sending, setSending] = useState<AdminCart | null>(null);
+  const [editTemplate, setEditTemplate] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'carts'],
@@ -25,6 +27,9 @@ export default function CartsPage() {
           <h1 className="text-2xl font-bold text-primary">Carritos</h1>
           <p className="text-sm text-muted-foreground mt-1">Carritos de clientes que todavía no compraron.</p>
         </div>
+        <Button variant="outline" onClick={() => setEditTemplate(true)}>
+          <FileText className="h-4 w-4 mr-2" /> Editar plantilla del mail
+        </Button>
       </div>
 
       {isLoading ? (
@@ -77,6 +82,7 @@ export default function CartsPage() {
 
       <CartDetailDialog cart={viewing} onClose={() => setViewing(null)} />
       <SendCouponDialog cart={sending} onClose={() => setSending(null)} />
+      <AbandonedEmailTemplateDialog open={editTemplate} onClose={() => setEditTemplate(false)} />
     </div>
   );
 }
