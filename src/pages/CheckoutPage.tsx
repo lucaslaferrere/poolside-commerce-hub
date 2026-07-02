@@ -137,8 +137,9 @@ export default function CheckoutPage() {
   const sub          = subtotal();
   const shippingQuote = delivery === 'retirar' ? null : calcShipping(form.shipping_province ?? '', 1, 'domicilio', sub);
   const shippingCost  = shippingQuote?.price ?? 0;
-  const discount      = payment === 'transferencia' ? Math.round(sub * TRANSFER_DISCOUNT) : 0;
   const couponDiscount = couponPercent > 0 ? Math.round(sub * couponPercent / 100) : 0;
+  // El descuento por transferencia (3.5%) no se acumula con un cupón: si hay cupón, el cupón gana.
+  const discount      = couponDiscount === 0 && payment === 'transferencia' ? Math.round(sub * TRANSFER_DISCOUNT) : 0;
   const total         = sub + shippingCost - discount - couponDiscount;
 
   const applyCoupon = async () => {
@@ -432,9 +433,14 @@ export default function CheckoutPage() {
                     <PayOption value="mercadopago" icon={<CreditCard className="h-4 w-4" />} label="MercadoPago" current={payment} />
                     <PayOption value="transferencia" icon={<Wallet className="h-4 w-4" />} label="Transferencia" current={payment} />
                   </RadioGroup>
-                  {payment === 'transferencia' && (
+                  {payment === 'transferencia' && couponDiscount === 0 && (
                     <p className="text-xs text-success font-medium mt-1">
                       3.5% de descuento extra al confirmar.
+                    </p>
+                  )}
+                  {payment === 'transferencia' && couponDiscount > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      El 3.5% de transferencia no se acumula con el cupón aplicado.
                     </p>
                   )}
                 </FormSection>
