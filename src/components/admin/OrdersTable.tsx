@@ -1,4 +1,4 @@
-import { Eye, Pencil } from 'lucide-react';
+import { Eye, Pencil, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/types/shop';
@@ -89,7 +89,14 @@ export function OrdersTable({ orders, isLoading, onView, onChangeStatus }: Props
                   {formatPrice(order.total)}
                 </td>
                 <td className="px-4 py-3">
-                  <StatusBadge status={order.status} />
+                  <div className="flex flex-col gap-1">
+                    <StatusBadge status={order.status} />
+                    {order.invoice_sent_at && (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600">
+                        <FileText className="h-3 w-3" /> Factura enviada
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-xs text-neutral-500 capitalize whitespace-nowrap">
                   {order.payment_method || '—'}
