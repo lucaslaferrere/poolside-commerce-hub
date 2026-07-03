@@ -11,6 +11,7 @@ import {
 import { ProductTable } from '@/components/admin/ProductTable';
 import { ProductFormModal } from '@/components/admin/ProductFormModal';
 import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
+import { BulkPriceDialog } from '@/components/admin/BulkPriceDialog';
 import {
   useAdminProductsPage,
   useAdminProductMutations,
@@ -34,6 +35,8 @@ export default function AdminProducts() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<AdminProduct | null>(null);
   const [deleting, setDeleting] = useState<AdminProduct | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
@@ -100,10 +103,15 @@ export default function AdminProducts() {
         title="Productos"
         description="Gestioná el catálogo: alta, edición y baja de productos."
         actions={
-          <Button onClick={openCreate} className="bg-brand text-brand-foreground hover:bg-brand-hover">
-            <Plus className="h-4 w-4" />
-            Nuevo producto
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setBulkOpen(true)}>
+              Actualizar precios
+            </Button>
+            <Button onClick={openCreate} className="bg-brand text-brand-foreground hover:bg-brand-hover">
+              <Plus className="h-4 w-4" />
+              Nuevo producto
+            </Button>
+          </div>
         }
       />
 
@@ -181,6 +189,15 @@ export default function AdminProducts() {
         loading={remove.isPending}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleting(null)}
+      />
+
+      <BulkPriceDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        selectedProducts={items
+          .filter((p) => selectedIds.includes(p.id))
+          .map((p) => ({ id: p.id, name: p.name, base_price: p.base_price }))}
+        onApplied={() => setSelectedIds([])}
       />
     </>
   );
