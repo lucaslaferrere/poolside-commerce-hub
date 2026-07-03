@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,6 +37,10 @@ export default function AdminProducts() {
   const [deleting, setDeleting] = useState<AdminProduct | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
+
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [page]);
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
