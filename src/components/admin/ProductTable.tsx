@@ -35,9 +35,11 @@ interface RowProps {
   onEdit: (product: AdminProduct) => void;
   onDelete: (product: AdminProduct) => void;
   onToggleVisibility: (product: AdminProduct) => void;
+  selectedIds: string[];
+  onToggleSelect: (id: string) => void;
 }
 
-function SortableRow({ product: p, onEdit, onDelete, onToggleVisibility }: RowProps) {
+function SortableRow({ product: p, onEdit, onDelete, onToggleVisibility, selectedIds, onToggleSelect }: RowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: p.id,
   });
@@ -63,6 +65,15 @@ function SortableRow({ product: p, onEdit, onDelete, onToggleVisibility }: RowPr
       style={style}
       className={cn('group', isHidden && 'opacity-50', isDragging && 'z-50 shadow-lg bg-white')}
     >
+      <TableCell className="w-8" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={selectedIds.includes(p.id)}
+          onChange={() => onToggleSelect(p.id)}
+          className="h-4 w-4 cursor-pointer accent-primary"
+        />
+      </TableCell>
+
       <TableCell className="pl-2 w-8">
         <button
           {...attributes}
@@ -159,9 +170,11 @@ interface Props {
   onDelete: (product: AdminProduct) => void;
   onToggleVisibility: (product: AdminProduct) => void;
   onReorder: (reordered: AdminProduct[]) => void;
+  selectedIds: string[];
+  onToggleSelect: (id: string) => void;
 }
 
-export function ProductTable({ products, isLoading, error, onEdit, onDelete, onToggleVisibility, onReorder }: Props) {
+export function ProductTable({ products, isLoading, error, onEdit, onDelete, onToggleVisibility, onReorder, selectedIds, onToggleSelect }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -191,6 +204,7 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete, onT
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
+                <TableHead className="w-8" />
                 <TableHead className="w-8 pl-2" />
                 <TableHead className="w-[56px] pl-2">Img</TableHead>
                 <TableHead>Nombre</TableHead>
@@ -205,6 +219,7 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete, onT
               {isLoading &&
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell className="w-8"><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell className="pl-2"><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell className="pl-2">
                       <Skeleton className="h-10 w-10 rounded-md" />
@@ -230,7 +245,7 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete, onT
 
               {!isLoading && products.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-20 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-20 text-center text-muted-foreground">
                     <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
                     <p className="text-sm font-medium">Sin productos todavía</p>
                     <p className="text-xs mt-1">Hacé clic en "Nuevo producto" para agregar el primero.</p>
@@ -246,6 +261,8 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete, onT
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onToggleVisibility={onToggleVisibility}
+                    selectedIds={selectedIds}
+                    onToggleSelect={onToggleSelect}
                   />
                 ))}
             </TableBody>

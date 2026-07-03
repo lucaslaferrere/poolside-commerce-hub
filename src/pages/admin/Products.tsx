@@ -137,6 +137,10 @@ export default function AdminProducts() {
           toggleVisibility.mutate({ id: p.id, visible: p.visible === false })
         }
         onReorder={handleReorder}
+        selectedIds={selectedIds}
+        onToggleSelect={(id: string) =>
+          setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+        }
       />
 
       {/* Pagination footer */}
