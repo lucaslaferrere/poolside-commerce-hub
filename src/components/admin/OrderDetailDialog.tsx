@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -5,6 +6,9 @@ import { User, Truck, FileText, Package, CreditCard, Calendar } from 'lucide-rea
 import { formatPrice } from '@/types/shop';
 import type { Order, OrderStatus } from '@/types/shop';
 import { cn } from '@/lib/utils';
+import { apiPostForm, apiPost } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface Props {
   order: Order | null;
@@ -31,6 +35,51 @@ function SectionTitle({ icon: Icon, children }: { icon: React.ElementType; child
 }
 
 export function OrderDetailDialog({ order, onClose }: Props) {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [invoiceSentAt, setInvoiceSentAt] = useState<string | undefined>(undefined);
+  const [uploading, setUploading] = useState(false);
+
+  // Sincronizar el estado local con el pedido actual (evita estado stale entre pedidos).
+  useEffect(() => {
+    setInvoiceSentAt(order?.invoice_sent_at);
+  }, [order?.id, order?.invoice_sent_at]);
+
+  const uploadInvoice = async (file: File) => {
+    if (!order) return;
+    if (file.type !== 'application/pdf') { toast.error('El archivo debe ser un PDF'); return; }
+    if (file.size > 8 * 1024 * 1024) { toast.error('El archivo supera los 8 MB'); return; }
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await apiPostForm<{ invoice_sent_at: string }>(`/admin/orders/${order.id}/invoice`, form);
+      setInvoiceSentAt(res.invoice_sent_at);
+      qc.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      toast.success('Factura enviada al cliente');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'No se pudo enviar la factura');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const resendInvoice = async () => {
+    if (!order) return;
+    setUploading(true);
+    try {
+      const res = await apiPost<{ invoice_sent_at: string }>(`/admin/orders/${order.id}/invoice/resend`, {});
+      setInvoiceSentAt(res.invoice_sent_at);
+      qc.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      toast.success('Factura reenviada');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'No se pudo reenviar');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (!order) return null;
 
   const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending;
@@ -125,6 +174,55 @@ export function OrderDetailDialog({ order, onClose }: Props) {
                   </div>
                 </section>
               ) : null}
+
+              {/* Factura (PDF) */}
+              <section className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4 sm:col-span-2">
+                <SectionTitle icon={FileText}>Factura</SectionTitle>
+                {invoiceSentAt ? (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-emerald-600 font-medium">
+                      Factura enviada el {new Date(invoiceSentAt).toLocaleString('es-AR')}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={resendInvoice}
+                        disabled={uploading}
+                        className="text-xs rounded-md border border-border px-3 py-1.5 hover:bg-muted disabled:opacity-50"
+                      >
+                        Reenviar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={uploading}
+                        className="text-xs rounded-md border border-border px-3 py-1.5 hover:bg-muted disabled:opacity-50"
+                      >
+                        Subir otra
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-muted-foreground">Todavía no se envió factura para este pedido.</p>
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploading}
+                      className="text-xs rounded-md bg-primary text-white px-3 py-1.5 hover:opacity-90 disabled:opacity-50"
+                    >
+                      {uploading ? 'Enviando...' : 'Enviar factura al cliente'}
+                    </button>
+                  </div>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadInvoice(f); }}
+                />
+              </section>
 
               {/* Notas */}
               {order.notes && (
