@@ -63,9 +63,9 @@ export function Hero() {
           </span> */}
 
             <h1 className="pooled-hero__headline mt-7 font-display text-5xl font-semibold leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.25rem]">
-              Donde la luz
+              <span className="text-[#2E6BFF]">Donde la luz</span>
               <br />
-              <span className="text-[#B5D8F0]">transforma cada momento.</span>
+              transforma cada momento.
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#94B8D1] sm:text-lg">
