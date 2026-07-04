@@ -10,10 +10,11 @@ import { toast } from 'sonner';
 
 type Mode = 'all' | 'category' | 'manual';
 
+// "kits" NO está acá: los kits son una colección aparte (precio propio, no derivado
+// de los productos), así que la actualización masiva de productos no los toca.
 const CATEGORIES: { value: string; label: string }[] = [
   { value: 'luminarias', label: 'Luminarias' },
   { value: 'controladores', label: 'Controladores' },
-  { value: 'kits', label: 'Kits' },
   { value: 'osire', label: 'OSIRE' },
   { value: 'accesorios', label: 'Accesorios' },
 ];
