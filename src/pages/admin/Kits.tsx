@@ -9,6 +9,7 @@ import {
 import { AdminPageHeader } from './AdminLayout';
 import { KitTable } from '@/components/admin/KitTable';
 import { KitFormModal } from '@/components/admin/KitFormModal';
+import { KitBulkPriceDialog } from '@/components/admin/KitBulkPriceDialog';
 import { useAdminKits, useAdminKitMutations } from '@/hooks/useAdminKits';
 import type { Kit } from '@/types/shop';
 
@@ -30,6 +31,8 @@ export default function AdminKitsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Kit | null>(null);
   const [deleting, setDeleting] = useState<Kit | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const openCreate = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (kit: Kit) => { setEditing(kit); setFormOpen(true); };
@@ -64,10 +67,15 @@ export default function AdminKitsPage() {
         title="Kits"
         description={`${kits.length} kit${kits.length !== 1 ? 's' : ''} cargado${kits.length !== 1 ? 's' : ''}`}
         actions={
-          <Button onClick={openCreate} className="bg-brand text-brand-foreground hover:bg-brand-hover gap-2">
-            <Plus className="h-4 w-4" />
-            Nuevo kit
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setBulkOpen(true)}>
+              Actualizar precios
+            </Button>
+            <Button onClick={openCreate} className="bg-brand text-brand-foreground hover:bg-brand-hover gap-2">
+              <Plus className="h-4 w-4" />
+              Nuevo kit
+            </Button>
+          </div>
         }
       />
 
@@ -88,6 +96,15 @@ export default function AdminKitsPage() {
         kit={editing}
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
+      />
+
+      <KitBulkPriceDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        selectedKits={rawKits
+          .filter((k) => selectedIds.includes(k.id))
+          .map((k) => ({ id: k.id, name: k.name, price: k.price }))}
+        onApplied={() => setSelectedIds([])}
       />
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
