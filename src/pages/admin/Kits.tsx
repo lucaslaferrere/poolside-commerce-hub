@@ -88,6 +88,10 @@ export default function AdminKitsPage() {
           toggleVisibility.mutate({ id: k.id, visible: k.visible === false })
         }
         onReorder={handleReorder}
+        selectedIds={selectedIds}
+        onToggleSelect={(id: string) =>
+          setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+        }
       />
 
       <KitFormModal

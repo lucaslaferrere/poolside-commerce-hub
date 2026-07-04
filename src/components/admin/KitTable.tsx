@@ -27,9 +27,11 @@ interface RowProps {
   onEdit: (kit: Kit) => void;
   onDelete: (kit: Kit) => void;
   onToggleVisibility: (kit: Kit) => void;
+  selectedIds: string[];
+  onToggleSelect: (id: string) => void;
 }
 
-function SortableKitRow({ kit, onEdit, onDelete, onToggleVisibility }: RowProps) {
+function SortableKitRow({ kit, onEdit, onDelete, onToggleVisibility, selectedIds, onToggleSelect }: RowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: kit.id,
   });
@@ -52,6 +54,14 @@ function SortableKitRow({ kit, onEdit, onDelete, onToggleVisibility }: RowProps)
         isDragging && 'z-50 shadow-lg bg-white',
       )}
     >
+      <td className="w-8" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={selectedIds.includes(kit.id)}
+          onChange={() => onToggleSelect(kit.id)}
+          className="h-4 w-4 cursor-pointer accent-primary"
+        />
+      </td>
       <td className="pl-2 py-3 w-8">
         <button
           {...attributes}
@@ -146,9 +156,11 @@ interface Props {
   onDelete: (kit: Kit) => void;
   onToggleVisibility: (kit: Kit) => void;
   onReorder: (reordered: Kit[]) => void;
+  selectedIds: string[];
+  onToggleSelect: (id: string) => void;
 }
 
-export function KitTable({ kits, isLoading, onEdit, onDelete, onToggleVisibility, onReorder }: Props) {
+export function KitTable({ kits, isLoading, onEdit, onDelete, onToggleVisibility, onReorder, selectedIds, onToggleSelect }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -189,6 +201,7 @@ export function KitTable({ kits, isLoading, onEdit, onDelete, onToggleVisibility
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 border-b border-neutral-200">
               <tr>
+                <th className="w-8" />
                 <th className="w-8 pl-2" />
                 <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide w-14" />
                 <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Nombre</th>
@@ -206,6 +219,8 @@ export function KitTable({ kits, isLoading, onEdit, onDelete, onToggleVisibility
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onToggleVisibility={onToggleVisibility}
+                  selectedIds={selectedIds}
+                  onToggleSelect={onToggleSelect}
                 />
               ))}
             </tbody>
