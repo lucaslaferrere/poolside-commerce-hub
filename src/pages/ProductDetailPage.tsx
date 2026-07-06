@@ -142,7 +142,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product || !inStock) return;
     const cartId = selectedVariant
-      ? `${product.id}|${selectedVariant.color}|${selectedVariant.size}|${selectedVariant.attr3 ?? ''}`
+      ? `${product.id}|${selectedVariant.color}|${selectedVariant.size}${selectedVariant.attr3 ? `|${selectedVariant.attr3}` : ''}`
       : product.id;
     const variantLabel = selectedVariant
       ? ` — ${[selectedVariant.color, selectedVariant.size, selectedVariant.attr3].filter(Boolean).join(' / ')}`
