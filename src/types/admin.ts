@@ -6,6 +6,7 @@ export interface Variant {
   id?: string;
   color: string;
   size: string;
+  attr3?: string;
   stock: number;
   price_adjustment: number;
 }
@@ -37,6 +38,8 @@ export interface AdminProduct {
   /** undefined/null = visible (legacy docs). false = explicitly hidden from store. */
   visible?: boolean | null;
   sort_order?: number;
+  /** Custom labels for the up-to-3 variant axes (e.g. ["Color", "Tamaño", "Opción"]). */
+  variant_labels?: string[];
 }
 
 // Local row used only inside the form (all fields as strings for controlled inputs)
@@ -44,6 +47,7 @@ export interface VariantRow {
   _key: string;
   color: string;
   size: string;
+  attr3: string;
   stock: string;
   price_adjustment: string;
 }

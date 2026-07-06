@@ -12,6 +12,7 @@ export interface Product {
   featured: boolean;
   stock: number;
   variant_sku?: string;
+  variant_labels?: string[];
 }
 
 export interface Kit {
@@ -119,6 +120,7 @@ export interface ShopVariant {
   sku?: string;
   color: string;
   size: string;
+  attr3?: string;
   stock: number;
   price_adjustment: number;
 }

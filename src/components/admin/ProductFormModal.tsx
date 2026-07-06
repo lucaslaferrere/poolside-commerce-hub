@@ -58,6 +58,7 @@ const emptyVariant = (): VariantRow => ({
   _key: uid(),
   color: '',
   size: '',
+  attr3: '',
   stock: '',
   price_adjustment: '',
 });
@@ -111,6 +112,7 @@ export function ProductFormModal({
 }: Props) {
   const [fields, setFields] = useState<FormFields>(BLANK);
   const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [variantLabels, setVariantLabels] = useState<string[]>(['', '', '']);
   const [specs, setSpecs] = useState<SpecRow[]>([]);
   const [mainSpecs, setMainSpecs] = useState<MainSpecRow[]>([]);
   const [keptImages, setKeptImages] = useState<string[]>([]);
@@ -123,6 +125,7 @@ export function ProductFormModal({
     if (!open) {
       setFields(BLANK);
       setVariants([]);
+      setVariantLabels(['', '', '']);
       setSpecs([]);
       setMainSpecs([]);
       setKeptImages([]);
@@ -146,10 +149,13 @@ export function ProductFormModal({
           _key: uid(),
           color: v.color,
           size: v.size,
+          attr3: v.attr3 ?? '',
           stock: String(v.stock),
           price_adjustment: String(v.price_adjustment),
         })),
       );
+      const labels = product.variant_labels ?? [];
+      setVariantLabels([labels[0] ?? '', labels[1] ?? '', labels[2] ?? '']);
       setSpecs(
         (product.specs ?? []).map((s) => ({
           _key: uid(),
@@ -256,16 +262,17 @@ export function ProductFormModal({
     // Discount is 0–100; empty / NaN / out-of-range all collapse to 0.
     const discountPct = Math.min(100, Math.max(0, toFloat(fields.discount)));
 
-    // Variants — drop rows w/o identity (no color AND no size). Numeric
+    // Variants — drop rows w/o identity (no color, size, nor attr3). Numeric
     // fields are real numbers inside the JSON payload, not strings.
     const parsedVariants = variants
       .map((v) => ({
         color: v.color.trim(),
         size: v.size.trim(),
+        attr3: v.attr3.trim(),
         stock: Math.max(0, toInt(v.stock)),
         price_adjustment: toFloat(v.price_adjustment),
       }))
-      .filter((v) => v.color.length > 0 || v.size.length > 0);
+      .filter((v) => v.color.length > 0 || v.size.length > 0 || v.attr3.length > 0);
 
     // Specs — backend contract: [{ key, value }]. Require BOTH non-empty.
     const parsedSpecs = specs
@@ -286,6 +293,7 @@ export function ProductFormModal({
       .filter((ms) => ms.value.length > 0 && ms.key.length > 0);
 
     fd.append('variants', JSON.stringify(parsedVariants));
+    fd.append('variant_labels', JSON.stringify(variantLabels));
     fd.append('specs', JSON.stringify(parsedSpecs));
     fd.append('main_specs', JSON.stringify(parsedMainSpecs));
     fd.append('images', JSON.stringify(keptImages));
@@ -588,6 +596,26 @@ export function ProductFormModal({
                   </Badge>
                 </div>
 
+                <div className="grid grid-cols-3 gap-2">
+                  {(['Color', 'Tamaño', 'Opción'] as const).map((ph, i) => (
+                    <Input
+                      key={i}
+                      type="text"
+                      aria-label={`Nombre del eje ${i + 1}`}
+                      placeholder={`Eje ${i + 1} (${ph})`}
+                      value={variantLabels[i] ?? ''}
+                      onChange={(e) =>
+                        setVariantLabels((prev) => {
+                          const next = [...prev];
+                          next[i] = e.target.value;
+                          return next;
+                        })
+                      }
+                      className="h-8 text-xs"
+                    />
+                  ))}
+                </div>
+
                 {variants.length === 0 ? (
                   <EmptyState
                     title="Sin variantes configuradas"
@@ -618,16 +646,22 @@ export function ProductFormModal({
 
                         <div className="grid grid-cols-2 gap-2">
                           <CompactField
-                            label="Color"
+                            label={variantLabels[0] || 'Color'}
                             placeholder="Azul marino"
                             value={v.color}
                             onChange={updVariant(v._key, 'color')}
                           />
                           <CompactField
-                            label="Talle / Tamaño"
+                            label={variantLabels[1] || 'Tamaño'}
                             placeholder="XL"
                             value={v.size}
                             onChange={updVariant(v._key, 'size')}
+                          />
+                          <CompactField
+                            label={variantLabels[2] || 'Opción'}
+                            placeholder="Ej: Rosca"
+                            value={v.attr3}
+                            onChange={updVariant(v._key, 'attr3')}
                           />
                           <CompactField
                             label="Stock"
