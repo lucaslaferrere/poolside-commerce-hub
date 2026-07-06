@@ -293,7 +293,8 @@ export function ProductFormModal({
       .filter((ms) => ms.value.length > 0 && ms.key.length > 0);
 
     fd.append('variants', JSON.stringify(parsedVariants));
-    fd.append('variant_labels', JSON.stringify(variantLabels));
+    const cleanLabels = variantLabels.some((l) => l.trim() !== '') ? variantLabels : [];
+    fd.append('variant_labels', JSON.stringify(cleanLabels));
     fd.append('specs', JSON.stringify(parsedSpecs));
     fd.append('main_specs', JSON.stringify(parsedMainSpecs));
     fd.append('images', JSON.stringify(keptImages));
