@@ -80,6 +80,12 @@ export default function ProductDetailPage() {
   const hasSizePicker = sizes.length > 0;
   const hasAttr3Picker = attr3Values.length > 0;
 
+  // El cliente todavía no eligió una opción en algún eje disponible.
+  const needsSelection =
+    (hasColorPicker && !selectedColor) ||
+    (hasSizePicker && !selectedSize) ||
+    (hasAttr3Picker && !selectedAttr3);
+
   const colorLabel = product?.variant_labels?.[0] || 'Color';
   const sizeLabel = product?.variant_labels?.[1] || 'Tamaño';
   const attr3Label = product?.variant_labels?.[2] || 'Opción';
@@ -670,7 +676,7 @@ export default function ProductDetailPage() {
                 <Button
                   size="lg"
                   onClick={handleAddToCart}
-                  disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize) || (hasAttr3Picker && !selectedAttr3)}
+                  disabled={!inStock || needsSelection}
                   className={cn(
                     'hidden md:flex w-full h-14 gap-3 rounded-xl',
                     'font-display font-semibold text-[15px] tracking-tight',
@@ -681,9 +687,11 @@ export default function ProductDetailPage() {
                   )}
                 >
                   <ShoppingCart className="h-5 w-5 shrink-0" />
-                  {inStock
-                    ? `Agregar al carrito · ${formatPrice(effectivePrice * qty)}`
-                    : 'Sin stock'}
+                  {!inStock
+                    ? 'Sin stock'
+                    : needsSelection
+                      ? 'Elegí una opción en cada campo'
+                      : `Agregar al carrito · ${formatPrice(effectivePrice * qty)}`}
                 </Button>
               </div>
 
@@ -726,7 +734,7 @@ export default function ProductDetailPage() {
         <Button
           size="lg"
           onClick={handleAddToCart}
-          disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize) || (hasAttr3Picker && !selectedAttr3)}
+          disabled={!inStock || needsSelection}
           className={cn(
             'w-full h-14 gap-3 rounded-xl',
             'font-display font-semibold text-base tracking-tight',
@@ -737,7 +745,7 @@ export default function ProductDetailPage() {
           )}
         >
           <ShoppingCart className="h-5 w-5 shrink-0" />
-          {inStock ? 'Agregar al carrito' : 'Sin stock'}
+          {!inStock ? 'Sin stock' : needsSelection ? 'Elegí una opción en cada campo' : 'Agregar al carrito'}
         </Button>
       </div>
     </div>
