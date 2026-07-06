@@ -148,6 +148,7 @@ export interface ShopProduct {
   brand: string;
   images: string[];
   variants: ShopVariant[];
+  variant_labels?: string[];
   specs?: { key: string; value: string }[];
   main_specs?: ShopMainSpec[];
   benefits?: ShopBenefit[];

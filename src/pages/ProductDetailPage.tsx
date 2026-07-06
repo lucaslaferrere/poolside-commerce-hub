@@ -50,6 +50,7 @@ export default function ProductDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedAttr3, setSelectedAttr3] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
 
   const { data: product, isLoading, isError } = useProductById(id);
@@ -66,21 +67,45 @@ export default function ProductDetailPage() {
     return [...new Set(pool.map((v) => v.size).filter(Boolean))];
   }, [product, selectedColor]);
 
+  const attr3Values = useMemo(() => {
+    const pool = (product?.variants ?? []).filter(
+      (v) =>
+        (!selectedColor || v.color === selectedColor) &&
+        (!selectedSize || v.size === selectedSize),
+    );
+    return [...new Set(pool.map((v) => v.attr3).filter(Boolean))];
+  }, [product, selectedColor, selectedSize]);
+
   const hasColorPicker = colors.length > 0;
   const hasSizePicker = sizes.length > 0;
+  const hasAttr3Picker = attr3Values.length > 0;
+
+  const colorLabel = product?.variant_labels?.[0] || 'Color';
+  const sizeLabel = product?.variant_labels?.[1] || 'Tamaño';
+  const attr3Label = product?.variant_labels?.[2] || 'Opción';
 
   const selectedVariant = useMemo<ShopVariant | null>(() => {
     if (!product?.variants?.length) return null;
     if (hasColorPicker && !selectedColor) return null;
     if (hasSizePicker && !selectedSize) return null;
+    if (hasAttr3Picker && !selectedAttr3) return null;
     return (
       product.variants.find(
         (v) =>
           (!hasColorPicker || v.color === selectedColor) &&
-          (!hasSizePicker || v.size === selectedSize),
+          (!hasSizePicker || v.size === selectedSize) &&
+          (!hasAttr3Picker || v.attr3 === selectedAttr3),
       ) ?? null
     );
-  }, [product, hasColorPicker, hasSizePicker, selectedColor, selectedSize]);
+  }, [
+    product,
+    hasColorPicker,
+    hasSizePicker,
+    hasAttr3Picker,
+    selectedColor,
+    selectedSize,
+    selectedAttr3,
+  ]);
 
   const effectiveStock = useMemo(() => {
     if (!product) return 0;
@@ -492,13 +517,13 @@ export default function ProductDetailPage() {
               </div>
 
               {/* ── Variant selectors ──────────────────────────────────── */}
-              {(hasColorPicker || hasSizePicker) && (
+              {(hasColorPicker || hasSizePicker || hasAttr3Picker) && (
                 <div className="space-y-4 pt-1">
                   {/* Colors */}
                   {hasColorPicker && (
                     <div className="space-y-2.5">
                       <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                        Color
+                        {colorLabel}
                         {selectedColor && (
                           <span className="normal-case tracking-normal font-normal text-foreground ml-2">
                             {selectedColor}
@@ -517,6 +542,7 @@ export default function ProductDetailPage() {
                               onClick={() => {
                                 setSelectedColor(isSelected ? null : color);
                                 setSelectedSize(null);
+                                setSelectedAttr3(null);
                               }}
                               disabled={colorStock === 0}
                               className={cn(
@@ -540,7 +566,7 @@ export default function ProductDetailPage() {
                   {hasSizePicker && (
                     <div className="space-y-2.5">
                       <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                        Talle
+                        {sizeLabel}
                         {selectedSize && (
                           <span className="normal-case tracking-normal font-normal text-foreground ml-2">
                             {selectedSize}
@@ -558,7 +584,10 @@ export default function ProductDetailPage() {
                           return (
                             <button
                               key={size}
-                              onClick={() => setSelectedSize(isSelected ? null : size)}
+                              onClick={() => {
+                                setSelectedSize(isSelected ? null : size);
+                                setSelectedAttr3(null);
+                              }}
                               disabled={!hasStock}
                               className={cn(
                                 'px-4 py-2 text-sm rounded-lg border-2 font-medium transition-all duration-150',
@@ -570,6 +599,49 @@ export default function ProductDetailPage() {
                               )}
                             >
                               {size}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Attr3 */}
+                  {hasAttr3Picker && (
+                    <div className="space-y-2.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                        {attr3Label}
+                        {selectedAttr3 && (
+                          <span className="normal-case tracking-normal font-normal text-foreground ml-2">
+                            {selectedAttr3}
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex gap-2 flex-wrap">
+                        {attr3Values.map((attr3) => {
+                          const variant = (product.variants ?? []).find(
+                            (v) =>
+                              (!selectedColor || v.color === selectedColor) &&
+                              (!selectedSize || v.size === selectedSize) &&
+                              v.attr3 === attr3,
+                          );
+                          const hasStock = (variant?.stock ?? 0) > 0;
+                          const isSelected = selectedAttr3 === attr3;
+                          return (
+                            <button
+                              key={attr3}
+                              onClick={() => setSelectedAttr3(isSelected ? null : attr3)}
+                              disabled={!hasStock}
+                              className={cn(
+                                'px-4 py-2 text-sm rounded-lg border-2 font-medium transition-all duration-150',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
+                                isSelected
+                                  ? 'border-primary bg-primary text-white shadow-[0_4px_12px_hsl(220_100%_59%/0.35)]'
+                                  : 'border-slate-400 text-slate-800 bg-white hover:border-secondary hover:text-primary',
+                                !hasStock && 'opacity-35 cursor-not-allowed line-through',
+                              )}
+                            >
+                              {attr3}
                             </button>
                           );
                         })}
@@ -598,7 +670,7 @@ export default function ProductDetailPage() {
                 <Button
                   size="lg"
                   onClick={handleAddToCart}
-                  disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize)}
+                  disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize) || (hasAttr3Picker && !selectedAttr3)}
                   className={cn(
                     'hidden md:flex w-full h-14 gap-3 rounded-xl',
                     'font-display font-semibold text-[15px] tracking-tight',
@@ -654,7 +726,7 @@ export default function ProductDetailPage() {
         <Button
           size="lg"
           onClick={handleAddToCart}
-          disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize)}
+          disabled={!inStock || (hasColorPicker && !selectedColor) || (hasSizePicker && !selectedSize) || (hasAttr3Picker && !selectedAttr3)}
           className={cn(
             'w-full h-14 gap-3 rounded-xl',
             'font-display font-semibold text-base tracking-tight',
