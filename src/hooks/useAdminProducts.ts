@@ -64,6 +64,28 @@ export function useAdminProductsPage(params: { page: number; limit: number }) {
 }
 
 /**
+ * Fetch the full admin catalog in a single call so the table can search,
+ * filter, sort and paginate entirely client-side (the catalog is small and
+ * the backend already returns a raw array). Searching this way covers the
+ * whole catalog, not just the visible page.
+ */
+async function fetchAllAdminProducts(): Promise<AdminProduct[]> {
+  const raw = await apiGet<unknown>('/admin/products', { limit: '1000' });
+  const list: AdminProduct[] = Array.isArray(raw)
+    ? (raw as AdminProduct[])
+    : ((raw as { items?: AdminProduct[] })?.items ?? []);
+  return list.map(enrich);
+}
+
+export function useAllAdminProducts() {
+  return useQuery({
+    queryKey: [...QK_ROOT, 'all'] as const,
+    queryFn: fetchAllAdminProducts,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/**
  * Pulls the full product set for dashboard aggregates. A single call with a
  * generous limit, decoupled from the paginated table query so KPIs stay
  * accurate regardless of which page the user is on.

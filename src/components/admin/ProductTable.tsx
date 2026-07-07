@@ -169,7 +169,9 @@ interface Props {
   onEdit: (product: AdminProduct) => void;
   onDelete: (product: AdminProduct) => void;
   onToggleVisibility: (product: AdminProduct) => void;
-  onReorder: (reordered: AdminProduct[]) => void;
+  /** Omitted when the list is filtered/searched — reordering a partial view
+   *  would corrupt sort_order, so drag is disabled in that case. */
+  onReorder?: (reordered: AdminProduct[]) => void;
   selectedIds: string[];
   onToggleSelect: (id: string) => void;
 }
@@ -180,6 +182,7 @@ export function ProductTable({ products, isLoading, error, onEdit, onDelete, onT
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (!onReorder) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIdx = products.findIndex((p) => p.id === active.id);
