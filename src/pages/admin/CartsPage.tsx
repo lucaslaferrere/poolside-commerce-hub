@@ -6,7 +6,7 @@ import { apiGet } from '@/lib/api';
 import { formatPrice } from '@/types/shop';
 import { CartDetailDialog, type AdminCart } from '@/components/admin/CartDetailDialog';
 import { SendCouponDialog } from '@/components/admin/SendCouponDialog';
-import { AbandonedEmailTemplateDialog } from '@/components/admin/AbandonedEmailTemplateDialog';
+import { EmailTemplatesDialog } from '@/components/admin/EmailTemplatesDialog';
 
 export default function CartsPage() {
   const [viewing, setViewing] = useState<AdminCart | null>(null);
@@ -28,7 +28,7 @@ export default function CartsPage() {
           <p className="text-sm text-muted-foreground mt-1">Carritos de clientes que todavía no compraron.</p>
         </div>
         <Button variant="outline" onClick={() => setEditTemplate(true)}>
-          <FileText className="h-4 w-4 mr-2" /> Editar plantilla del mail
+          <FileText className="h-4 w-4 mr-2" /> Plantillas del mail
         </Button>
       </div>
 
@@ -82,7 +82,7 @@ export default function CartsPage() {
 
       <CartDetailDialog cart={viewing} onClose={() => setViewing(null)} />
       <SendCouponDialog cart={sending} onClose={() => setSending(null)} />
-      <AbandonedEmailTemplateDialog open={editTemplate} onClose={() => setEditTemplate(false)} />
+      <EmailTemplatesDialog open={editTemplate} onClose={() => setEditTemplate(false)} />
     </div>
   );
 }
