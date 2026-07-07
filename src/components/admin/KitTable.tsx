@@ -155,7 +155,8 @@ interface Props {
   onEdit: (kit: Kit) => void;
   onDelete: (kit: Kit) => void;
   onToggleVisibility: (kit: Kit) => void;
-  onReorder: (reordered: Kit[]) => void;
+  /** Omitted while searching — reordering a filtered view would corrupt sort_order. */
+  onReorder?: (reordered: Kit[]) => void;
   selectedIds: string[];
   onToggleSelect: (id: string) => void;
 }
@@ -166,6 +167,7 @@ export function KitTable({ kits, isLoading, onEdit, onDelete, onToggleVisibility
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (!onReorder) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIdx = kits.findIndex((k) => k.id === active.id);

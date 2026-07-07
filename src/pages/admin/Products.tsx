@@ -188,7 +188,7 @@ export default function AdminProducts() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_CATEGORIES}>Todas las categorías</SelectItem>
-            {CATEGORY_OPTIONS.map((c) => (
+            {CATEGORY_OPTIONS.filter((c) => c.value !== 'kits').map((c) => (
               <SelectItem key={c.value} value={c.value}>
                 {c.label}
               </SelectItem>

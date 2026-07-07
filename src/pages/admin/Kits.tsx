@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Plus, Layers } from 'lucide-react';
+import { Plus, Layers, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -17,16 +18,22 @@ export default function AdminKitsPage() {
   const { data: rawKits = [], isLoading } = useAdminKits();
   const { create, update, remove, toggleVisibility, reorderKits } = useAdminKitMutations();
 
+  const [search, setSearch] = useState('');
+  const searchActive = search.trim() !== '';
+
   const kits = useMemo(() => {
-    return [...rawKits].sort((a, b) => {
-      const oa = a.sort_order ?? 0;
-      const ob = b.sort_order ?? 0;
-      if (oa > 0 && ob > 0) return oa - ob;
-      if (oa > 0) return -1;
-      if (ob > 0) return 1;
-      return 0;
-    });
-  }, [rawKits]);
+    const q = search.trim().toLowerCase();
+    return [...rawKits]
+      .filter((k) => !q || k.name.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const oa = a.sort_order ?? 0;
+        const ob = b.sort_order ?? 0;
+        if (oa > 0 && ob > 0) return oa - ob;
+        if (oa > 0) return -1;
+        if (ob > 0) return 1;
+        return 0;
+      });
+  }, [rawKits, search]);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Kit | null>(null);
@@ -79,6 +86,29 @@ export default function AdminKitsPage() {
         }
       />
 
+      {/* Search toolbar */}
+      <div className="mb-4">
+        <div className="relative sm:max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar kit por nombre..."
+            className="pl-9 pr-9"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
       <KitTable
         kits={kits}
         isLoading={isLoading}
@@ -87,12 +117,18 @@ export default function AdminKitsPage() {
         onToggleVisibility={(k) =>
           toggleVisibility.mutate({ id: k.id, visible: k.visible === false })
         }
-        onReorder={handleReorder}
+        onReorder={searchActive ? undefined : handleReorder}
         selectedIds={selectedIds}
         onToggleSelect={(id: string) =>
           setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
         }
       />
+
+      {!isLoading && kits.length === 0 && searchActive && (
+        <p className="mt-4 text-center text-sm text-neutral-500">
+          No hay kits que coincidan con la búsqueda.
+        </p>
+      )}
 
       <KitFormModal
         open={formOpen}
