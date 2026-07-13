@@ -135,7 +135,7 @@ export default function ProductDetailPage() {
     : variantPrice;
 
   useEffect(() => {
-    if (product) trackEvent('product_view', { product_id: product.id, name: product.name });
+    if (product) trackEvent('product_view', { product_id: product.id, product_name: product.name });
   }, [product?.id]);
 
   useEffect(() => {

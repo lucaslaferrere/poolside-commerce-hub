@@ -437,7 +437,9 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-neutral-100">
                 {analyticsData.top_products.map((p) => (
                   <tr key={p.id} className="hover:bg-neutral-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-neutral-800 truncate max-w-[220px]">{p.name}</td>
+                    <td className="px-5 py-3 font-medium text-neutral-800 truncate max-w-[220px]">
+                      {p.name || productById.get(p.id)?.name || 'Producto'}
+                    </td>
                     <td className="px-5 py-3 text-right tabular-nums text-neutral-700">{p.views}</td>
                     <td className="px-5 py-3 text-right tabular-nums text-neutral-700">{p.cart_adds}</td>
                   </tr>
