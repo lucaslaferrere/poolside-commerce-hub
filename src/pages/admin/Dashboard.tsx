@@ -49,7 +49,7 @@ import {
 import { useAdminInsights } from '@/hooks/useAdminProducts';
 import { useKits } from '@/hooks/useKits';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import { useAnalytics, type AnalyticsPeriod } from '@/hooks/useAnalytics';
 import { useTrafficStats } from '@/hooks/useTrafficStats';
 import { formatPrice } from '@/types/shop';
 import type { Order, OrderStatus } from '@/types/shop';
@@ -70,6 +70,14 @@ const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
   { key: '30d', label: 'Últimos 30 días'  },
   { key: 'mtd', label: 'Este mes'         },
   { key: 'ytd', label: 'Año a la fecha'   },
+];
+
+// "Actividad del sitio" range toggle (backend-backed analytics).
+const ANALYTICS_PERIODS: { key: AnalyticsPeriod; label: string; hint: string }[] = [
+  { key: '1d',  label: 'Día',     hint: 'Hoy' },
+  { key: '7d',  label: '7 días',  hint: 'Últimos 7 días' },
+  { key: '30d', label: '30 días', hint: 'Últimos 30 días' },
+  { key: '1y',  label: 'Año',     hint: 'Año a la fecha' },
 ];
 
 function getRangeBounds(range: RangeKey, now = new Date()): { start: Date; end: Date; prevStart: Date; prevEnd: Date; granularity: 'day' | 'month' } {
@@ -105,7 +113,7 @@ function getRangeBounds(range: RangeKey, now = new Date()): { start: Date; end: 
 
 export default function AdminDashboard() {
   const [range, setRange] = useState<RangeKey>('30d');
-  const [analyticsPeriod, setAnalyticsPeriod] = useState<'7d' | '30d'>('7d');
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<AnalyticsPeriod>('7d');
   const { data: products = [], isLoading: loadingProducts, isError: errProducts, refetch: refetchProducts } = useAdminInsights();
   const { data: ordersData, isLoading: loadingOrders } = useAdminOrders();
   const { data: analyticsData, isLoading: loadingAnalytics } = useAnalytics(analyticsPeriod);
@@ -115,6 +123,7 @@ export default function AdminDashboard() {
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
   const rangeLabel = RANGE_OPTIONS.find((r) => r.key === range)?.label ?? '';
+  const analyticsHint = ANALYTICS_PERIODS.find((p) => p.key === analyticsPeriod)?.hint ?? '';
 
   /* ── Aggregates ──────────────────────────────────────────────────────── */
 
@@ -359,15 +368,15 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-base font-semibold text-neutral-900">Actividad del sitio</h2>
           <div className="flex gap-1">
-            {(['7d', '30d'] as const).map((p) => (
+            {ANALYTICS_PERIODS.map((p) => (
               <Button
-                key={p}
+                key={p.key}
                 size="sm"
-                variant={analyticsPeriod === p ? 'default' : 'outline'}
+                variant={analyticsPeriod === p.key ? 'default' : 'outline'}
                 className="h-7 text-xs px-3"
-                onClick={() => setAnalyticsPeriod(p)}
+                onClick={() => setAnalyticsPeriod(p.key)}
               >
-                {p === '7d' ? '7 días' : '30 días'}
+                {p.label}
               </Button>
             ))}
           </div>
@@ -380,14 +389,14 @@ export default function AdminDashboard() {
               <KpiCard
                 label="Carritos iniciados"
                 value={String(analyticsData?.cart_adds ?? 0)}
-                hint={analyticsPeriod === '7d' ? 'Últimos 7 días' : 'Últimos 30 días'}
+                hint={analyticsHint}
                 icon={ShoppingCart}
                 color={METRIC_COLORS.orders}
               />
               <KpiCard
                 label="Checkouts iniciados"
                 value={String(analyticsData?.checkout_starts ?? 0)}
-                hint={analyticsPeriod === '7d' ? 'Últimos 7 días' : 'Últimos 30 días'}
+                hint={analyticsHint}
                 icon={CreditCard}
                 color={METRIC_COLORS.aov}
               />
@@ -401,7 +410,7 @@ export default function AdminDashboard() {
               <KpiCard
                 label="Vistas de producto"
                 value={String(analyticsData?.product_views ?? 0)}
-                hint={analyticsPeriod === '7d' ? 'Últimos 7 días' : 'Últimos 30 días'}
+                hint={analyticsHint}
                 icon={Eye}
                 color={METRIC_COLORS.stock}
               />

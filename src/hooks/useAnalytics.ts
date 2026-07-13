@@ -12,7 +12,9 @@ export interface AnalyticsReport {
   top_products: { id: string; name: string; views: number; cart_adds: number }[];
 }
 
-export function useAnalytics(period: '7d' | '30d') {
+export type AnalyticsPeriod = '1d' | '7d' | '30d' | '1y';
+
+export function useAnalytics(period: AnalyticsPeriod) {
   return useQuery<AnalyticsReport>({
     queryKey: ['admin', 'analytics', period],
     queryFn: () => apiGet<AnalyticsReport>(`/admin/analytics?period=${period}`),
