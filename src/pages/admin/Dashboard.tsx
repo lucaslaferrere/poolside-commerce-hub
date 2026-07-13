@@ -65,11 +65,11 @@ const REVENUE_STATUSES: OrderStatus[] = ['paid', 'processing', 'shipped', 'deliv
 
 type RangeKey = '7d' | '30d' | 'mtd' | 'ytd';
 
-const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
-  { key: '7d',  label: 'Últimos 7 días'   },
-  { key: '30d', label: 'Últimos 30 días'  },
-  { key: 'mtd', label: 'Este mes'         },
-  { key: 'ytd', label: 'Año a la fecha'   },
+const RANGE_OPTIONS: { key: RangeKey; label: string; desc: string }[] = [
+  { key: '7d',  label: 'Últimos 7 días',  desc: 'Los 7 días corridos hasta hoy'  },
+  { key: '30d', label: 'Últimos 30 días', desc: 'Los 30 días corridos hasta hoy' },
+  { key: 'mtd', label: 'Este mes',        desc: 'Desde el 1° del mes hasta hoy'  },
+  { key: 'ytd', label: 'Año a la fecha',  desc: 'Desde el 1° de enero hasta hoy' },
 ];
 
 // "Actividad del sitio" range toggle (backend-backed analytics).
@@ -847,17 +847,18 @@ function DateRangePicker({ value, onChange }: { value: RangeKey; onChange: (v: R
           <ChevronDown className="h-3.5 w-3.5 text-neutral-400" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-60">
         {RANGE_OPTIONS.map((opt) => (
           <DropdownMenuItem
             key={opt.key}
             onSelect={() => onChange(opt.key)}
             className={cn(
-              'cursor-pointer text-sm',
-              value === opt.key && 'bg-brand/8 text-brand font-medium',
+              'cursor-pointer flex-col items-start gap-0.5 py-2',
+              value === opt.key && 'bg-brand/8 text-brand',
             )}
           >
-            {opt.label}
+            <span className={cn('text-sm', value === opt.key && 'font-medium')}>{opt.label}</span>
+            <span className="text-xs text-neutral-500">{opt.desc}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
