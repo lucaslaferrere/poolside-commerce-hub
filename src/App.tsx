@@ -18,6 +18,7 @@ import ProductDetailPage from './pages/ProductDetailPage.tsx';
 import CheckoutPage from './pages/CheckoutPage.tsx';
 import AdminLayout from './pages/admin/AdminLayout.tsx';
 import AdminDashboard from './pages/admin/Dashboard.tsx';
+import AdminRealtimePage from './pages/admin/Realtime.tsx';
 import AdminProducts from './pages/admin/Products.tsx';
 import AdminOrdersPage from './pages/admin/OrdersPage.tsx';
 import AdminKitsPage from './pages/admin/Kits.tsx';
@@ -83,6 +84,7 @@ const App = () => (
                 }
               >
                 <Route index element={<AdminDashboard />} />
+                <Route path="realtime" element={<AdminRealtimePage />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="kits" element={<AdminKitsPage />} />
                 <Route path="orders" element={<AdminOrdersPage />} />

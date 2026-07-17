@@ -30,6 +30,7 @@ import { useCart } from '@/store/cart';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice, type CartItem } from '@/types/shop';
 import { apiPost, apiGet } from '@/lib/api';
+import { getSessionId } from '@/lib/analytics';
 import { clearServerCart } from '@/lib/cartSync';
 import { trackEvent } from '@/lib/analytics';
 import { calcShipping, PROVINCES } from '@/lib/shipping';
@@ -243,6 +244,7 @@ export default function CheckoutPage() {
           razon_social: parsed.data.razon_social ?? '',
           cuit:         parsed.data.cuit_factura ?? '',
         } : undefined,
+        session_id: getSessionId(),
       });
       setResult(r);
       setDone(true);

@@ -1,6 +1,6 @@
 const BASE = (import.meta.env.VITE_API_URL as string) ?? '';
 
-function getSessionId(): string {
+export function getSessionId(): string {
   const key = '_psid';
   let id = localStorage.getItem(key);
   if (!id) {
