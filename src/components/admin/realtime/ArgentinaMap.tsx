@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
-
-const GEO_URL =
-  'https://cdn.jsdelivr.net/gh/apache/superset@master/superset-frontend/plugins/legacy-plugin-chart-country-map/src/countries/argentina.geojson';
+// GeoJSON de Argentina bundleado localmente (sin depender de un CDN externo en runtime).
+import argentinaGeo from '@/assets/argentina.geo.json';
 
 export interface MapCity {
   name: string;
@@ -32,7 +31,7 @@ export function ArgentinaMap({ theme = 'light', cities = [] }: { theme?: 'dark' 
         height={640}
         style={{ width: 'auto', height: '100%', maxWidth: '100%' }}
       >
-        <Geographies geography={GEO_URL}>
+        <Geographies geography={argentinaGeo as object}>
           {({ geographies }) =>
             geographies.map((geo) => (
               <Geography
