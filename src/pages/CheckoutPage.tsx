@@ -88,16 +88,34 @@ export default function CheckoutPage() {
   const cartToken = searchParams.get('cart');
   const [cartLinkLoading, setCartLinkLoading] = useState(!!cartToken);
   const trackedCheckout = useRef(false);
+  const loadedTokenRef = useRef<string | null>(null);
 
   // Carga items desde un cart link si viene ?cart=TOKEN
   useEffect(() => {
-    if (!cartToken || items.length > 0) {
+    if (!cartToken) {
       setCartLinkLoading(false);
       return;
     }
+    if (loadedTokenRef.current === cartToken) return;
+    // Cada link se aplica una sola vez por navegador (no duplica al recargar/reabrir).
+    const APPLIED_KEY = 'pooled-applied-cart-links';
+    let applied: string[] = [];
+    try {
+      applied = JSON.parse(localStorage.getItem(APPLIED_KEY) || '[]');
+    } catch {
+      applied = [];
+    }
+    loadedTokenRef.current = cartToken;
+    if (applied.includes(cartToken)) {
+      setCartLinkLoading(false);
+      return;
+    }
+
+    setCartLinkLoading(true);
     apiGet<{ items: Array<{ product_id: string; variant_sku: string; name: string; image_url: string; unit_price: number; quantity: number; type: string }> }>(
       `/cart-links/${cartToken}`
     ).then((res) => {
+      // Los ítems del link se AGREGAN al carrito actual (no lo reemplazan).
       res.items.forEach((item) => {
         add({
           id: item.product_id,
@@ -108,10 +126,15 @@ export default function CheckoutPage() {
           variant_sku: item.variant_sku || undefined,
         }, item.quantity);
       });
+      try {
+        localStorage.setItem(APPLIED_KEY, JSON.stringify([...applied, cartToken]));
+      } catch {
+        /* noop */
+      }
     }).catch(() => {/* link expirado o inválido */}).finally(() => {
       setCartLinkLoading(false);
     });
-  }, [cartToken]);
+  }, [cartToken, add]);
 
   useEffect(() => {
     if (!cartLinkLoading && items.length > 0 && !trackedCheckout.current) {
