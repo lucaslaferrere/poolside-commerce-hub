@@ -1,6 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiGet } from '@/lib/api';
-import type { SalesBucket, SalesGranularity } from './useSalesSeries';
+
+export type SalesGranularity = 'month' | 'day';
+
+export interface SalesBucket {
+  /** "2026-07" con granularidad mes, "2026-07-15" con granularidad día. */
+  period: string;
+  revenue: number;
+  orders: number;
+}
 
 export interface SalesTotals {
   revenue: number;

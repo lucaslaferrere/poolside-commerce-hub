@@ -46,18 +46,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useAdminInsights } from '@/hooks/useAdminProducts';
 import { useKits } from '@/hooks/useKits';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { useAnalytics, type AnalyticsPeriod } from '@/hooks/useAnalytics';
-import { useSalesSeries } from '@/hooks/useSalesSeries';
 import { useSalesOverview } from '@/hooks/useSalesOverview';
 import { useTrafficStats } from '@/hooks/useTrafficStats';
 import { formatPrice } from '@/types/shop';
@@ -71,14 +63,18 @@ const LOW_STOCK_THRESHOLD = 5;
    Date range
    ──────────────────────────────────────────────────────────────────────── */
 
-type RangeKey = '7d' | '30d' | 'mtd' | 'ytd';
+/** Claves fijas, o un mes puntual con formato "YYYY-MM". */
+type RangeKey = string;
 
 const RANGE_OPTIONS: { key: RangeKey; label: string; desc: string }[] = [
-  { key: '7d',  label: 'Últimos 7 días',  desc: 'Los 7 días corridos hasta hoy'  },
-  { key: '30d', label: 'Últimos 30 días', desc: 'Los 30 días corridos hasta hoy' },
-  { key: 'mtd', label: 'Este mes',        desc: 'Desde el 1° del mes hasta hoy'  },
-  { key: 'ytd', label: 'Año a la fecha',  desc: 'Desde el 1° de enero hasta hoy' },
+  { key: '7d',     label: 'Últimos 7 días',  desc: 'Los 7 días corridos hasta hoy'  },
+  { key: '30d',    label: 'Últimos 30 días', desc: 'Los 30 días corridos hasta hoy' },
+  { key: 'mtd',    label: 'Este mes',        desc: 'Desde el 1° del mes hasta hoy'  },
+  { key: 'ytd',    label: 'Año a la fecha',  desc: 'Desde el 1° de enero hasta hoy' },
+  { key: 'last12', label: 'Últimos 12 meses', desc: 'Tendencia mes a mes del último año' },
 ];
+
+const isMonthKey = (k: string) => /^\d{4}-\d{2}$/.test(k);
 
 // "Actividad del sitio" range toggle (backend-backed analytics).
 const ANALYTICS_PERIODS: { key: AnalyticsPeriod; label: string; hint: string }[] = [
@@ -89,11 +85,16 @@ const ANALYTICS_PERIODS: { key: AnalyticsPeriod; label: string; hint: string }[]
 ];
 
 function getRangeBounds(range: RangeKey, now = new Date()): { start: Date; end: Date; prevStart: Date; prevEnd: Date; granularity: 'day' | 'month' } {
-  const end = new Date(now);
+  let end = new Date(now);
   let start: Date;
   let granularity: 'day' | 'month' = 'day';
 
-  if (range === '7d') {
+  if (isMonthKey(range)) {
+    // Mes puntual: del 1° al último día, con detalle diario.
+    const [y, m] = range.split('-').map(Number);
+    start = new Date(y, m - 1, 1, 0, 0, 0);
+    end = new Date(y, m, 0, 23, 59, 59);
+  } else if (range === '7d') {
     start = new Date(end);
     start.setDate(end.getDate() - 6);
     start.setHours(0, 0, 0, 0);
@@ -103,6 +104,9 @@ function getRangeBounds(range: RangeKey, now = new Date()): { start: Date; end: 
     start.setHours(0, 0, 0, 0);
   } else if (range === 'mtd') {
     start = new Date(end.getFullYear(), end.getMonth(), 1, 0, 0, 0);
+  } else if (range === 'last12') {
+    start = new Date(end.getFullYear(), end.getMonth() - 11, 1, 0, 0, 0);
+    granularity = 'month';
   } else {
     start = new Date(end.getFullYear(), 0, 1, 0, 0, 0);
     granularity = 'month';
@@ -122,8 +126,6 @@ function getRangeBounds(range: RangeKey, now = new Date()): { start: Date; end: 
 export default function AdminDashboard() {
   const [range, setRange] = useState<RangeKey>('30d');
   const [analyticsPeriod, setAnalyticsPeriod] = useState<AnalyticsPeriod>('7d');
-  // 'last12' o 'YYYY-MM' — controla el gráfico de evolución de ventas.
-  const [salesView, setSalesView] = useState<string>('last12');
   const { data: products = [], isLoading: loadingProducts, isError: errProducts, refetch: refetchProducts } = useAdminInsights();
   const { data: ordersData, isLoading: loadingOrders } = useAdminOrders();
   const { data: analyticsData, isLoading: loadingAnalytics } = useAnalytics(analyticsPeriod);
@@ -132,7 +134,22 @@ export default function AdminDashboard() {
   const orders = ordersData?.orders ?? [];
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
-  const rangeLabel = RANGE_OPTIONS.find((r) => r.key === range)?.label ?? '';
+
+  // Últimos 12 meses como opciones puntuales del selector global.
+  const monthOptions = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      return {
+        value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: `${MONTHS_LONG[d.getMonth()]} ${d.getFullYear()}`,
+      };
+    });
+  }, []);
+
+  const rangeLabel = isMonthKey(range)
+    ? monthOptions.find((o) => o.value === range)?.label ?? ''
+    : RANGE_OPTIONS.find((r) => r.key === range)?.label ?? '';
   const analyticsHint = ANALYTICS_PERIODS.find((p) => p.key === analyticsPeriod)?.hint ?? '';
 
   /* ── Aggregates (calculados en el backend, no sobre una página de órdenes) ── */
@@ -191,48 +208,12 @@ export default function AdminDashboard() {
     [overview],
   );
 
-  /* ── Evolución de ventas (agregada en el backend) ────────────────────── */
-
-  // 'last12' = tendencia mensual de los últimos 12 meses. 'YYYY-MM' = drill-down diario.
-  const salesRange = useMemo(() => {
-    const iso = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    if (salesView === 'last12') {
-      const now = new Date();
-      const from = new Date(now.getFullYear(), now.getMonth() - 11, 1);
-      return { from: iso(from), to: iso(now), granularity: 'month' as const };
-    }
-    const [y, m] = salesView.split('-').map(Number);
-    return {
-      from: iso(new Date(y, m - 1, 1)),
-      to: iso(new Date(y, m, 0)), // último día del mes
-      granularity: 'day' as const,
-    };
-  }, [salesView]);
-
-  const { data: salesBuckets = [] } = useSalesSeries(salesRange);
+  /* ── Evolución de ventas: usa la misma serie del rango global ────────── */
 
   const salesSeries = useMemo(
-    () => salesBuckets.map((b) => ({ key: b.period, label: bucketLabel(b.period), total: b.revenue })),
-    [salesBuckets],
+    () => timeSeries.map((b) => ({ key: b.key, label: b.label, total: b.revenue })),
+    [timeSeries],
   );
-
-  // Últimos 12 meses como opciones de la cortina.
-  const monthOptions = useMemo(() => {
-    const now = new Date();
-    return Array.from({ length: 12 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      return {
-        value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-        label: `${MONTHS_LONG[d.getMonth()]} ${d.getFullYear()}`,
-      };
-    });
-  }, []);
-
-  const salesSubtitle =
-    salesView === 'last12'
-      ? 'Últimos 12 meses'
-      : monthOptions.find((o) => o.value === salesView)?.label ?? '';
 
   /* ── Categorías y top productos (agregados en el backend) ────────────── */
 
@@ -283,7 +264,7 @@ export default function AdminDashboard() {
         description="Resumen del estado actual del negocio."
         actions={
           <>
-            <DateRangePicker value={range} onChange={setRange} />
+            <DateRangePicker value={range} onChange={setRange} months={monthOptions} />
             <Button asChild variant="outline" size="sm">
               <Link to="/admin/products">
                 Ir a productos <ArrowRight className="h-3.5 w-3.5" />
@@ -521,24 +502,9 @@ export default function AdminDashboard() {
         <ChartCard
           className="lg:col-span-2"
           title="Evolución de ventas"
-          subtitle={salesSubtitle}
+          subtitle={rangeLabel}
           icon={LineChartIcon}
           iconClass="bg-emerald-50 text-emerald-600 ring-emerald-200"
-          action={
-            <Select value={salesView} onValueChange={setSalesView}>
-              <SelectTrigger className="h-8 w-[190px] text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="last12">Últimos 12 meses</SelectItem>
-                {monthOptions.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          }
         >
           {salesSeries.every((d) => d.total === 0) ? (
             <ChartEmpty label="Sin ventas en este período" />
@@ -844,8 +810,18 @@ export default function AdminDashboard() {
    Sub-components
    ──────────────────────────────────────────────────────────────────────── */
 
-function DateRangePicker({ value, onChange }: { value: RangeKey; onChange: (v: RangeKey) => void }) {
-  const current = RANGE_OPTIONS.find((r) => r.key === value)?.label ?? '';
+function DateRangePicker({
+  value,
+  onChange,
+  months,
+}: {
+  value: RangeKey;
+  onChange: (v: RangeKey) => void;
+  months: { value: string; label: string }[];
+}) {
+  const current = isMonthKey(value)
+    ? months.find((m) => m.value === value)?.label ?? ''
+    : RANGE_OPTIONS.find((r) => r.key === value)?.label ?? '';
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -855,7 +831,7 @@ function DateRangePicker({ value, onChange }: { value: RangeKey; onChange: (v: R
           <ChevronDown className="h-3.5 w-3.5 text-neutral-400" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
+      <DropdownMenuContent align="end" className="w-60 max-h-[70vh] overflow-y-auto">
         {RANGE_OPTIONS.map((opt) => (
           <DropdownMenuItem
             key={opt.key}
@@ -867,6 +843,23 @@ function DateRangePicker({ value, onChange }: { value: RangeKey; onChange: (v: R
           >
             <span className={cn('text-sm', value === opt.key && 'font-medium')}>{opt.label}</span>
             <span className="text-xs text-neutral-500">{opt.desc}</span>
+          </DropdownMenuItem>
+        ))}
+
+        <div className="my-1 border-t border-border" />
+        <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
+          Un mes puntual
+        </p>
+        {months.map((m) => (
+          <DropdownMenuItem
+            key={m.value}
+            onSelect={() => onChange(m.value)}
+            className={cn(
+              'cursor-pointer text-sm',
+              value === m.value && 'bg-brand/8 text-brand font-medium',
+            )}
+          >
+            {m.label}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
