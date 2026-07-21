@@ -40,8 +40,16 @@ export function RealtimeDashboard({ data }: { data: RealtimeSnapshot }) {
   const pctNuevos = total > 0 ? Math.round((nuevos / total) * 100) : 0;
   const donutDash = `${(pctNuevos / 100) * 327} 327`;
 
+  // La card del mapa muestra SOLO Argentina: sesiones de otros países no se pueden
+  // dibujar acá, así que tampoco cuentan en su total ni en el chip.
+  const arLocations = useMemo(
+    () => data.sesiones_por_ubicacion.filter((l) => l.country === 'Argentina'),
+    [data.sesiones_por_ubicacion],
+  );
+  const arSessions = arLocations.reduce((s, l) => s + l.sessions, 0);
+
   const mapCities: MapCity[] = useMemo(() => {
-    const withCoords = data.sesiones_por_ubicacion.filter((l) => l.lat !== 0 && l.lng !== 0);
+    const withCoords = arLocations.filter((l) => l.lat !== 0 && l.lng !== 0);
     const topValue = withCoords.reduce((m, l) => Math.max(m, l.sessions), 0);
     return withCoords.map((l) => ({
       name: l.city || l.province || l.country,
@@ -49,9 +57,9 @@ export function RealtimeDashboard({ data }: { data: RealtimeSnapshot }) {
       value: l.sessions,
       main: l.sessions === topValue && topValue > 0,
     }));
-  }, [data.sesiones_por_ubicacion]);
+  }, [arLocations]);
 
-  const topLoc = data.sesiones_por_ubicacion[0];
+  const topLoc = arLocations[0];
 
   return (
     <div className="space-y-4">
@@ -163,15 +171,15 @@ export function RealtimeDashboard({ data }: { data: RealtimeSnapshot }) {
 
         {/* Mapa */}
         <section className="relative overflow-hidden rounded-lg border border-neutral-200 bg-white p-5 min-h-[520px]">
-          <div className="relative z-10 flex items-center justify-between">
+          <div className="relative z-20 flex items-center justify-between">
             <h2 className="font-display text-base font-semibold text-neutral-900">Sesiones en Argentina</h2>
-            <span className="font-display text-sm font-semibold text-sky-600">{fmt(sesiones24h)} activas</span>
+            <span className="font-display text-sm font-semibold text-sky-600">{fmt(arSessions)} activas</span>
           </div>
-          <div className="absolute inset-0 z-0 flex items-center justify-center px-5 pt-11 pb-6">
+          <div className="absolute inset-0 z-10 flex items-center justify-center px-5 pt-11 pb-6">
             <ArgentinaMap theme="light" cities={mapCities} />
           </div>
           {topLoc && (
-            <div className="absolute left-5 bottom-5 z-10 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white/80 px-4 py-2.5 backdrop-blur">
+            <div className="absolute left-5 bottom-5 z-20 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white/80 px-4 py-2.5 backdrop-blur">
               <span className="h-2.5 w-2.5 rounded-full bg-sky-500 ring-4 ring-sky-500/15" />
               <div>
                 <div className="text-[11px] uppercase tracking-wide text-neutral-500">Mayor actividad</div>
