@@ -50,6 +50,8 @@ import { useAdminInsights } from '@/hooks/useAdminProducts';
 import { useKits } from '@/hooks/useKits';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { useAnalytics, type AnalyticsPeriod } from '@/hooks/useAnalytics';
+import { useSalesSeries } from '@/hooks/useSalesSeries';
+import { useSalesOverview } from '@/hooks/useSalesOverview';
 import { useTrafficStats } from '@/hooks/useTrafficStats';
 import { formatPrice } from '@/types/shop';
 import type { Order, OrderStatus } from '@/types/shop';
@@ -57,7 +59,6 @@ import { AdminPageHeader } from './AdminLayout';
 import { cn } from '@/lib/utils';
 
 const LOW_STOCK_THRESHOLD = 5;
-const REVENUE_STATUSES: OrderStatus[] = ['paid', 'processing', 'shipped', 'delivered'];
 
 /* ────────────────────────────────────────────────────────────────────────
    Date range
@@ -114,6 +115,8 @@ function getRangeBounds(range: RangeKey, now = new Date()): { start: Date; end: 
 export default function AdminDashboard() {
   const [range, setRange] = useState<RangeKey>('30d');
   const [analyticsPeriod, setAnalyticsPeriod] = useState<AnalyticsPeriod>('7d');
+  // 'last12' o 'YYYY-MM' — controla el gráfico de evolución de ventas.
+  const [salesView, setSalesView] = useState<string>('last12');
   const { data: products = [], isLoading: loadingProducts, isError: errProducts, refetch: refetchProducts } = useAdminInsights();
   const { data: ordersData, isLoading: loadingOrders } = useAdminOrders();
   const { data: analyticsData, isLoading: loadingAnalytics } = useAnalytics(analyticsPeriod);
@@ -125,8 +128,9 @@ export default function AdminDashboard() {
   const rangeLabel = RANGE_OPTIONS.find((r) => r.key === range)?.label ?? '';
   const analyticsHint = ANALYTICS_PERIODS.find((p) => p.key === analyticsPeriod)?.hint ?? '';
 
-  /* ── Aggregates ──────────────────────────────────────────────────────── */
+  /* ── Aggregates (calculados en el backend, no sobre una página de órdenes) ── */
 
+  // Se usa para resolver nombres de producto en la tabla de analytics.
   const productById = useMemo(() => {
     const map = new Map<string, { name: string; category: string }>();
     for (const p of products) {
@@ -135,36 +139,26 @@ export default function AdminDashboard() {
     return map;
   }, [products]);
 
-  const inRange = useMemo(
-    () => orders.filter((o) => {
-      const d = new Date(o.created_at);
-      return d >= bounds.start && d <= bounds.end;
-    }),
-    [orders, bounds],
-  );
+  const overviewRange = useMemo(() => {
+    const iso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return { from: iso(bounds.start), to: iso(bounds.end), granularity: bounds.granularity };
+  }, [bounds]);
 
-  const inPrev = useMemo(
-    () => orders.filter((o) => {
-      const d = new Date(o.created_at);
-      return d >= bounds.prevStart && d <= bounds.prevEnd;
-    }),
-    [orders, bounds],
-  );
+  const { data: overview } = useSalesOverview(overviewRange);
 
-  const paidNow  = inRange.filter((o) => REVENUE_STATUSES.includes(o.status));
-  const paidPrev = inPrev.filter((o) => REVENUE_STATUSES.includes(o.status));
-
-  const revenue      = paidNow.reduce((s, o) => s + o.total, 0);
-  const revenuePrev  = paidPrev.reduce((s, o) => s + o.total, 0);
+  const revenue      = overview?.current.revenue ?? 0;
+  const revenuePrev  = overview?.previous.revenue ?? 0;
   const trendRevenue = pct(revenue, revenuePrev);
 
-  const ordersCount      = inRange.length;
-  const ordersCountPrev  = inPrev.length;
-  const trendOrders      = pct(ordersCount, ordersCountPrev);
+  const ordersCount     = overview?.current.orders ?? 0;
+  const ordersCountPrev = overview?.previous.orders ?? 0;
+  const trendOrders     = pct(ordersCount, ordersCountPrev);
 
-  const aov      = paidNow.length > 0 ? revenue / paidNow.length : 0;
-  const aovPrev  = paidPrev.length > 0 ? revenuePrev / paidPrev.length : 0;
-  const trendAov = pct(aov, aovPrev);
+  const paidCount = overview?.current.paid_orders ?? 0;
+  const aov       = overview?.current.aov ?? 0;
+  const aovPrev   = overview?.previous.aov ?? 0;
+  const trendAov  = pct(aov, aovPrev);
 
   const lowStock = products.filter((p) => {
     const s = p.stock ?? 0;
@@ -176,89 +170,81 @@ export default function AdminDashboard() {
     0,
   );
 
-  /* ── Time series ─────────────────────────────────────────────────────── */
+  /* ── Sparklines de las KPIs (serie del backend para el rango elegido) ──── */
 
-  const timeSeries = useMemo(() => {
-    type Bucket = { key: string; label: string; revenue: number; orders: number; aov: number };
-    const buckets = new Map<string, Bucket>();
-    const formatBucket = (d: Date) =>
-      bounds.granularity === 'month'
-        ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        : d.toISOString().slice(0, 10);
+  const timeSeries = useMemo(
+    () =>
+      (overview?.series ?? []).map((b) => ({
+        key: b.period,
+        label: bucketLabel(b.period),
+        revenue: b.revenue,
+        orders: b.orders,
+        aov: b.orders > 0 ? b.revenue / b.orders : 0,
+      })),
+    [overview],
+  );
 
-    const cursor = new Date(bounds.start);
-    while (cursor <= bounds.end) {
-      const k = formatBucket(cursor);
-      buckets.set(k, {
-        key: k,
-        label: bounds.granularity === 'month' ? monthShort(k) : dayShort(k),
-        revenue: 0,
-        orders: 0,
-        aov: 0,
-      });
-      if (bounds.granularity === 'month') cursor.setMonth(cursor.getMonth() + 1);
-      else cursor.setDate(cursor.getDate() + 1);
+  /* ── Evolución de ventas (agregada en el backend) ────────────────────── */
+
+  // 'last12' = tendencia mensual de los últimos 12 meses. 'YYYY-MM' = drill-down diario.
+  const salesRange = useMemo(() => {
+    const iso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (salesView === 'last12') {
+      const now = new Date();
+      const from = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+      return { from: iso(from), to: iso(now), granularity: 'month' as const };
     }
+    const [y, m] = salesView.split('-').map(Number);
+    return {
+      from: iso(new Date(y, m - 1, 1)),
+      to: iso(new Date(y, m, 0)), // último día del mes
+      granularity: 'day' as const,
+    };
+  }, [salesView]);
 
-    // Total orders count (any status that's not cancelled/rejected counts toward "new orders")
-    for (const o of inRange) {
-      const k = formatBucket(new Date(o.created_at));
-      const bucket = buckets.get(k);
-      if (bucket) bucket.orders += 1;
-    }
-    // Revenue only from paid statuses
-    for (const o of paidNow) {
-      const k = formatBucket(new Date(o.created_at));
-      const bucket = buckets.get(k);
-      if (bucket) bucket.revenue += o.total;
-    }
-    // Per-bucket AOV
-    for (const b of buckets.values()) {
-      b.aov = b.orders > 0 ? b.revenue / b.orders : 0;
-    }
+  const { data: salesBuckets = [] } = useSalesSeries(salesRange);
 
-    return Array.from(buckets.values());
-  }, [inRange, paidNow, bounds]);
+  const salesSeries = useMemo(
+    () => salesBuckets.map((b) => ({ key: b.period, label: bucketLabel(b.period), total: b.revenue })),
+    [salesBuckets],
+  );
 
-  const salesSeries = timeSeries.map((b) => ({ key: b.key, label: b.label, total: b.revenue }));
+  // Últimos 12 meses como opciones de la cortina.
+  const monthOptions = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      return {
+        value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: `${MONTHS_LONG[d.getMonth()]} ${d.getFullYear()}`,
+      };
+    });
+  }, []);
 
-  /* ── Category breakdown ─────────────────────────────────────────────── */
+  const salesSubtitle =
+    salesView === 'last12'
+      ? 'Últimos 12 meses'
+      : monthOptions.find((o) => o.value === salesView)?.label ?? '';
 
-  const categoryData = useMemo(() => {
-    const totals = new Map<string, number>();
-    for (const o of paidNow) {
-      for (const it of (o.items ?? [])) {
-        const meta = productById.get(it.product_id);
-        const cat = meta?.category ?? 'otros';
-        const value = it.unit_price * it.quantity;
-        totals.set(cat, (totals.get(cat) ?? 0) + value);
-      }
-    }
-    return Array.from(totals.entries())
-      .map(([category, value]) => ({ category, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [paidNow, productById]);
+  /* ── Categorías y top productos (agregados en el backend) ────────────── */
+
+  const categoryData = useMemo(
+    () => (overview?.by_category ?? []).map((c) => ({ category: c.category, value: c.revenue })),
+    [overview],
+  );
 
   const categoryTotal = categoryData.reduce((s, c) => s + c.value, 0);
 
-  /* ── Top sellers ─────────────────────────────────────────────────────── */
-
-  const topProducts = useMemo(() => {
-    const totals = new Map<string, { name: string; units: number; revenue: number }>();
-    for (const o of paidNow) {
-      for (const it of (o.items ?? [])) {
-        const meta = productById.get(it.product_id);
-        const name = meta?.name ?? `Producto ${it.product_id.slice(0, 6)}`;
-        const prev = totals.get(it.product_id) ?? { name, units: 0, revenue: 0 };
-        prev.units   += it.quantity;
-        prev.revenue += it.unit_price * it.quantity;
-        totals.set(it.product_id, prev);
-      }
-    }
-    return Array.from(totals.values())
-      .sort((a, b) => b.units - a.units)
-      .slice(0, 5);
-  }, [paidNow, productById]);
+  const topProducts = useMemo(
+    () =>
+      (overview?.top_products ?? []).map((p) => ({
+        name: p.name || `Producto ${p.product_id.slice(0, 6)}`,
+        units: p.units,
+        revenue: p.revenue,
+      })),
+    [overview],
+  );
 
   /* ── Recent orders + low stock list ──────────────────────────────────── */
 
@@ -329,7 +315,7 @@ export default function AdminDashboard() {
             <KpiCard
               label="Pedidos nuevos"
               value={ordersCount.toLocaleString('es-AR')}
-              hint={`${paidNow.length} confirmados`}
+              hint={`${paidCount} confirmados`}
               trend={trendOrders}
               icon={ShoppingBag}
               color={METRIC_COLORS.orders}
@@ -338,7 +324,7 @@ export default function AdminDashboard() {
             <KpiCard
               label="Ticket promedio"
               value={formatPrice(aov)}
-              hint={`${paidNow.length || 0} órdenes pagas`}
+              hint={`${paidCount} órdenes pagas`}
               trend={trendAov}
               icon={Receipt}
               color={METRIC_COLORS.aov}
@@ -528,9 +514,24 @@ export default function AdminDashboard() {
         <ChartCard
           className="lg:col-span-2"
           title="Evolución de ventas"
-          subtitle={rangeLabel}
+          subtitle={salesSubtitle}
           icon={LineChartIcon}
           iconClass="bg-emerald-50 text-emerald-600 ring-emerald-200"
+          action={
+            <Select value={salesView} onValueChange={setSalesView}>
+              <SelectTrigger className="h-8 w-[190px] text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="last12">Últimos 12 meses</SelectItem>
+                {monthOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
         >
           {salesSeries.every((d) => d.total === 0) ? (
             <ChartEmpty label="Sin ventas en este período" />
@@ -993,10 +994,12 @@ interface ChartCardProps {
   icon?: typeof Package;
   iconClass?: string;
   className?: string;
+  /** Control opcional a la derecha del header (ej. un selector). */
+  action?: React.ReactNode;
   children: React.ReactNode;
 }
 
-function ChartCard({ title, subtitle, icon: Icon, iconClass, className, children }: ChartCardProps) {
+function ChartCard({ title, subtitle, icon: Icon, iconClass, className, action, children }: ChartCardProps) {
   return (
     <section className={cn('rounded-lg border border-neutral-200 bg-white p-5 sm:p-6', className)}>
       <header className="flex items-start justify-between gap-3 mb-4">
@@ -1011,6 +1014,7 @@ function ChartCard({ title, subtitle, icon: Icon, iconClass, className, children
             {subtitle && <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>}
           </div>
         </div>
+        {action && <div className="shrink-0">{action}</div>}
       </header>
       {children}
     </section>
@@ -1093,17 +1097,6 @@ function compactNumber(n: number): string {
   return String(Math.round(n));
 }
 
-function dayShort(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
-}
-
-function monthShort(key: string): string {
-  const [year, month] = key.split('-');
-  const idx = Number(month) - 1;
-  return `${MONTHS_SHORT[idx] ?? ''} ${year.slice(2)}`;
-}
-
 function shortDate(iso: string): string {
   const d = new Date(iso);
   return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
@@ -1114,6 +1107,15 @@ function capitalize(s: string): string {
 }
 
 const MONTHS_SHORT = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+const MONTHS_LONG = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+/** "2026-07" → "jul 26" · "2026-07-15" → "15 jul" (sin pasar por Date, evita corrimientos de timezone). */
+function bucketLabel(period: string): string {
+  const parts = period.split('-');
+  if (parts.length === 2) return `${MONTHS_SHORT[Number(parts[1]) - 1] ?? ''} ${parts[0].slice(2)}`;
+  return `${Number(parts[2])} ${MONTHS_SHORT[Number(parts[1]) - 1] ?? ''}`;
+}
 
 /* Vibrant palette — Tailwind 500 swatches, chosen for clean dashboard contrast */
 const VIBRANT_PALETTE = [
