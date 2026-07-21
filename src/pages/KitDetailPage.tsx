@@ -81,6 +81,7 @@ export default function KitDetailPage() {
       id: product.id,
       name: product.name,
       price: Number(product.base_price),
+      type: 'product',
       image_url: resolveImageUrl(product.images?.[0]) || null,
     });
     triggerSplash();

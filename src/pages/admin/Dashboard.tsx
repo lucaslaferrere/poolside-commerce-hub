@@ -46,6 +46,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAdminInsights } from '@/hooks/useAdminProducts';
 import { useKits } from '@/hooks/useKits';
 import { useAdminOrders } from '@/hooks/useAdminOrders';
