@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { RefreshCw, ShoppingBag, TrendingUp, Truck, Search, Link2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, ShoppingBag, TrendingUp, Truck, Search, Link2, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { OrdersTable } from '@/components/admin/OrdersTable';
@@ -31,6 +32,34 @@ export default function AdminOrdersPage() {
   const [viewing, setViewing]         = useState<Order | null>(null);
   const [editing, setEditing]         = useState<Order | null>(null);
   const [cartLinkOpen, setCartLinkOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  // Descarga el CSV de compradores. Va con fetch (no <a href>) porque el endpoint
+  // admin requiere el header Authorization, que un link plano no puede mandar.
+  const exportBuyers = async () => {
+    setExporting(true);
+    try {
+      const base = import.meta.env.VITE_API_URL as string;
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${base}/admin/orders/export.csv`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `compradores-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error('No se pudo exportar', { description: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const { data, isLoading, isError, refetch, isFetching } = useAdminOrders({ page, limit: LIMIT, status });
 
@@ -62,6 +91,10 @@ export default function AdminOrdersPage() {
         description="Todos los pedidos recibidos."
         actions={
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportBuyers} disabled={exporting}>
+              <Download className={cn('h-3.5 w-3.5 mr-1', exporting && 'animate-pulse')} />
+              {exporting ? 'Exportando...' : 'Exportar Excel'}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setCartLinkOpen(true)}>
               <Link2 className="h-3.5 w-3.5 mr-1" />
               Link de carrito
