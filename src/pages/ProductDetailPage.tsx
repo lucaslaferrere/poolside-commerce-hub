@@ -86,24 +86,6 @@ export default function ProductDetailPage() {
     (hasSizePicker && !selectedSize) ||
     (hasAttr3Picker && !selectedAttr3);
 
-  // Si el color elegido tiene fotos propias, esas reemplazan la galería
-  // general por completo (navegable con flechas/miniaturas igual que antes).
-  const galleryImages = useMemo(() => {
-    if (selectedColor && product) {
-      const variantWithImages = (product.variants ?? []).find(
-        (v) => v.color === selectedColor && v.images && v.images.length > 0,
-      );
-      if (variantWithImages?.images?.length) return variantWithImages.images;
-    }
-    return product?.images ?? [];
-  }, [selectedColor, product]);
-
-  // Volver a la primera foto cada vez que cambia la galería activa (evita un
-  // índice fuera de rango al pasar de un set de fotos más grande a uno chico).
-  useEffect(() => {
-    setActiveImage(0);
-  }, [galleryImages]);
-
   const colorLabel = product?.variant_labels?.[0] || 'Color';
   const sizeLabel = product?.variant_labels?.[1] || 'Tamaño';
   const attr3Label = product?.variant_labels?.[2] || 'Opción';
@@ -130,6 +112,20 @@ export default function ProductDetailPage() {
     selectedSize,
     selectedAttr3,
   ]);
+
+  // Si la combinación exacta elegida (color+tamaño+opción) tiene fotos
+  // propias, esas reemplazan la galería general por completo. Si no tiene,
+  // se usa la galería general como respaldo.
+  const galleryImages = useMemo(() => {
+    if (selectedVariant?.images?.length) return selectedVariant.images;
+    return product?.images ?? [];
+  }, [selectedVariant, product]);
+
+  // Volver a la primera foto cada vez que cambia la galería activa (evita un
+  // índice fuera de rango al pasar de un set de fotos más grande a uno chico).
+  useEffect(() => {
+    setActiveImage(0);
+  }, [galleryImages]);
 
   const effectiveStock = useMemo(() => {
     if (!product) return 0;
