@@ -86,17 +86,19 @@ export default function ProductDetailPage() {
     (hasSizePicker && !selectedSize) ||
     (hasAttr3Picker && !selectedAttr3);
 
-  // Si el color elegido tiene una foto propia asignada, la mostramos en la
-  // galería principal. Si no, no tocamos activeImage (se queda con la galería
-  // general del producto).
+  // Si el color elegido tiene una foto propia asignada, se muestra como la
+  // imagen principal (es independiente de la galería general del producto).
+  // Se limpia si el usuario navega manualmente la galería o cambia de color.
+  const [variantImageOverride, setVariantImageOverride] = useState<string | null>(null);
   useEffect(() => {
-    if (!selectedColor || !product) return;
+    if (!selectedColor || !product) {
+      setVariantImageOverride(null);
+      return;
+    }
     const variantWithImage = (product.variants ?? []).find(
       (v) => v.color === selectedColor && v.image,
     );
-    if (!variantWithImage?.image) return;
-    const idx = (product.images ?? []).indexOf(variantWithImage.image);
-    if (idx >= 0) setActiveImage(idx);
+    setVariantImageOverride(variantWithImage?.image || null);
   }, [selectedColor, product]);
 
   const colorLabel = product?.variant_labels?.[0] || 'Color';
@@ -361,7 +363,14 @@ export default function ProductDetailPage() {
             <div className="lg:col-span-3 space-y-4">
               {/* Main image */}
               <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-50 border border-slate-100">
-                {(product.images?.length ?? 0) > 0 ? (
+                {variantImageOverride ? (
+                  <img
+                    key={variantImageOverride}
+                    src={resolveImageUrl(variantImageOverride)}
+                    alt={product.name}
+                    className="h-full w-full object-cover animate-fade-in"
+                  />
+                ) : (product.images?.length ?? 0) > 0 ? (
                   <img
                     key={activeImage}
                     src={resolveImageUrl(product.images[activeImage])}
@@ -386,14 +395,20 @@ export default function ProductDetailPage() {
                 {(product.images?.length ?? 0) > 1 && (
                   <>
                     <button
-                      onClick={() => setActiveImage((i) => (i - 1 + product.images!.length) % product.images!.length)}
+                      onClick={() => {
+                        setVariantImageOverride(null);
+                        setActiveImage((i) => (i - 1 + product.images!.length) % product.images!.length);
+                      }}
                       className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
                       aria-label="Imagen anterior"
                     >
                       <ChevronLeft className="h-5 w-5 text-slate-700" />
                     </button>
                     <button
-                      onClick={() => setActiveImage((i) => (i + 1) % product.images!.length)}
+                      onClick={() => {
+                        setVariantImageOverride(null);
+                        setActiveImage((i) => (i + 1) % product.images!.length);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
                       aria-label="Imagen siguiente"
                     >
@@ -409,11 +424,11 @@ export default function ProductDetailPage() {
                   {product.images!.map((rawSrc, i) => (
                     <button
                       key={i}
-                      onClick={() => setActiveImage(i)}
+                      onClick={() => { setVariantImageOverride(null); setActiveImage(i); }}
                       aria-label={`Ver imagen ${i + 1}`}
                       className={cn(
                         'shrink-0 h-[72px] w-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                        activeImage === i
+                        !variantImageOverride && activeImage === i
                           ? 'border-primary shadow-md scale-[1.04]'
                           : 'border-slate-200 opacity-55 hover:opacity-100 hover:border-slate-300',
                       )}

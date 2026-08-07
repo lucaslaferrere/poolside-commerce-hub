@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Plus, Trash2, Upload, X, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Upload, X, AlertCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,7 @@ import {
 } from '@/types/admin';
 import type { Category } from '@/types/shop';
 import { cn } from '@/lib/utils';
-import { resolveImageUrl } from '@/lib/api';
+import { resolveImageUrl, apiPostForm } from '@/lib/api';
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
@@ -101,9 +102,7 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   product: AdminProduct | null;
   isSubmitting: boolean;
-  /** Devuelve el producto guardado — se usa para resolver las fotos nuevas
-   *  recién subidas y asignadas a una variante antes de guardar. */
-  onSubmit: (form: FormData, id?: string, opts?: { silent?: boolean }) => Promise<AdminProduct>;
+  onSubmit: (form: FormData, id?: string) => Promise<void>;
 }
 
 export function ProductFormModal({
@@ -193,20 +192,14 @@ export function ProductFormModal({
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const removeKeptImage = (url: string) => {
+  const removeKeptImage = (url: string) =>
     setKeptImages((prev) => prev.filter((u) => u !== url));
-    // Si alguna variante tenía asignada justo esta foto, se queda sin foto propia
-    // (cae al fallback: la galería general del producto).
-    setVariants((prev) => prev.map((r) => (r.image === url ? { ...r, image: '' } : r)));
-  };
 
-  const removeNewFile = (preview: string) => {
+  const removeNewFile = (preview: string) =>
     setNewFiles((prev) => {
       URL.revokeObjectURL(preview);
       return prev.filter((f) => f.preview !== preview);
     });
-    setVariants((prev) => prev.map((r) => (r.image === preview ? { ...r, image: '' } : r)));
-  };
 
   // Variants
   const addVariant = () => setVariants((v) => [...v, emptyVariant()]);
@@ -218,10 +211,27 @@ export function ProductFormModal({
       setVariants((v) =>
         v.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
       );
-  const setVariantImage = (key: string, url: string) =>
-    setVariants((v) =>
-      v.map((r) => (r._key === key ? { ...r, image: r.image === url ? '' : url } : r)),
-    );
+  // Foto propia por variante — subida independiente de "Imágenes del producto".
+  const [uploadingVariant, setUploadingVariant] = useState<string | null>(null);
+
+  const removeVariantImage = (key: string) =>
+    setVariants((v) => v.map((r) => (r._key === key ? { ...r, image: '' } : r)));
+
+  const uploadVariantImage = async (key: string, file: File) => {
+    setUploadingVariant(key);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const { url } = await apiPostForm<{ url: string }>('/admin/uploads/image', fd);
+      setVariants((v) => v.map((r) => (r._key === key ? { ...r, image: url } : r)));
+    } catch (err) {
+      toast.error('No se pudo subir la foto', {
+        description: err instanceof Error ? err.message : 'Error desconocido',
+      });
+    } finally {
+      setUploadingVariant(null);
+    }
+  };
 
   // Specs (Ficha técnica)
   const addSpec = () => setSpecs((s) => [...s, emptySpec()]);
@@ -289,20 +299,6 @@ export function ProductFormModal({
       }))
       .filter((v) => v.color.length > 0 || v.size.length > 0 || v.attr3.length > 0);
 
-    // Una variante puede apuntar a la vista previa (blob:) de una foto recién
-    // subida y todavía no guardada. Esa URL local no existe en el servidor, así
-    // que la sacamos del payload inicial y la resolvemos después de guardar,
-    // cuando ya sabemos qué URL final le tocó a cada archivo nuevo.
-    const newFilePreviews = newFiles.map((f) => f.preview);
-    const pendingImageResolutions: { index: number; newFileIndex: number }[] = [];
-    parsedVariants.forEach((v, i) => {
-      const newFileIndex = newFilePreviews.indexOf(v.image);
-      if (newFileIndex !== -1) {
-        pendingImageResolutions.push({ index: i, newFileIndex });
-        v.image = '';
-      }
-    });
-
     // Specs — backend contract: [{ key, value }]. Require BOTH non-empty.
     const parsedSpecs = specs
       .map((s) => ({ key: s.key.trim(), value: s.value.trim() }))
@@ -330,29 +326,7 @@ export function ProductFormModal({
     newFiles.forEach(({ file }) => fd.append('image', file));
 
     try {
-      const saved = await onSubmit(fd, product?.id);
-
-      // Resolver las asignaciones pendientes: las fotos nuevas ya están
-      // guardadas y el backend las anexó a `images` en el mismo orden en que
-      // se subieron, después de las que ya existían.
-      if (pendingImageResolutions.length > 0) {
-        const newlyUploadedUrls = saved.images.slice(keptImages.length);
-        if (newlyUploadedUrls.length === newFiles.length) {
-          const resolvedVariants = parsedVariants.map((v, i) => {
-            const pending = pendingImageResolutions.find((p) => p.index === i);
-            return pending ? { ...v, image: newlyUploadedUrls[pending.newFileIndex] } : v;
-          });
-          const followUp = new FormData();
-          followUp.append('variants', JSON.stringify(resolvedVariants));
-          try {
-            await onSubmit(followUp, saved.id, { silent: true });
-          } catch {
-            // Guardado principal ya éxitoso; si esta corrección falla, la foto
-            // se puede asignar a mano reabriendo el producto (ya va a estar
-            // entre las "Imágenes del producto").
-          }
-        }
-      }
+      await onSubmit(fd, product?.id);
       // Parent closes the modal on success; nothing else to do here.
     } catch (err) {
       const detail = err instanceof Error ? err.message : 'Error desconocido';
@@ -631,13 +605,6 @@ export function ProductFormModal({
                     <Upload className="h-4 w-4" />
                     Agregar imagen{keptImages.length + newFiles.length > 0 ? 's' : ''}
                   </button>
-
-                  {keptImages.length + newFiles.length < 4 && (
-                    <p className="text-[11px] text-amber-600 leading-relaxed flex items-start gap-1">
-                      <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
-                      Se recomiendan al menos 4 imágenes para poder asignar una foto distinta a cada variante.
-                    </p>
-                  )}
                 </div>
               </section>
 
@@ -740,55 +707,12 @@ export function ProductFormModal({
                           />
                         </div>
 
-                        {(keptImages.length > 0 || newFiles.length > 0) && (
-                          <div className="space-y-1">
-                            <Label className="text-[11px] text-neutral-500">
-                              Foto de esta variante
-                            </Label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {keptImages.map((url) => (
-                                <button
-                                  key={url}
-                                  type="button"
-                                  onClick={() => setVariantImage(v._key, url)}
-                                  aria-pressed={v.image === url}
-                                  aria-label="Usar esta foto para la variante"
-                                  className={cn(
-                                    'relative h-11 w-11 rounded-md overflow-hidden border-2 shrink-0 transition-all',
-                                    v.image === url
-                                      ? 'border-brand ring-2 ring-brand/25'
-                                      : 'border-neutral-200 hover:border-neutral-300',
-                                  )}
-                                >
-                                  <img src={resolveImageUrl(url)} alt="" className="w-full h-full object-cover" />
-                                </button>
-                              ))}
-                              {newFiles.map(({ preview }) => (
-                                <button
-                                  key={preview}
-                                  type="button"
-                                  onClick={() => setVariantImage(v._key, preview)}
-                                  aria-pressed={v.image === preview}
-                                  aria-label="Usar esta foto nueva para la variante"
-                                  className={cn(
-                                    'relative h-11 w-11 rounded-md overflow-hidden border-2 shrink-0 transition-all',
-                                    v.image === preview
-                                      ? 'border-brand ring-2 ring-brand/25'
-                                      : 'border-neutral-200 hover:border-neutral-300',
-                                  )}
-                                >
-                                  <img src={preview} alt="" className="w-full h-full object-cover" />
-                                  <span className="absolute top-0 left-0 px-1 py-px rounded-br text-[7px] font-semibold bg-brand text-white leading-none">
-                                    NUEVA
-                                  </span>
-                                </button>
-                              ))}
-                            </div>
-                            <p className="text-[10px] text-neutral-400">
-                              {v.image ? 'Tocá de nuevo para quitarla.' : 'Sin foto propia: usa la galería general.'}
-                            </p>
-                          </div>
-                        )}
+                        <VariantPhotoField
+                          variant={v}
+                          uploading={uploadingVariant === v._key}
+                          onUpload={(file) => uploadVariantImage(v._key, file)}
+                          onRemove={() => removeVariantImage(v._key)}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -1061,5 +985,74 @@ function BrandAddButton({
       <Plus className="h-4 w-4" />
       {label}
     </Button>
+  );
+}
+
+/**
+ * Foto propia de una variante — subida independiente de "Imágenes del
+ * producto". No comparte pool: cada variante tiene su propio archivo.
+ */
+function VariantPhotoField({
+  variant,
+  uploading,
+  onUpload,
+  onRemove,
+}: {
+  variant: VariantRow;
+  uploading: boolean;
+  onUpload: (file: File) => void;
+  onRemove: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onUpload(file);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div className="space-y-1">
+      <Label className="text-[11px] text-neutral-500">Foto de esta variante</Label>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFile}
+      />
+      {variant.image ? (
+        <div className="relative h-14 w-14 rounded-md overflow-hidden border border-neutral-200 group">
+          <img src={resolveImageUrl(variant.image)} alt="" className="w-full h-full object-cover" />
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label="Quitar foto de la variante"
+            className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+          >
+            <X className="h-3 w-3 text-neutral-700" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="h-9 px-3 border-2 border-dashed border-neutral-300 rounded-lg flex items-center gap-1.5 text-xs text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all disabled:opacity-60"
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Subiendo...
+            </>
+          ) : (
+            <>
+              <Upload className="h-3.5 w-3.5" />
+              Subir foto
+            </>
+          )}
+        </button>
+      )}
+    </div>
   );
 }

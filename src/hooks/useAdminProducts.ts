@@ -117,14 +117,9 @@ export function useAdminProductMutations() {
   });
 
   const update = useMutation({
-    mutationFn: ({ id, form }: { id: string; form: FormData; silent?: boolean }) =>
+    mutationFn: ({ id, form }: { id: string; form: FormData }) =>
       apiPutForm<AdminProduct>(`/admin/products/${id}`, form),
-    onSuccess: (_data, variables) => {
-      invalidate();
-      // silent: la corrección de fotos de variante que sigue al guardado
-      // principal no necesita su propio toast — ya se avisó una vez.
-      if (!variables.silent) toast.success('Producto actualizado');
-    },
+    onSuccess: () => { invalidate(); toast.success('Producto actualizado'); },
   });
 
   const remove = useMutation({
