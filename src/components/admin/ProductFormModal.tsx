@@ -63,6 +63,7 @@ const emptyVariant = (): VariantRow => ({
   stock: '',
   price_adjustment: '',
   images: [],
+  sku: '',
 });
 
 const emptySpec = (): SpecRow => ({
@@ -155,6 +156,7 @@ export function ProductFormModal({
           stock: String(v.stock),
           price_adjustment: String(v.price_adjustment),
           images: v.images ?? [],
+          sku: v.sku ?? '',
         })),
       );
       const labels = product.variant_labels ?? [];
@@ -305,6 +307,7 @@ export function ProductFormModal({
         stock: Math.max(0, toInt(v.stock)),
         price_adjustment: toFloat(v.price_adjustment),
         images: v.images,
+        sku: v.sku.trim(),
       }))
       .filter((v) => v.color.length > 0 || v.size.length > 0 || v.attr3.length > 0);
 
@@ -713,6 +716,12 @@ export function ProductFormModal({
                             placeholder="+500"
                             value={v.price_adjustment}
                             onChange={updVariant(v._key, 'price_adjustment')}
+                          />
+                          <CompactField
+                            label="Código / SKU"
+                            placeholder="Auto (color-talle)"
+                            value={v.sku}
+                            onChange={updVariant(v._key, 'sku')}
                           />
                         </div>
 

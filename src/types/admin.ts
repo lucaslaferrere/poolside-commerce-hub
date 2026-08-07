@@ -4,6 +4,7 @@ export type { Category };
 
 export interface Variant {
   id?: string;
+  sku?: string;
   color: string;
   size: string;
   attr3?: string;
@@ -53,6 +54,8 @@ export interface VariantRow {
   stock: string;
   price_adjustment: string;
   images: string[];
+  /** Código/SKU propio de la variante. Vacío = el backend genera uno automático. */
+  sku: string;
 }
 
 export interface SpecRow {
