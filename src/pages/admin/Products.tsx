@@ -101,10 +101,12 @@ export default function AdminProducts() {
   // Errors propagate to the modal which shows an inline alert with the
   // backend's specific message. The modal stays open on failure so the user
   // can fix the offending fields without losing context.
-  const handleFormSubmit = async (formData: FormData, id?: string) => {
-    if (id) await update.mutateAsync({ id, form: formData });
-    else await create.mutateAsync(formData);
-    setFormOpen(false);
+  const handleFormSubmit = async (formData: FormData, id?: string, opts?: { silent?: boolean }) => {
+    const saved = id
+      ? await update.mutateAsync({ id, form: formData, silent: opts?.silent })
+      : await create.mutateAsync(formData);
+    if (!opts?.silent) setFormOpen(false);
+    return saved;
   };
 
   const handleConfirmDelete = async () => {

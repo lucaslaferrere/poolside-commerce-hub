@@ -101,7 +101,9 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   product: AdminProduct | null;
   isSubmitting: boolean;
-  onSubmit: (form: FormData, id?: string) => Promise<void>;
+  /** Devuelve el producto guardado — se usa para resolver las fotos nuevas
+   *  recién subidas y asignadas a una variante antes de guardar. */
+  onSubmit: (form: FormData, id?: string, opts?: { silent?: boolean }) => Promise<AdminProduct>;
 }
 
 export function ProductFormModal({
@@ -198,11 +200,13 @@ export function ProductFormModal({
     setVariants((prev) => prev.map((r) => (r.image === url ? { ...r, image: '' } : r)));
   };
 
-  const removeNewFile = (preview: string) =>
+  const removeNewFile = (preview: string) => {
     setNewFiles((prev) => {
       URL.revokeObjectURL(preview);
       return prev.filter((f) => f.preview !== preview);
     });
+    setVariants((prev) => prev.map((r) => (r.image === preview ? { ...r, image: '' } : r)));
+  };
 
   // Variants
   const addVariant = () => setVariants((v) => [...v, emptyVariant()]);
@@ -285,6 +289,20 @@ export function ProductFormModal({
       }))
       .filter((v) => v.color.length > 0 || v.size.length > 0 || v.attr3.length > 0);
 
+    // Una variante puede apuntar a la vista previa (blob:) de una foto recién
+    // subida y todavía no guardada. Esa URL local no existe en el servidor, así
+    // que la sacamos del payload inicial y la resolvemos después de guardar,
+    // cuando ya sabemos qué URL final le tocó a cada archivo nuevo.
+    const newFilePreviews = newFiles.map((f) => f.preview);
+    const pendingImageResolutions: { index: number; newFileIndex: number }[] = [];
+    parsedVariants.forEach((v, i) => {
+      const newFileIndex = newFilePreviews.indexOf(v.image);
+      if (newFileIndex !== -1) {
+        pendingImageResolutions.push({ index: i, newFileIndex });
+        v.image = '';
+      }
+    });
+
     // Specs — backend contract: [{ key, value }]. Require BOTH non-empty.
     const parsedSpecs = specs
       .map((s) => ({ key: s.key.trim(), value: s.value.trim() }))
@@ -312,7 +330,29 @@ export function ProductFormModal({
     newFiles.forEach(({ file }) => fd.append('image', file));
 
     try {
-      await onSubmit(fd, product?.id);
+      const saved = await onSubmit(fd, product?.id);
+
+      // Resolver las asignaciones pendientes: las fotos nuevas ya están
+      // guardadas y el backend las anexó a `images` en el mismo orden en que
+      // se subieron, después de las que ya existían.
+      if (pendingImageResolutions.length > 0) {
+        const newlyUploadedUrls = saved.images.slice(keptImages.length);
+        if (newlyUploadedUrls.length === newFiles.length) {
+          const resolvedVariants = parsedVariants.map((v, i) => {
+            const pending = pendingImageResolutions.find((p) => p.index === i);
+            return pending ? { ...v, image: newlyUploadedUrls[pending.newFileIndex] } : v;
+          });
+          const followUp = new FormData();
+          followUp.append('variants', JSON.stringify(resolvedVariants));
+          try {
+            await onSubmit(followUp, saved.id, { silent: true });
+          } catch {
+            // Guardado principal ya éxitoso; si esta corrección falla, la foto
+            // se puede asignar a mano reabriendo el producto (ya va a estar
+            // entre las "Imágenes del producto").
+          }
+        }
+      }
       // Parent closes the modal on success; nothing else to do here.
     } catch (err) {
       const detail = err instanceof Error ? err.message : 'Error desconocido';
@@ -700,7 +740,7 @@ export function ProductFormModal({
                           />
                         </div>
 
-                        {keptImages.length > 0 && (
+                        {(keptImages.length > 0 || newFiles.length > 0) && (
                           <div className="space-y-1">
                             <Label className="text-[11px] text-neutral-500">
                               Foto de esta variante
@@ -721,6 +761,26 @@ export function ProductFormModal({
                                   )}
                                 >
                                   <img src={resolveImageUrl(url)} alt="" className="w-full h-full object-cover" />
+                                </button>
+                              ))}
+                              {newFiles.map(({ preview }) => (
+                                <button
+                                  key={preview}
+                                  type="button"
+                                  onClick={() => setVariantImage(v._key, preview)}
+                                  aria-pressed={v.image === preview}
+                                  aria-label="Usar esta foto nueva para la variante"
+                                  className={cn(
+                                    'relative h-11 w-11 rounded-md overflow-hidden border-2 shrink-0 transition-all',
+                                    v.image === preview
+                                      ? 'border-brand ring-2 ring-brand/25'
+                                      : 'border-neutral-200 hover:border-neutral-300',
+                                  )}
+                                >
+                                  <img src={preview} alt="" className="w-full h-full object-cover" />
+                                  <span className="absolute top-0 left-0 px-1 py-px rounded-br text-[7px] font-semibold bg-brand text-white leading-none">
+                                    NUEVA
+                                  </span>
                                 </button>
                               ))}
                             </div>
