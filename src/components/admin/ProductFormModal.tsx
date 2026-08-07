@@ -62,7 +62,7 @@ const emptyVariant = (): VariantRow => ({
   attr3: '',
   stock: '',
   price_adjustment: '',
-  image: '',
+  images: [],
 });
 
 const emptySpec = (): SpecRow => ({
@@ -154,7 +154,7 @@ export function ProductFormModal({
           attr3: v.attr3 ?? '',
           stock: String(v.stock),
           price_adjustment: String(v.price_adjustment),
-          image: v.image ?? '',
+          images: v.images ?? [],
         })),
       );
       const labels = product.variant_labels ?? [];
@@ -211,19 +211,28 @@ export function ProductFormModal({
       setVariants((v) =>
         v.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
       );
-  // Foto propia por variante — subida independiente de "Imágenes del producto".
+  // Fotos propias por variante — subida independiente de "Imágenes del producto".
   const [uploadingVariant, setUploadingVariant] = useState<string | null>(null);
 
-  const removeVariantImage = (key: string) =>
-    setVariants((v) => v.map((r) => (r._key === key ? { ...r, image: '' } : r)));
+  const removeVariantImage = (key: string, url: string) =>
+    setVariants((v) =>
+      v.map((r) => (r._key === key ? { ...r, images: r.images.filter((u) => u !== url) } : r)),
+    );
 
-  const uploadVariantImage = async (key: string, file: File) => {
+  const uploadVariantImages = async (key: string, files: File[]) => {
     setUploadingVariant(key);
     try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const { url } = await apiPostForm<{ url: string }>('/admin/uploads/image', fd);
-      setVariants((v) => v.map((r) => (r._key === key ? { ...r, image: url } : r)));
+      const urls = await Promise.all(
+        files.map(async (file) => {
+          const fd = new FormData();
+          fd.append('image', file);
+          const { url } = await apiPostForm<{ url: string }>('/admin/uploads/image', fd);
+          return url;
+        }),
+      );
+      setVariants((v) =>
+        v.map((r) => (r._key === key ? { ...r, images: [...r.images, ...urls] } : r)),
+      );
     } catch (err) {
       toast.error('No se pudo subir la foto', {
         description: err instanceof Error ? err.message : 'Error desconocido',
@@ -295,7 +304,7 @@ export function ProductFormModal({
         attr3: v.attr3.trim(),
         stock: Math.max(0, toInt(v.stock)),
         price_adjustment: toFloat(v.price_adjustment),
-        image: v.image.trim(),
+        images: v.images,
       }))
       .filter((v) => v.color.length > 0 || v.size.length > 0 || v.attr3.length > 0);
 
@@ -710,8 +719,8 @@ export function ProductFormModal({
                         <VariantPhotoField
                           variant={v}
                           uploading={uploadingVariant === v._key}
-                          onUpload={(file) => uploadVariantImage(v._key, file)}
-                          onRemove={() => removeVariantImage(v._key)}
+                          onUpload={(files) => uploadVariantImages(v._key, files)}
+                          onRemove={(url) => removeVariantImage(v._key, url)}
                         />
                       </li>
                     ))}
@@ -989,8 +998,8 @@ function BrandAddButton({
 }
 
 /**
- * Foto propia de una variante — subida independiente de "Imágenes del
- * producto". No comparte pool: cada variante tiene su propio archivo.
+ * Fotos propias de una variante — subida independiente de "Imágenes del
+ * producto". No comparte pool: cada variante tiene su propio set de archivos.
  */
 function VariantPhotoField({
   variant,
@@ -1000,59 +1009,61 @@ function VariantPhotoField({
 }: {
   variant: VariantRow;
   uploading: boolean;
-  onUpload: (file: File) => void;
-  onRemove: () => void;
+  onUpload: (files: File[]) => void;
+  onRemove: (url: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) onUpload(file);
+  const handleFiles = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) onUpload(files);
     if (inputRef.current) inputRef.current.value = '';
   };
 
   return (
     <div className="space-y-1">
-      <Label className="text-[11px] text-neutral-500">Foto de esta variante</Label>
+      <Label className="text-[11px] text-neutral-500">
+        Fotos de esta variante {variant.images.length > 0 && `(${variant.images.length})`}
+      </Label>
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        multiple
         className="hidden"
-        onChange={handleFile}
+        onChange={handleFiles}
       />
-      {variant.image ? (
-        <div className="relative h-14 w-14 rounded-md overflow-hidden border border-neutral-200 group">
-          <img src={resolveImageUrl(variant.image)} alt="" className="w-full h-full object-cover" />
-          <button
-            type="button"
-            onClick={onRemove}
-            aria-label="Quitar foto de la variante"
-            className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-          >
-            <X className="h-3 w-3 text-neutral-700" />
-          </button>
-        </div>
-      ) : (
+      <div className="flex flex-wrap gap-1.5">
+        {variant.images.map((url) => (
+          <div key={url} className="relative h-14 w-14 rounded-md overflow-hidden border border-neutral-200 group shrink-0">
+            <img src={resolveImageUrl(url)} alt="" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onRemove(url)}
+              aria-label="Quitar esta foto de la variante"
+              className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+            >
+              <X className="h-3 w-3 text-neutral-700" />
+            </button>
+          </div>
+        ))}
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="h-9 px-3 border-2 border-dashed border-neutral-300 rounded-lg flex items-center gap-1.5 text-xs text-neutral-500 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all disabled:opacity-60"
+          aria-label="Agregar foto a la variante"
+          className="h-14 w-14 shrink-0 border-2 border-dashed border-neutral-300 rounded-md flex flex-col items-center justify-center gap-0.5 text-neutral-400 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all disabled:opacity-60"
         >
           {uploading ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Subiendo...
-            </>
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
               <Upload className="h-3.5 w-3.5" />
-              Subir foto
+              <span className="text-[9px] leading-none">Agregar</span>
             </>
           )}
         </button>
-      )}
+      </div>
     </div>
   );
 }

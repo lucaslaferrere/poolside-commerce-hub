@@ -86,20 +86,23 @@ export default function ProductDetailPage() {
     (hasSizePicker && !selectedSize) ||
     (hasAttr3Picker && !selectedAttr3);
 
-  // Si el color elegido tiene una foto propia asignada, se muestra como la
-  // imagen principal (es independiente de la galería general del producto).
-  // Se limpia si el usuario navega manualmente la galería o cambia de color.
-  const [variantImageOverride, setVariantImageOverride] = useState<string | null>(null);
-  useEffect(() => {
-    if (!selectedColor || !product) {
-      setVariantImageOverride(null);
-      return;
+  // Si el color elegido tiene fotos propias, esas reemplazan la galería
+  // general por completo (navegable con flechas/miniaturas igual que antes).
+  const galleryImages = useMemo(() => {
+    if (selectedColor && product) {
+      const variantWithImages = (product.variants ?? []).find(
+        (v) => v.color === selectedColor && v.images && v.images.length > 0,
+      );
+      if (variantWithImages?.images?.length) return variantWithImages.images;
     }
-    const variantWithImage = (product.variants ?? []).find(
-      (v) => v.color === selectedColor && v.image,
-    );
-    setVariantImageOverride(variantWithImage?.image || null);
+    return product?.images ?? [];
   }, [selectedColor, product]);
+
+  // Volver a la primera foto cada vez que cambia la galería activa (evita un
+  // índice fuera de rango al pasar de un set de fotos más grande a uno chico).
+  useEffect(() => {
+    setActiveImage(0);
+  }, [galleryImages]);
 
   const colorLabel = product?.variant_labels?.[0] || 'Color';
   const sizeLabel = product?.variant_labels?.[1] || 'Tamaño';
@@ -363,17 +366,10 @@ export default function ProductDetailPage() {
             <div className="lg:col-span-3 space-y-4">
               {/* Main image */}
               <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-50 border border-slate-100">
-                {variantImageOverride ? (
+                {galleryImages.length > 0 ? (
                   <img
-                    key={variantImageOverride}
-                    src={resolveImageUrl(variantImageOverride)}
-                    alt={product.name}
-                    className="h-full w-full object-cover animate-fade-in"
-                  />
-                ) : (product.images?.length ?? 0) > 0 ? (
-                  <img
-                    key={activeImage}
-                    src={resolveImageUrl(product.images[activeImage])}
+                    key={`${activeImage}-${galleryImages[activeImage]}`}
+                    src={resolveImageUrl(galleryImages[activeImage])}
                     alt={product.name}
                     className="h-full w-full object-cover animate-fade-in"
                   />
@@ -392,23 +388,17 @@ export default function ProductDetailPage() {
                 {/* Vignette for depth */}
                 <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_0_40px_rgba(0,0,0,0.04)]" />
                 {/* Arrow navigation */}
-                {(product.images?.length ?? 0) > 1 && (
+                {galleryImages.length > 1 && (
                   <>
                     <button
-                      onClick={() => {
-                        setVariantImageOverride(null);
-                        setActiveImage((i) => (i - 1 + product.images!.length) % product.images!.length);
-                      }}
+                      onClick={() => setActiveImage((i) => (i - 1 + galleryImages.length) % galleryImages.length)}
                       className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
                       aria-label="Imagen anterior"
                     >
                       <ChevronLeft className="h-5 w-5 text-slate-700" />
                     </button>
                     <button
-                      onClick={() => {
-                        setVariantImageOverride(null);
-                        setActiveImage((i) => (i + 1) % product.images!.length);
-                      }}
+                      onClick={() => setActiveImage((i) => (i + 1) % galleryImages.length)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md backdrop-blur-sm transition-all hover:scale-105"
                       aria-label="Imagen siguiente"
                     >
@@ -419,16 +409,16 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Thumbnails */}
-              {(product.images?.length ?? 0) > 1 && (
+              {galleryImages.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-1">
-                  {product.images!.map((rawSrc, i) => (
+                  {galleryImages.map((rawSrc, i) => (
                     <button
                       key={i}
-                      onClick={() => { setVariantImageOverride(null); setActiveImage(i); }}
+                      onClick={() => setActiveImage(i)}
                       aria-label={`Ver imagen ${i + 1}`}
                       className={cn(
                         'shrink-0 h-[72px] w-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                        !variantImageOverride && activeImage === i
+                        activeImage === i
                           ? 'border-primary shadow-md scale-[1.04]'
                           : 'border-slate-200 opacity-55 hover:opacity-100 hover:border-slate-300',
                       )}
