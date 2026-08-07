@@ -123,6 +123,8 @@ export interface ShopVariant {
   attr3?: string;
   stock: number;
   price_adjustment: number;
+  /** Una de las fotos de Product.images. Vacío = usa la galería general del producto. */
+  image?: string;
 }
 
 export interface ShopBenefit {

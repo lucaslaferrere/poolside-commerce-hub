@@ -9,6 +9,8 @@ export interface Variant {
   attr3?: string;
   stock: number;
   price_adjustment: number;
+  /** Una de las fotos de Product.images. Vacío = usa la galería general del producto. */
+  image?: string;
 }
 
 export interface Spec {
@@ -50,6 +52,7 @@ export interface VariantRow {
   attr3: string;
   stock: string;
   price_adjustment: string;
+  image: string;
 }
 
 export interface SpecRow {

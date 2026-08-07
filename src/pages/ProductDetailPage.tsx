@@ -86,6 +86,19 @@ export default function ProductDetailPage() {
     (hasSizePicker && !selectedSize) ||
     (hasAttr3Picker && !selectedAttr3);
 
+  // Si el color elegido tiene una foto propia asignada, la mostramos en la
+  // galería principal. Si no, no tocamos activeImage (se queda con la galería
+  // general del producto).
+  useEffect(() => {
+    if (!selectedColor || !product) return;
+    const variantWithImage = (product.variants ?? []).find(
+      (v) => v.color === selectedColor && v.image,
+    );
+    if (!variantWithImage?.image) return;
+    const idx = (product.images ?? []).indexOf(variantWithImage.image);
+    if (idx >= 0) setActiveImage(idx);
+  }, [selectedColor, product]);
+
   const colorLabel = product?.variant_labels?.[0] || 'Color';
   const sizeLabel = product?.variant_labels?.[1] || 'Tamaño';
   const attr3Label = product?.variant_labels?.[2] || 'Opción';

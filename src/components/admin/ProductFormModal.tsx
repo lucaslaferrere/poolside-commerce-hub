@@ -61,6 +61,7 @@ const emptyVariant = (): VariantRow => ({
   attr3: '',
   stock: '',
   price_adjustment: '',
+  image: '',
 });
 
 const emptySpec = (): SpecRow => ({
@@ -152,6 +153,7 @@ export function ProductFormModal({
           attr3: v.attr3 ?? '',
           stock: String(v.stock),
           price_adjustment: String(v.price_adjustment),
+          image: v.image ?? '',
         })),
       );
       const labels = product.variant_labels ?? [];
@@ -189,8 +191,12 @@ export function ProductFormModal({
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const removeKeptImage = (url: string) =>
+  const removeKeptImage = (url: string) => {
     setKeptImages((prev) => prev.filter((u) => u !== url));
+    // Si alguna variante tenía asignada justo esta foto, se queda sin foto propia
+    // (cae al fallback: la galería general del producto).
+    setVariants((prev) => prev.map((r) => (r.image === url ? { ...r, image: '' } : r)));
+  };
 
   const removeNewFile = (preview: string) =>
     setNewFiles((prev) => {
@@ -208,6 +214,10 @@ export function ProductFormModal({
       setVariants((v) =>
         v.map((r) => (r._key === key ? { ...r, [field]: e.target.value } : r)),
       );
+  const setVariantImage = (key: string, url: string) =>
+    setVariants((v) =>
+      v.map((r) => (r._key === key ? { ...r, image: r.image === url ? '' : url } : r)),
+    );
 
   // Specs (Ficha técnica)
   const addSpec = () => setSpecs((s) => [...s, emptySpec()]);
@@ -271,6 +281,7 @@ export function ProductFormModal({
         attr3: v.attr3.trim(),
         stock: Math.max(0, toInt(v.stock)),
         price_adjustment: toFloat(v.price_adjustment),
+        image: v.image.trim(),
       }))
       .filter((v) => v.color.length > 0 || v.size.length > 0 || v.attr3.length > 0);
 
@@ -580,6 +591,13 @@ export function ProductFormModal({
                     <Upload className="h-4 w-4" />
                     Agregar imagen{keptImages.length + newFiles.length > 0 ? 's' : ''}
                   </button>
+
+                  {keptImages.length + newFiles.length < 4 && (
+                    <p className="text-[11px] text-amber-600 leading-relaxed flex items-start gap-1">
+                      <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
+                      Se recomiendan al menos 4 imágenes para poder asignar una foto distinta a cada variante.
+                    </p>
+                  )}
                 </div>
               </section>
 
@@ -681,6 +699,36 @@ export function ProductFormModal({
                             onChange={updVariant(v._key, 'price_adjustment')}
                           />
                         </div>
+
+                        {keptImages.length > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-neutral-500">
+                              Foto de esta variante
+                            </Label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {keptImages.map((url) => (
+                                <button
+                                  key={url}
+                                  type="button"
+                                  onClick={() => setVariantImage(v._key, url)}
+                                  aria-pressed={v.image === url}
+                                  aria-label="Usar esta foto para la variante"
+                                  className={cn(
+                                    'relative h-11 w-11 rounded-md overflow-hidden border-2 shrink-0 transition-all',
+                                    v.image === url
+                                      ? 'border-brand ring-2 ring-brand/25'
+                                      : 'border-neutral-200 hover:border-neutral-300',
+                                  )}
+                                >
+                                  <img src={resolveImageUrl(url)} alt="" className="w-full h-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-neutral-400">
+                              {v.image ? 'Tocá de nuevo para quitarla.' : 'Sin foto propia: usa la galería general.'}
+                            </p>
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
