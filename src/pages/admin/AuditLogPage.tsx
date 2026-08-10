@@ -114,12 +114,8 @@ export default function AuditLogPage() {
                   </td>
                   <td className="px-4 py-3 font-medium">{entry.admin_email || '—'}</td>
                   <td className="px-4 py-3">{entry.label}</td>
-                  <td className="px-4 py-3 max-w-[320px]">
-                    {entry.details && (
-                      <code className="text-[11px] text-muted-foreground break-all line-clamp-2">
-                        {entry.details}
-                      </code>
-                    )}
+                  <td className="px-4 py-3 max-w-[320px] text-xs text-muted-foreground">
+                    {entry.details || '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Badge
