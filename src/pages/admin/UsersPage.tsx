@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Search, Shield, ShieldPlus, User as UserIcon, UserPlus, ArrowUpCircle, ArrowDownCircle, Trash2 } from 'lucide-react';
+import { Users, Search, Shield, ShieldPlus, ShieldAlert, User as UserIcon, UserPlus, ArrowUpCircle, ArrowDownCircle, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,9 +31,31 @@ const ROLE_META: Record<AdminUser['role'], { label: string; className: string }>
 };
 
 export default function UsersPage() {
-  const { user: me } = useAuth();
+  const { user: me, setSession } = useAuth();
   const isSuperadmin = me?.role === 'superadmin';
   const qc = useQueryClient();
+
+  // Bootstrap: solo tiene sentido consultarlo si TODAVÍA no soy superadmin.
+  const { data: bootstrap } = useQuery({
+    queryKey: ['admin', 'bootstrap-superadmin'],
+    queryFn: () => apiGet<{ available: boolean }>('/admin/bootstrap-superadmin'),
+    enabled: !isSuperadmin,
+  });
+
+  const bootstrapMutation = useMutation({
+    mutationFn: () => apiPost<{ access_token: string }>('/admin/bootstrap-superadmin', {}),
+    onSuccess: (res) => {
+      const payload = JSON.parse(atob(res.access_token.split('.')[1]));
+      setSession(res.access_token, { id: payload.user_id, email: payload.email, role: payload.role });
+      qc.invalidateQueries({ queryKey: ['admin', 'bootstrap-superadmin'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      toast.success('Ahora sos superadmin');
+    },
+    onError: (e: Error) => {
+      const detail = e instanceof ApiError ? e.detail : e.message;
+      toast.error('No se pudo completar el bootstrap', { description: detail });
+    },
+  });
 
   const [search, setSearch] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -114,6 +136,26 @@ export default function UsersPage() {
           </Button>
         )}
       </div>
+
+      {/* Bootstrap: solo aparece mientras no exista ningún superadmin todavía */}
+      {!isSuperadmin && bootstrap?.available && (
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="h-5 w-5 text-violet-600 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-violet-900">Todavía no hay ningún superadmin.</p>
+              <p className="text-xs text-violet-700 mt-0.5">Convertite en el primero para poder invitar y gestionar administradores.</p>
+            </div>
+          </div>
+          <Button
+            onClick={() => bootstrapMutation.mutate()}
+            disabled={bootstrapMutation.isPending}
+            className="bg-violet-600 hover:bg-violet-700 shrink-0"
+          >
+            {bootstrapMutation.isPending ? 'Aplicando...' : 'Convertirme en superadmin'}
+          </Button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
