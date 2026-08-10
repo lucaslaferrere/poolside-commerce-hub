@@ -58,7 +58,7 @@ export function Header() {
   const splashTick = useCart((s) => s.splashTick);
   const { user } = useAuth();
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);

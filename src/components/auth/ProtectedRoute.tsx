@@ -15,7 +15,7 @@ export function ProtectedRoute({ children, adminOnly = false }: Props) {
     return <Navigate to="/" replace state={{ from: location, openAuth: true }} />;
   }
 
-  if (adminOnly && user?.role !== 'admin') {
+  if (adminOnly && user?.role !== 'admin' && user?.role !== 'superadmin') {
     return <Navigate to="/" replace />;
   }
 

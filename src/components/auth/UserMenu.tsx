@@ -92,7 +92,7 @@ export function UserMenu({ scrolled }: Props) {
           Mis Pedidos
         </DropdownMenuItem>
 
-        {user?.role === 'admin' && (
+        {(user?.role === 'admin' || user?.role === 'superadmin') && (
           <DropdownMenuItem onClick={() => navigate('/admin')}>
             <LayoutDashboard className="h-4 w-4" />
             Panel Admin

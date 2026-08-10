@@ -6,7 +6,7 @@ import { useCart } from '@/store/cart';
 export interface User {
   id: string;
   email: string;
-  role: 'admin' | 'client';
+  role: 'superadmin' | 'admin' | 'client';
 }
 
 interface LoginResponse {
