@@ -27,7 +27,7 @@ const LIMIT = 20;
 
 export default function AdminOrdersPage() {
   const [page, setPage]               = useState(1);
-  const [status, setStatus]           = useState('');
+  const [status, setStatus]           = useState('pending');
   const [search, setSearch]           = useState('');
   const [viewing, setViewing]         = useState<Order | null>(null);
   const [editing, setEditing]         = useState<Order | null>(null);
