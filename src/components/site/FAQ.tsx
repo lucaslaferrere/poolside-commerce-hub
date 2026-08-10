@@ -2,6 +2,42 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 
 const FAQS = [
   {
+    q: '¿Cómo sé qué luminaria necesita mi piscina?',
+    a: 'Depende de las medidas de la piscina, el material, los sectores a iluminar y si se trata de una obra nueva o un recambio. Enviándonos esos datos podemos recomendarte la luminaria, la cantidad y el sistema de control adecuados para tu proyecto.',
+  },
+  {
+    q: '¿Cuántas luminarias necesito?',
+    a: 'La cantidad depende principalmente del largo, ancho y distribución de la piscina. Como referencia, las líneas de 12V suelen instalarse con una separación de hasta 2 metros, mientras que OSIRE, gracias a su mayor rendimiento lumínico, permite separaciones de hasta 3 metros. Playas húmedas, escalones y otros sectores especiales se calculan por separado.',
+  },
+  {
+    q: '¿Más luminarias significa mejor iluminación?',
+    a: 'No necesariamente. Una buena iluminación depende de la distribución, no solo de la cantidad. Buscamos lograr una luz pareja, evitando zonas oscuras y también el exceso de iluminación o encandilamiento.',
+  },
+  {
+    q: '¿Las luminarias incluyen fuente y controlador?',
+    a: 'Depende del producto o kit elegido. POOLED ofrece sistemas completos que combinan luminarias, controlador y accesorios compatibles. Nuestros controladores integran alimentación y control en un mismo equipo, simplificando la instalación.',
+  },
+  {
+    q: '¿Necesito un controlador?',
+    a: 'Sí. El controlador reduce los 220V de la red a la baja tensión que utilizan las luminarias —12V o 24V según la línea— y administra su funcionamiento. Además, según el modelo, permite controlar colores, intensidad, escenas y funciones inteligentes.',
+  },
+  {
+    q: '¿Sirven para una piscina ya construida?',
+    a: 'Sí. Podemos trabajar tanto sobre piscinas nuevas como existentes. Si ya tenés luminarias o nichos instalados, analizamos la instalación para recomendarte la alternativa de recambio o adaptación más conveniente.',
+  },
+  {
+    q: '¿Se pueden instalar en piscinas de material o de fibra?',
+    a: 'Sí. Contamos con sistemas de fijación específicos para piscinas de hormigón/revestidas y para piscinas de fibra de vidrio. El accesorio utilizado cambia según el tipo de estructura para garantizar una instalación correcta y estanca.',
+  },
+  {
+    q: '¿Tienen luz blanca y de colores? ¿Qué diferencia hay entre RGB y RGBW?',
+    a: 'Sí. Contamos con alternativas en blanco y RGBW. A diferencia del RGB convencional, el RGBW incorpora un canal LED blanco independiente, logrando un blanco real además de los colores. También contamos con Horus White & White, que permite regular entre blanco cálido y frío.',
+  },
+  {
+    q: '¿Qué diferencia hay entre OSIRE, Horus, Nazar y Poolight?',
+    a: 'OSIRE Ultimate es nuestra línea de mayor tecnología y prestaciones. Combina alto rendimiento lumínico, 24V, protección térmica activa, tecnología propia y 3 años de garantía. Además, es la línea recomendada para piscinas con agua salada.',
+  },
+  {
     q: '¿Cuánto tarda el envío?',
     a: 'Despachamos en 24-48hs hábiles. La entrega varía entre 2 y 7 días según tu ubicación. Trabajamos con Andreani, OCA y Correo Argentino.',
   },
@@ -11,7 +47,7 @@ const FAQS = [
   },
   {
     q: '¿Tienen garantía?',
-    a: 'Las luminarias Nazar y Horus cuentan con 1 año de garantía oficial, mientras que la línea OSIRE incluye una garantía extendida de 3 años. Los productos de la línea Poolight tienen 6 meses de garantía oficial y todos nuestros controladores cuentan con 1 año de garantía. El resto de los productos está cubierto ante posibles defectos de fabricación.',
+    a: 'Las luminarias Nazar, Horus y Poolight cuentan con 1 año de garantía oficial, mientras que la línea OSIRE incluye una garantía extendida de 3 años. Todos nuestros controladores también cuentan con 1 año de garantía. El resto de los productos está cubierto ante posibles defectos de fabricación.',
   },
   {
     q: '¿Necesito un instalador profesional?',
@@ -26,8 +62,12 @@ const FAQS = [
     a: 'Sí, aceptamos MercadoPago (todos los medios) y transferencia bancaria con 3.5% de descuento.',
   },
   {
-    q: '¿Tienen condiciones para instaladores y distribuidores?',
-    a: 'Sí, tenemos un programa de distribuidores con precios mayoristas. Completá el formulario en la sección "Distribuidores".',
+    q: '¿Tienen precios para distribuidores y profesionales?',
+    a: 'Sí, con condiciones especiales para comercios, distribuidores, pileteros, constructores de piscinas, arquitectos y profesionales que trabajan habitualmente con nuestros productos. Se accede completando el formulario comercial y acreditando la actividad..',
+  },
+  {
+    q: '¿Cuál es el precio de un juego de dos o tres luminarias?',
+    a: 'Depende del modelo, del tipo de iluminación y de si necesitás fuente y controlador. Para cotizar necesitamos: medidas de la piscina, revestimiento, cantidad, luz blanca o RGBW, localidad y si es obra puntual o compra profesional recurrente.',
   },
 ];
 

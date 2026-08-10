@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .claude/
 ecommerce-pooled/
+# Cache/build artifacts
+.atl/
+*.tsbuildinfo
