@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Satoshi autohosteada (igual criterio que DM Sans/Lora: nada de pedirla a
+   Fontshare en runtime, así no se expone la IP del visitante). */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/satoshi/satoshi-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/satoshi/satoshi-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
@@ -124,6 +141,7 @@
        --------------------------------------------------------------------- */
     --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
     --font-display: 'Lora', Georgia, serif;
+    --font-hero:    'Satoshi', 'DM Sans', system-ui, sans-serif;
 
     --text-xs:   0.75rem;
     --text-sm:   0.875rem;
@@ -236,6 +254,14 @@
   .shadow-deep    { box-shadow: var(--shadow-lg); }
   .shadow-card    { box-shadow: var(--shadow-md); }
   .text-balance   { text-wrap: balance; }
+
+  /* Título estilo hero de la landing (Satoshi, igual que Landing-Poolside) */
+  .heading-hero {
+    font-family: var(--font-hero);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+  }
 }
 
 /* Cart wobble (preserved — used by the cart icon in Header) */
