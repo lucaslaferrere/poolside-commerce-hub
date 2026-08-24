@@ -115,7 +115,9 @@ export default function CheckoutPage() {
     apiGet<{ items: Array<{ product_id: string; variant_sku: string; name: string; image_url: string; unit_price: number; quantity: number; type: string }> }>(
       `/cart-links/${cartToken}`
     ).then((res) => {
-      // Los ítems del link se AGREGAN al carrito actual (no lo reemplazan).
+      // El link REEMPLAZA el carrito actual, para que el cliente vea
+      // exactamente lo que armó el admin (nada de productos viejos mezclados).
+      clear();
       res.items.forEach((item) => {
         add({
           id: item.product_id,
