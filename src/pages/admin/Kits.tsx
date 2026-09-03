@@ -16,7 +16,7 @@ import type { Kit } from '@/types/shop';
 
 export default function AdminKitsPage() {
   const { data: rawKits = [], isLoading } = useAdminKits();
-  const { create, update, remove, toggleVisibility, reorderKits } = useAdminKitMutations();
+  const { create, update, remove, toggleVisibility, reorderKits, refreshSuggestedPrices } = useAdminKitMutations();
 
   const [search, setSearch] = useState('');
   const searchActive = search.trim() !== '';
@@ -75,6 +75,13 @@ export default function AdminKitsPage() {
         description={`${kits.length} kit${kits.length !== 1 ? 's' : ''} cargado${kits.length !== 1 ? 's' : ''}`}
         actions={
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => refreshSuggestedPrices.mutate()}
+              disabled={refreshSuggestedPrices.isPending}
+            >
+              {refreshSuggestedPrices.isPending ? 'Actualizando...' : 'Actualizar a precio sugerido'}
+            </Button>
             <Button variant="outline" onClick={() => setBulkOpen(true)}>
               Actualizar precios
             </Button>

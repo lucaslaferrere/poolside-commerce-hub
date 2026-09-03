@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiGet, apiPostForm, apiPutForm, apiDelete, apiPatch } from '@/lib/api';
+import { apiGet, apiPost, apiPostForm, apiPutForm, apiDelete, apiPatch } from '@/lib/api';
 import type { Kit } from '@/types/shop';
 
 const QK = ['admin', 'kits'] as const;
@@ -61,5 +61,22 @@ export function useAdminKitMutations() {
     onError: (e: Error) => toast.error('Error al reordenar kits', { description: e.message }),
   });
 
-  return { create, update, remove, toggleVisibility, reorderKits };
+  const refreshSuggestedPrices = useMutation({
+    mutationFn: () =>
+      apiPost<{ updated_count: number; updated: { id: string; name: string; old_price: number; new_price: number }[] }>(
+        '/admin/kits/refresh-suggested-prices',
+        {},
+      ),
+    onSuccess: (res) => {
+      invalidate();
+      toast.success(
+        res.updated_count > 0
+          ? `${res.updated_count} kit${res.updated_count === 1 ? '' : 's'} actualizado${res.updated_count === 1 ? '' : 's'}`
+          : 'Los precios de los kits ya estaban al día',
+      );
+    },
+    onError: (e: Error) => toast.error('Error al actualizar precios sugeridos', { description: e.message }),
+  });
+
+  return { create, update, remove, toggleVisibility, reorderKits, refreshSuggestedPrices };
 }
